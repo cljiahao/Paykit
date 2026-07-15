@@ -1,9 +1,10 @@
 -- RLS cross-vendor isolation — pgTAP, run with `supabase test db`.
 begin;
-select plan(25);
+select plan(28);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 -- Vendor A: free plan, UEN config. Vendor B: pro plan, mobile config.
+-- Vendor C: no config row yet (used to test the INSERT-time plan escalation).
 insert into auth.users (id, instance_id, aud, role, email)
 values
   ('00000000-0000-0000-0000-00000000000a',
@@ -11,7 +12,10 @@ values
    'vendor-a@test.local'),
   ('00000000-0000-0000-0000-00000000000b',
    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'vendor-b@test.local');
+   'vendor-b@test.local'),
+  ('00000000-0000-0000-0000-00000000000c',
+   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'vendor-c@test.local');
 
 insert into paykit.vendor_payment_config (vendor_id, uen, payee_name, plan)
 values ('00000000-0000-0000-0000-00000000000a', '53312345A', 'Vendor A', 'free');
@@ -78,6 +82,22 @@ with upd as (
   where vendor_id = '00000000-0000-0000-0000-00000000000b' returning 1)
 select is((select count(*)::int from upd), 0, 'A cannot update B config');
 
+-- Task 4's original bug: an unrestricted grant let a vendor UPDATE its own
+-- `plan` column straight to 'pro' — free self-escalation. The fix is a
+-- column-scoped GRANT (migration 0001, ~line 137) that excludes `plan` from
+-- authenticated's UPDATE privilege on this table. Postgres denies the
+-- *entire* UPDATE statement if any targeted column lacks privilege (there is
+-- no per-column silent skip), so the correct behavior is a permission error,
+-- not a silent no-op. Real message on PG 17 is
+-- `permission denied for table vendor_payment_config`; pattern kept loose
+-- ('%permission denied%') so it still matches if Postgres ever names the
+-- column instead of the table.
+select throws_like(
+  $$ update paykit.vendor_payment_config set plan = 'pro'
+     where vendor_id = '00000000-0000-0000-0000-00000000000a' $$,
+  '%permission denied%',
+  'A cannot self-escalate to pro via UPDATE plan (column-scoped GRANT excludes plan)');
+
 select throws_ok(
   $$ insert into paykit.refunds (transaction_id, refunded_amount_cents, created_by)
      values ('00000000-0000-0000-0000-0000000d0a02', 100, '00000000-0000-0000-0000-00000000000a') $$,
@@ -92,6 +112,22 @@ select throws_ok(
   $$ select 1 from paykit.kit_api_keys $$,
   null,
   'A (authenticated) cannot SELECT kit_api_keys at all — service-role only');
+
+-- ── Act as Vendor C (no config row yet) ──────────────────────────────────────
+-- Same self-escalation bug, INSERT path: the column-scoped INSERT grant
+-- (migration 0001, ~line 135) also excludes `plan`, so a first-time vendor
+-- cannot create their own row already set to 'pro'.
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  json_build_object('sub', '00000000-0000-0000-0000-00000000000c', 'role', 'authenticated')::text,
+  true);
+
+select throws_like(
+  $$ insert into paykit.vendor_payment_config (vendor_id, uen, payee_name, plan)
+     values ('00000000-0000-0000-0000-00000000000c', '53398765Z', 'Vendor C', 'pro') $$,
+  '%permission denied%',
+  'C cannot self-escalate to pro via INSERT plan (column-scoped GRANT excludes plan)');
 
 -- ── Act as Vendor B (pro) ────────────────────────────────────────────────────
 set local role authenticated;
@@ -152,6 +188,19 @@ select throws_ok(
   $$ select 1 from paykit.kit_api_keys limit 1 $$,
   null,
   'anon cannot SELECT kit_api_keys');
+
+-- The existing B-cannot-query-A's-tx_count_this_month test above only
+-- exercises the function's internal `auth.uid() <> p_vendor` guard, which is
+-- a no-op when auth.uid() is null — true for BOTH service_role and anon. The
+-- actual protection against an anonymous caller is the explicit
+-- `revoke execute on function paykit.tx_count_this_month(uuid) from public`
+-- in migration 0001 (~line 149); without it anon would inherit PUBLIC's
+-- default EXECUTE grant and could query any vendor's monthly count. Real
+-- message on PG 17 is `permission denied for function tx_count_this_month`.
+select throws_like(
+  $$ select paykit.tx_count_this_month('00000000-0000-0000-0000-00000000000a') $$,
+  '%permission denied for function%',
+  'anon cannot call tx_count_this_month — EXECUTE revoked from PUBLIC');
 
 reset role;
 select * from finish();
