@@ -107,7 +107,10 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      tx_count_this_month: {
+        Args: { p_vendor: string };
+        Returns: number;
+      };
     };
   };
 }
