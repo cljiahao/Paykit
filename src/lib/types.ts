@@ -58,6 +58,7 @@ export interface Database {
           plan?: VendorPlan;
           updated_at?: string;
         };
+        Relationships: [];
       };
       transactions: {
         Row: Transaction;
@@ -78,6 +79,7 @@ export interface Database {
           claimed_at?: string | null;
           confirmed_at?: string | null;
         };
+        Relationships: [];
       };
       refunds: {
         Row: Refund;
@@ -92,12 +94,20 @@ export interface Database {
         Update: {
           reason?: string | null;
         };
+        Relationships: [];
       };
       kit_api_keys: {
         Row: { kit_slug: string; secret_hash: string; created_at: string };
         Insert: { kit_slug: string; secret_hash: string; created_at?: string };
         Update: { secret_hash?: string };
+        Relationships: [];
       };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
     };
   };
 }
