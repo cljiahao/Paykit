@@ -54,7 +54,8 @@ src/lib/payments/adapter.ts       — PaymentAdapter (paynow) + reserved-but-dar
 src/lib/tx-state.ts               — pure pending→claimed→confirmed transition logic
 src/lib/kit-auth.ts               — bearer-secret verification for calling kits
 src/lib/schemas.ts                — Zod: vendor PayNow config write schema
-src/lib/api-schemas.ts            — Zod: HTTP API request/response contracts
+src/lib/api-schemas.ts            — Zod: HTTP API request/response contracts + shared uuidSchema path-param validator
+src/lib/vendor-session.ts         — shared dashboard auth guard (getVendorSession) + plan lookup (getVendorPlan)
 src/lib/types.ts                  — DB types (mirror of supabase/migrations)
 scripts/create-kit-key.mjs        — mint + store a hashed bearer secret for a calling kit
 supabase/migrations/              — SQL schema + RLS + grants

@@ -1,21 +1,12 @@
-import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
+import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { listTransactions } from "@/lib/transactions";
 import { aggregateRevenueByDay } from "@/lib/revenue-report";
 import { RevenueChart } from "./revenue-chart";
 
 export default async function ReportsPage() {
-  const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const { supabase, user } = await getVendorSession();
 
-  const { data: config } = await supabase
-    .from("vendor_payment_config")
-    .select("plan")
-    .eq("vendor_id", user.id)
-    .maybeSingle();
+  const config = await getVendorPlan(supabase, user.id);
 
   if (config?.plan !== "pro") {
     return (

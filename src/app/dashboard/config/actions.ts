@@ -1,21 +1,11 @@
 "use server";
 
-import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
+import { getVendorSession } from "@/lib/vendor-session";
 import { vendorPaymentConfigInputSchema } from "@/lib/schemas";
 import type { VendorPaymentConfig } from "@/lib/types";
 
-async function requireVendor() {
-  const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  return { supabase, user };
-}
-
 export async function getConfig(): Promise<VendorPaymentConfig | null> {
-  const { supabase, user } = await requireVendor();
+  const { supabase, user } = await getVendorSession();
   const { data } = await supabase
     .from("vendor_payment_config")
     .select("*")
@@ -33,7 +23,7 @@ export async function saveConfigAction(
   _prev: SaveConfigState,
   formData: FormData,
 ): Promise<SaveConfigState> {
-  const { supabase, user } = await requireVendor();
+  const { supabase, user } = await getVendorSession();
   const parsed = vendorPaymentConfigInputSchema.safeParse({
     payee_name: formData.get("payee_name") ?? "",
     uen: formData.get("uen") ?? "",
