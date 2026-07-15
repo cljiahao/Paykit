@@ -126,4 +126,55 @@ describe("POST /api/v1/checkout", () => {
     );
     expect(res.status).toBe(400);
   });
+
+  it("503s when the config read fails", async () => {
+    configMaybeSingle.mockResolvedValue({
+      data: null,
+      error: { message: "connection reset" },
+    });
+    const res = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-001",
+      }),
+    );
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).not.toMatch(/connection reset/);
+  });
+
+  it("503s when the usage count read fails", async () => {
+    countHead.mockResolvedValue({
+      count: null,
+      error: { message: "connection reset" },
+    });
+    const res = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-001",
+      }),
+    );
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).not.toMatch(/connection reset/);
+  });
+
+  it("503s when the transaction insert fails", async () => {
+    insertSingle.mockResolvedValue({
+      data: null,
+      error: { message: "connection reset" },
+    });
+    const res = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-001",
+      }),
+    );
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).not.toMatch(/connection reset/);
+  });
 });

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKitAuth } from "@/lib/kit-auth";
-import { toStatusResponse } from "@/lib/api-schemas";
+import { toStatusResponse, uuidSchema } from "@/lib/api-schemas";
 
 export async function GET(
   request: Request,
@@ -12,6 +12,12 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+  if (!uuidSchema.safeParse(id).success) {
+    return NextResponse.json(
+      { error: "Invalid transaction id" },
+      { status: 400 },
+    );
+  }
   const supabase = await createServiceClient();
   const { data, error } = await supabase
     .from("transactions")

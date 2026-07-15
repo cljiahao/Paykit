@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKitAuth } from "@/lib/kit-auth";
 import { confirmTransition, type TxStatus } from "@/lib/tx-state";
-import { toStatusResponse } from "@/lib/api-schemas";
+import { toStatusResponse, uuidSchema } from "@/lib/api-schemas";
 
 export async function POST(
   request: Request,
@@ -13,6 +13,12 @@ export async function POST(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
+  if (!uuidSchema.safeParse(id).success) {
+    return NextResponse.json(
+      { error: "Invalid transaction id" },
+      { status: 400 },
+    );
+  }
   const supabase = await createServiceClient();
 
   const { data: current, error: readError } = await supabase

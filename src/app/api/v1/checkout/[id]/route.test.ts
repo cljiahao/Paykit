@@ -13,6 +13,8 @@ vi.mock("@/lib/supabase/server", () => ({
   createServiceClient: createServiceClientMock,
 }));
 
+const TX_ID = "22222222-2222-2222-2222-222222222222";
+
 beforeEach(() => {
   verifyKitAuthMock.mockReset().mockResolvedValue({ kitSlug: "qkit" });
   createServiceClientMock.mockReset().mockResolvedValue({
@@ -22,7 +24,7 @@ beforeEach(() => {
   });
   maybeSingleMock.mockReset().mockResolvedValue({
     data: {
-      id: "tx1",
+      id: TX_ID,
       status: "confirmed",
       amount_cents: 450,
       order_ref: "A-001",
@@ -36,12 +38,12 @@ beforeEach(() => {
 });
 
 function req() {
-  return new Request("http://localhost/api/v1/checkout/tx1", {
+  return new Request(`http://localhost/api/v1/checkout/${TX_ID}`, {
     headers: { authorization: "Bearer qkit:secret" },
   });
 }
-function ctx() {
-  return { params: Promise.resolve({ id: "tx1" }) };
+function ctx(id: string = TX_ID) {
+  return { params: Promise.resolve({ id }) };
 }
 
 describe("GET /api/v1/checkout/[id]", () => {
@@ -57,5 +59,20 @@ describe("GET /api/v1/checkout/[id]", () => {
   it("404s for an unknown transaction", async () => {
     maybeSingleMock.mockResolvedValue({ data: null, error: null });
     expect((await GET(req(), ctx())).status).toBe(404);
+  });
+  it("400s for a malformed (non-uuid) id, without querying the DB", async () => {
+    const res = await GET(req(), ctx("not-a-uuid"));
+    expect(res.status).toBe(400);
+    expect(maybeSingleMock).not.toHaveBeenCalled();
+  });
+  it("503s when the DB read fails", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: null,
+      error: { message: "connection reset" },
+    });
+    const res = await GET(req(), ctx());
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).not.toMatch(/connection reset/);
   });
 });

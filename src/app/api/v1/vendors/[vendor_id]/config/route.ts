@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKitAuth } from "@/lib/kit-auth";
+import { uuidSchema } from "@/lib/api-schemas";
 
 export async function GET(
   request: Request,
@@ -11,6 +12,9 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { vendor_id } = await params;
+  if (!uuidSchema.safeParse(vendor_id).success) {
+    return NextResponse.json({ error: "Invalid vendor id" }, { status: 400 });
+  }
   const supabase = await createServiceClient();
   const { data, error } = await supabase
     .from("vendor_payment_config")

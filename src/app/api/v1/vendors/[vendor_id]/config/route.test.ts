@@ -23,13 +23,15 @@ beforeEach(() => {
   maybeSingleMock.mockReset();
 });
 
+const VENDOR_ID = "11111111-1111-1111-1111-111111111111";
+
 function req() {
-  return new Request("http://localhost/api/v1/vendors/v1/config", {
+  return new Request(`http://localhost/api/v1/vendors/${VENDOR_ID}/config`, {
     headers: { authorization: "Bearer qkit:secret" },
   });
 }
-function ctx() {
-  return { params: Promise.resolve({ vendor_id: "v1" }) };
+function ctx(vendor_id: string = VENDOR_ID) {
+  return { params: Promise.resolve({ vendor_id }) };
 }
 
 describe("GET /api/v1/vendors/[vendor_id]/config", () => {
@@ -52,5 +54,20 @@ describe("GET /api/v1/vendors/[vendor_id]/config", () => {
   it("401s when unauthorized", async () => {
     verifyKitAuthMock.mockResolvedValue(null);
     expect((await GET(req(), ctx())).status).toBe(401);
+  });
+  it("400s for a malformed (non-uuid) vendor_id, without querying the DB", async () => {
+    const res = await GET(req(), ctx("not-a-uuid"));
+    expect(res.status).toBe(400);
+    expect(maybeSingleMock).not.toHaveBeenCalled();
+  });
+  it("503s when the DB read fails", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: null,
+      error: { message: "connection reset" },
+    });
+    const res = await GET(req(), ctx());
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).not.toMatch(/connection reset/);
   });
 });

@@ -2,8 +2,11 @@ import { z } from "zod";
 
 export const txStatusSchema = z.enum(["pending", "claimed", "confirmed"]);
 
+/** Shared UUID validator for path params (`transactions.id`, `vendor_payment_config.vendor_id`) — a malformed value is a 400, not a DB-error 503. */
+export const uuidSchema = z.string().uuid();
+
 export const checkoutRequestSchema = z.object({
-  vendor_id: z.string().uuid(),
+  vendor_id: uuidSchema,
   amount_cents: z.number().int().positive(),
   order_ref: z.string().trim().min(1).max(200),
 });

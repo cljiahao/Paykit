@@ -18,8 +18,10 @@ vi.mock("@/lib/supabase/server", () => ({
   createServiceClient: createServiceClientMock,
 }));
 
+const TX_ID = "22222222-2222-2222-2222-222222222222";
+
 const ROW = {
-  id: "tx1",
+  id: TX_ID,
   status: "pending",
   amount_cents: 450,
   order_ref: "A-001",
@@ -53,13 +55,13 @@ beforeEach(() => {
 });
 
 function req() {
-  return new Request("http://localhost/api/v1/checkout/tx1/claim", {
+  return new Request(`http://localhost/api/v1/checkout/${TX_ID}/claim`, {
     method: "POST",
     headers: { authorization: "Bearer qkit:secret" },
   });
 }
-function ctx() {
-  return { params: Promise.resolve({ id: "tx1" }) };
+function ctx(id: string = TX_ID) {
+  return { params: Promise.resolve({ id }) };
 }
 
 describe("POST /api/v1/checkout/[id]/claim", () => {
@@ -89,5 +91,54 @@ describe("POST /api/v1/checkout/[id]/claim", () => {
   it("404s for an unknown transaction", async () => {
     readMaybeSingle.mockResolvedValue({ data: null, error: null });
     expect((await POST(req(), ctx())).status).toBe(404);
+  });
+
+  it("400s for a malformed (non-uuid) id, without querying the DB", async () => {
+    const res = await POST(req(), ctx("not-a-uuid"));
+    expect(res.status).toBe(400);
+    expect(readMaybeSingle).not.toHaveBeenCalled();
+  });
+
+  it("503s when the initial DB read fails", async () => {
+    readMaybeSingle.mockResolvedValue({
+      data: null,
+      error: { message: "connection reset" },
+    });
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).not.toMatch(/connection reset/);
+  });
+
+  it("lost the race (already claimed by a concurrent request): recheck returns the current state, not a 4xx/5xx", async () => {
+    readMaybeSingle
+      .mockReset()
+      .mockResolvedValueOnce({ data: ROW, error: null }) // initial read: pending
+      .mockResolvedValueOnce({
+        data: { ...ROW, status: "claimed", claimed_at: "2026-07-15T00:01:00Z" },
+        error: null,
+      }); // recheck: someone else already claimed it
+    updateSingle.mockResolvedValue({
+      data: null,
+      error: { message: "no rows matched the conditional update" },
+    });
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.status).toBe("claimed");
+    expect(readMaybeSingle).toHaveBeenCalledTimes(2);
+  });
+
+  it("row was deleted between the read and the conditional update: recheck 404s", async () => {
+    readMaybeSingle
+      .mockReset()
+      .mockResolvedValueOnce({ data: ROW, error: null }) // initial read: pending
+      .mockResolvedValueOnce({ data: null, error: null }); // recheck: gone
+    updateSingle.mockResolvedValue({
+      data: null,
+      error: { message: "no rows matched the conditional update" },
+    });
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(404);
   });
 });
