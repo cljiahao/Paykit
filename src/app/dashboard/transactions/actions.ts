@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
+import { issueRefundInputSchema } from "@/lib/schemas";
 
 export type RefundState = { status: "idle" | "ok" | "error"; message?: string };
 
@@ -24,18 +25,23 @@ export async function issueRefundAction(
   formData: FormData,
 ): Promise<RefundState> {
   const { supabase, user } = await requireVendor();
-  const transactionId = String(formData.get("transaction_id") ?? "");
-  const amount = Number(formData.get("refunded_amount_cents"));
-  const reason = String(formData.get("reason") ?? "") || null;
-
-  if (!transactionId || !Number.isInteger(amount) || amount <= 0) {
-    return { status: "error", message: "Enter a valid refund amount." };
+  const parsed = issueRefundInputSchema.safeParse({
+    transaction_id: formData.get("transaction_id") ?? "",
+    refunded_amount_cents: formData.get("refunded_amount_cents") ?? "",
+    reason: formData.get("reason") ?? "",
+  });
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message:
+        parsed.error.issues[0]?.message ?? "Enter a valid refund amount.",
+    };
   }
 
   const { error } = await supabase.from("refunds").insert({
-    transaction_id: transactionId,
-    refunded_amount_cents: amount,
-    reason,
+    transaction_id: parsed.data.transaction_id,
+    refunded_amount_cents: parsed.data.refunded_amount_cents,
+    reason: parsed.data.reason || null,
     created_by: user.id,
   });
   if (error) {

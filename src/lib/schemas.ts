@@ -29,3 +29,25 @@ export const vendorPaymentConfigInputSchema = z
 export type VendorPaymentConfigInput = z.infer<
   typeof vendorPaymentConfigInputSchema
 >;
+
+// Postgres `integer` (int4) upper bound — refunded_amount_cents is stored in
+// an `integer` column (supabase/migrations/0001_paykit_core.sql), so this
+// keeps the Zod boundary in sync with what the DB will actually accept.
+const PG_INT4_MAX = 2147483647;
+
+export const issueRefundInputSchema = z.object({
+  transaction_id: z.string().uuid("Invalid transaction"),
+  refunded_amount_cents: z.coerce
+    .number({ invalid_type_error: "Enter a valid refund amount." })
+    .int("Enter a valid refund amount.")
+    .positive("Enter a valid refund amount.")
+    .max(PG_INT4_MAX, "Amount is too large."),
+  reason: z
+    .string()
+    .trim()
+    .max(500, "Reason is too long")
+    .optional()
+    .or(z.literal("")),
+});
+
+export type IssueRefundInput = z.infer<typeof issueRefundInputSchema>;
