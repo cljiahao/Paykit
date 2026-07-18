@@ -57,6 +57,15 @@ PSP integration could eventually replace paykit's own hand-rolled PayNow QR
 builder too, not just add auto-verify. Still Phase 2 — not needed for
 qkit's Manfred pilot, which uses qkit's own manual-confirm flow.
 
+**Update (2026-07-18):** the founder is actively getting a Singapore ACRA
+business registration specifically to attach **Stripe** for merqo hub's
+own subscription billing (see merqo hub's `docs/meta/2026-07-17-merqo-
+hub-task-registry.md`, T3) — a real, in-progress timeline now. Worth an
+explicit decision once ACRA clears: one PSP for both billing and customer
+payments, or Stripe for billing + HitPay for PayNow-adjacent customer
+payments specifically. Not decided yet — don't assume Stripe replaces
+HitPay here without that conversation happening first.
+
 ## P3 — cosmetic, no functional dependency
 
 ### T4. paykit's own PascalCase logo mark + accent color
