@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DashboardNav } from "./dashboard-nav";
 
@@ -51,9 +51,15 @@ describe("DashboardNav", () => {
     );
   });
 
-  it("sign-out is a real form submit that calls the signOut action", () => {
+  it("sign-out is a real form submit that calls the signOut action", async () => {
     const { container } = render(<DashboardNav {...baseProps} />);
     const form = container.querySelector("form");
     expect(form).not.toBeNull();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /account menu/i }));
+    await user.click(screen.getByRole("menuitem", { name: "Sign out" }));
+
+    await waitFor(() => expect(baseProps.signOut).toHaveBeenCalled());
   });
 });
