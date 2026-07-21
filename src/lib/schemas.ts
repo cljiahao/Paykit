@@ -106,3 +106,9 @@ export function parseSocialLinks(data: unknown): SocialLinks {
   const parsed = socialLinksSchema.safeParse(data);
   return parsed.success ? parsed.data : {};
 }
+
+export const feedbackSchema = z.object({
+  nps: z.number().int().min(0).max(10),
+  message: z.string().trim().max(2000).optional(),
+});
+export type FeedbackInput = z.infer<typeof feedbackSchema>;

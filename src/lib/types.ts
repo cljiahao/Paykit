@@ -45,6 +45,14 @@ export type Refund = {
   created_at: string;
 };
 
+export type Feedback = {
+  id: number;
+  vendor_id: string;
+  nps: number;
+  message: string | null;
+  created_at: string;
+};
+
 export interface Database {
   paykit: {
     Tables: {
@@ -110,6 +118,21 @@ export interface Database {
         Row: { kit_slug: string; secret_hash: string; created_at: string };
         Insert: { kit_slug: string; secret_hash: string; created_at?: string };
         Update: { secret_hash?: string };
+        Relationships: [];
+      };
+      feedback: {
+        Row: Feedback;
+        Insert: {
+          id?: number;
+          vendor_id: string;
+          nps: number;
+          message?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          nps?: number;
+          message?: string | null;
+        };
         Relationships: [];
       };
     };
