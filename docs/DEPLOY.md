@@ -19,6 +19,12 @@ qkit/loopkit/merqo), in its own `paykit` schema.
 
 - paykit never touches funds — there is no payment-provider webhook to
   configure.
+- The dashboard profile page (`/dashboard/profile`) reads/writes the shared
+  `merqo.vendor_profile` table (stall/shop name, social links) and uploads
+  profile-icon photos to the shared `vendor-images` Storage bucket. Neither
+  needs a paykit-local migration — both were created once, project-wide, by
+  loopkit's `0017_loopkit_vendor_profile.sql`, and are already live on the
+  shared Supabase project by the time paykit deploys.
 - Cutting qkit (or any other kit) over to call paykit, and removing qkit's
   local payment duplicate, is separate, later work — not part of this
   deploy.

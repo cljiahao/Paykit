@@ -57,6 +57,12 @@ export default async function DashboardPage() {
         >
           Reports
         </Link>
+        <Link
+          href="/dashboard/profile"
+          className="underline underline-offset-4"
+        >
+          Profile
+        </Link>
       </nav>
     </main>
   );

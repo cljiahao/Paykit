@@ -1,4 +1,14 @@
 export type TxStatus = "pending" | "claimed" | "confirmed";
+
+// Shape of merqo.vendor_profile.social_links (shared across every kit — see
+// merqo-vendor-profile.ts). Not a paykit table column, so it has no
+// Insert/Update variant here.
+export type SocialLinks = {
+  website?: string;
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+};
 export type VendorPlan = "free" | "pro";
 export type VerificationMethod = "manual" | "auto";
 

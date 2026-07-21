@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { SocialLinks } from "@/lib/types";
 
 export const vendorPaymentConfigInputSchema = z
   .object({
@@ -51,3 +52,57 @@ export const issueRefundInputSchema = z.object({
 });
 
 export type IssueRefundInput = z.infer<typeof issueRefundInputSchema>;
+
+// ── Profile settings (dashboard/profile) ─────────────────────────────────
+// Cross-kit standard, not paykit-specific — see `Merqo Business/docs/business/
+// 2026-07-21-profile-settings-page-standard.md`. Stall/shop name + social
+// links persist to the shared `merqo.vendor_profile` table (via
+// merqo-vendor-profile.ts); display name, avatar, password live on the
+// Supabase auth user and are written client-side.
+
+export const profileNameSchema = z.object({
+  name: z.string().trim().min(1, "Stall / shop name is required").max(100),
+});
+export type ProfileNameInput = z.infer<typeof profileNameSchema>;
+
+// Optional: an empty string clears it. Trimmed so trailing whitespace can't
+// slip past max.
+export const displayNameSchema = z.object({
+  displayName: z.string().trim().max(60, "Display name is too long"),
+});
+export type DisplayNameInput = z.infer<typeof displayNameSchema>;
+
+// New password + confirm. Min length mirrors Supabase auth's own minimum (8);
+// confirm must match.
+export const passwordChangeSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: "Passwords do not match",
+    path: ["confirm"],
+  });
+export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>;
+
+const socialUrl = z
+  .string()
+  .trim()
+  .url("Enter a valid URL")
+  .max(300)
+  .optional()
+  .or(z.literal(""));
+
+export const socialLinksSchema = z.object({
+  website: socialUrl,
+  instagram: socialUrl,
+  facebook: socialUrl,
+  tiktok: socialUrl,
+});
+export type SocialLinksInput = z.infer<typeof socialLinksSchema>;
+
+/** Parse a JSONB social_links value; any malformed shape degrades to {}. */
+export function parseSocialLinks(data: unknown): SocialLinks {
+  const parsed = socialLinksSchema.safeParse(data);
+  return parsed.success ? parsed.data : {};
+}
