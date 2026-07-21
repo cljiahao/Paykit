@@ -1,0 +1,54 @@
+{
+  "templatecentral_version": "5.7.0",
+  "stack": "nextjs",
+  "adapted": "Next 16 + Supabase (auth/db) — Supabase variant, based on qkit harness",
+  "seeded_at": "2026-07-22",
+  "review_note": "Harness built to match the AGENTS.md 'AI Harness' section that had described it since the qkit-seeded bootstrap but was never actually built. Hooks/skills match qkit's simpler pattern; git-hook layer (lefthook) matches loopkit's, since that's this plan's chosen baseline. CI gates (changelog, readme-freshness, coverage) added to match loopkit's real working jobs.",
+  "adoWiki": false,
+  "richReadme": true,
+  "seeded_files": {
+    "AGENTS.md": { "origin_hash": "<pending>", "path": "AGENTS.md" },
+    ".claude/settings.json": {
+      "origin_hash": "<pending>",
+      "path": ".claude/settings.json"
+    },
+    ".claude/hooks/verify.sh": {
+      "origin_hash": "<pending>",
+      "path": ".claude/hooks/verify.sh"
+    },
+    ".claude/skills/next-verify/SKILL.md": {
+      "origin_hash": "<pending>",
+      "path": ".claude/skills/next-verify/SKILL.md"
+    },
+    ".claude/skills/supabase-migrate/SKILL.md": {
+      "origin_hash": "<pending>",
+      "path": ".claude/skills/supabase-migrate/SKILL.md"
+    },
+    "lefthook.yml": { "origin_hash": "<pending>", "path": "lefthook.yml" },
+    ".lefthook/commit-msg.sh": {
+      "origin_hash": "<pending>",
+      "path": ".lefthook/commit-msg.sh"
+    },
+    ".lefthook/commit-msg/commit-msg.sh": {
+      "origin_hash": "<pending>",
+      "path": ".lefthook/commit-msg/commit-msg.sh"
+    },
+    ".lefthook/readme-coupling.sh": {
+      "origin_hash": "<pending>",
+      "path": ".lefthook/readme-coupling.sh"
+    },
+    ".gitleaks.toml": { "origin_hash": "<pending>", "path": ".gitleaks.toml" },
+    ".github/workflows/ci.yml": {
+      "origin_hash": "<pending>",
+      "path": ".github/workflows/ci.yml"
+    },
+    ".claude/verify-harness.sh": {
+      "origin_hash": "<pending>",
+      "path": ".claude/verify-harness.sh"
+    },
+    ".claude/regen-harness.sh": {
+      "origin_hash": "<pending>",
+      "path": ".claude/regen-harness.sh"
+    }
+  }
+}

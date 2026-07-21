@@ -11,14 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Harness integrity
+        run: bash .claude/verify-harness.sh
       - run: pnpm check
       - run: pnpm test
+      - run: pnpm exec vitest --run --coverage
+      - name: Changed-line coverage (>= 80%)
+        run: pipx run diff-cover coverage/cobertura-coverage.xml --compare-branch=origin/main --fail-under=80
 
   db:
     name: db (migrations + pgTAP RLS)
@@ -85,3 +92,59 @@ jobs:
           fi
           echo "Mutating: $FILES"
           pnpm exec stryker run --mutate "$FILES"
+
+  changelog:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+      - name: Require CHANGELOG for src changes (apply 'skip-changelog' label to bypass)
+        env:
+          {
+            LABELS: "${{ join(github.event.pull_request.labels.*.name, ' ') }}",
+          }
+        run: |
+          base="origin/${{ github.base_ref }}"
+          changed=$(git diff --name-only "$base"...HEAD)
+          if echo "$changed" | grep -qE '^src/' && ! echo "$changed" | grep -qx 'CHANGELOG.md'; then
+            echo " $LABELS " | grep -q ' skip-changelog ' && { echo "skip-changelog label present — OK"; exit 0; }
+            echo "::error::src/ changed but CHANGELOG.md was not updated. Add an entry or apply the 'skip-changelog' label."
+            exit 1
+          fi
+
+  readme-freshness:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+      - name: Require README.md update for changed folders (apply 'skip-readme-check' label to bypass)
+        env:
+          {
+            LABELS: "${{ join(github.event.pull_request.labels.*.name, ' ') }}",
+          }
+        run: |
+          base="origin/${{ github.base_ref }}"
+          tmp=$(mktemp)
+          git diff --name-only "$base"...HEAD > "$tmp"
+          missing=""
+          while IFS= read -r f; do
+            case "$f" in */README.md|README.md) continue ;; esac
+            d=$(dirname "$f")
+            [ -d "$d" ] || continue
+            rm_path="README.md"
+            [ "$d" != "." ] && rm_path="$d/README.md"
+            grep -qxF "$rm_path" "$tmp" || missing="$missing\n  - $d/"
+          done < "$tmp"
+          rm -f "$tmp"
+          missing=$(printf '%b' "$missing" | sort -u)
+          if [ -n "$missing" ]; then
+            echo " $LABELS " | grep -q ' skip-readme-check ' && { echo "skip-readme-check label present — OK"; exit 0; }
+            echo "::error::Folders changed without updating their README.md (see list below)"
+            printf '%s\n' "$missing"
+            echo "Update the listed README.md files, or apply the 'skip-readme-check' label to bypass."
+            exit 1
+          fi
