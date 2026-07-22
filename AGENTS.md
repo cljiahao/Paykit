@@ -147,19 +147,26 @@ gates `Edit(...)` (covers both Edit and Write) on the medium-security governance
 files: `AGENTS.md`, `CLAUDE.md`, `docs/constitution.md`, `.claude/harness.json`,
 `.claude/settings.json`, `.claude/settings.local.json`. Deny always wins (enforced
 even under bypass); it's a guardrail, not a sandbox.
-Git hooks (lefthook): pre-commit runs format/lint/typecheck + gitleaks
-secret-scan on staged files, plus a readme-coupling staleness warning;
-commit-msg enforces Conventional Commits; pre-push runs the harness
-integrity check + quality gate. Hard-local; coverage/changed-line gates
-run in CI.
-CI (GitHub Actions): hard gate on changed-line coverage (`diff-cover`
-≥80%), lockfile-in-sync (`--frozen-lockfile`), a changelog-touched check, a
-readme-freshness check, harness integrity, existing `db` (pgTAP RLS) and
-`mutation` (Stryker, advisory) jobs, and (via `security.yml`) a full-history
-gitleaks scan + `pnpm audit` + CodeQL.
+Git hooks (lefthook): pre-commit runs format/lint/typecheck, a
+`--frozen-lockfile` install gated on `package.json` changes
+(lockfile-in-sync — also re-checked in CI), gitleaks secret-scan on staged
+files, and a readme-coupling staleness warning; commit-msg enforces
+Conventional Commits; pre-push runs the harness integrity check + quality
+gate. Hard-local; coverage/changed-line gates run in CI.
+CI (GitHub Actions): `test` (check + unit + coverage) with a hard gate on
+changed-line coverage (`diff-cover` ≥80%), `build` (`next build` — the one
+job that catches Next.js client/server bundle-boundary errors `pnpm
+check`/`pnpm test` miss), existing `db` (pgTAP RLS) and `mutation`
+(Stryker, advisory) jobs, a lockfile-in-sync re-check, a changelog-touched
+check, a readme-freshness check, harness integrity, and (via
+`security.yml`) a full-history gitleaks scan + `pnpm audit` + CodeQL.
 RLS isolation: `supabase/tests/rls.test.sql` via `supabase test db`.
 Project skills (directory form, `<name>/SKILL.md`): `.claude/skills/` |
-Manifest: `.claude/harness.json`
+Manifest: `.claude/harness.json`. Currently unarmed: every `origin_hash` in
+the manifest is still the placeholder `<pending>`, which
+`verify-harness.sh` explicitly skips — so the integrity check passes
+trivially until a human runs `.claude/regen-harness.sh` to hash the seeded
+files for real.
 
 ## Skills Security
 
