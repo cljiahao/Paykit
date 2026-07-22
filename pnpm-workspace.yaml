@@ -3,6 +3,7 @@ allowBuilds:
   esbuild: true
   sharp: true
   unrs-resolver: true
+  lefthook: true
 
 overrides:
   postcss@<8.5.10: ">=8.5.10"
