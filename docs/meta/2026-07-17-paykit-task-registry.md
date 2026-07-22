@@ -78,6 +78,45 @@ shipped its "Signal & Mint" visual identity (`--mint`/`--ink`, commit
 `src/app/icon.tsx`, `src/app/apple-icon.tsx`, commit `b5d3120`), matching
 `docs/business/2026-07-21-brand-icon-family-standard.md`'s own color table.
 
+## P4 — future market expansion, no current demand signal
+
+### T5. Regional instant-payment QR rails — DuitNow, PromptPay, QRIS, QR Ph
+
+Merqo's entire vendor base today is Singapore hawkers/pop-ups — there is
+**no current demand signal** for this; it's a placeholder for if Merqo
+ever expands beyond SG, not a near-term task. Recorded now only because
+the 2026-07-22 multi-method work (`docs/superpowers/specs/2026-07-22-
+paykit-multi-method-byo-design.md`) happens to leave paykit well-shaped
+for it.
+
+**What this would be:** a new `vendor_payment_config.kind` value per
+rail — `duitnow` (Malaysia), `promptpay` (Thailand), `qris` (Indonesia),
+`qrph`/InstaPay (Philippines) — following the exact "extract, don't
+rebuild" precedent `paynow.ts` itself set. All four of these rails (like
+PayNow) are built on the EMVCo Merchant-Presented QR standard — same
+TLV/CRC-16 structure `src/lib/payments/paynow.ts`'s `crc16`/`tlv`
+primitives already implement. Adding one is mostly "new GUID + new
+payee-identifier field per rail," not a new QR engine.
+
+**One assumption to not make when this gets picked up:** DuitNow and
+PayNow are already cross-border interoperable (SGD–MYR QR linkage, live
+since 2023) — but that interoperability lives at the **settlement layer**
+between MAS and Malaysia's central bank, not at the QR-format layer. A
+Malaysian customer can already scan a PayNow QR and pay via DuitNow today,
+without paykit doing anything. What this task is actually for is the
+_reverse_ case — a Malaysian **vendor** wanting their own DuitNow QR
+generated for _their_ customers — which does need a real new `kind`
+(DuitNow's payee-identifier scheme differs from PayNow's UEN/mobile), not
+a re-skin of the existing `paynow` kind.
+
+**Where it fits relative to `pointer`:** until this is built, a Malaysian
+(or Thai, Indonesian, Filipino) vendor can already get most of the way
+there today via the `pointer` kind shipped 2026-07-22 — bring their own
+DuitNow/PromptPay/QRIS QR image or payment link, same as any other BYO
+method. A native `kind` per rail is the "generate it for them" upgrade
+over "let them bring their own," same relationship `paynow` already has
+to `pointer`.
+
 ## Note: architecture consistency worth flagging
 
 paykit's own design already treats `refunds` as "a bookkeeping ledger only
