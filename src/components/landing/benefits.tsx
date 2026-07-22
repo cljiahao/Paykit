@@ -54,9 +54,9 @@ export function Benefits() {
                 Free while you&apos;re small
               </h3>
               <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                100 transactions a month, no card required. Pro removes the cap
-                and adds revenue reports and refund tracking — $12/mo, once
-                you&apos;re past it.
+                Unlimited PayNow transactions, no card required. Pro adds
+                revenue reports and refund tracking — $12/mo, once you&apos;re
+                doing enough volume to want them.
               </p>
             </div>
             <span className="font-mono text-xs text-muted-foreground">

@@ -67,10 +67,12 @@ test/contract/                    — HTTP API contract test (mirrors merqo's qk
 
 - `vendor_payment_config` (PK `vendor_id`): one PayNow config per vendor,
   reused across every kit/booth/store that vendor runs. Exactly one of
-  `uen`/`mobile`. `plan` (`free`|`pro`) gates the 100 tx/mo cap and Pro
-  features (reports, refunds) — this column is a minimal addition beyond the
-  design spec's literal table listing, necessary to implement the very
-  Pro-gate the same spec describes (see the plan's Self-Review).
+  `uen`/`mobile`. `plan` (`free`|`pro`) gates Pro-exclusive features
+  (reports, refunds) only — no transaction-volume cap; Free tier PayNow
+  checkout is unlimited (see `docs/superpowers/specs/2026-07-22-paykit-
+freemium-nudge-redesign-design.md`). This column is a minimal addition
+  beyond the design spec's literal table listing, necessary to implement
+  the very Pro-gate the same spec describes (see the plan's Self-Review).
   `verification_method` is schema-reserved (`'manual'` only is ever written).
 - `transactions`: one row per checkout, `status` `pending`→`claimed`→`confirmed`,
   `kit_slug` records which kit created it, `qr_payload` stored at creation for

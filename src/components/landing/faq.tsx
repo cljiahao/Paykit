@@ -15,7 +15,7 @@ const FAQ: FaqEntry[] = [
   },
   {
     q: "What does the free plan include?",
-    a: "Up to 100 transactions a month. Pro removes that cap and adds reports and refunds.",
+    a: "Unlimited transactions on the free plan, no cap. Pro adds revenue reports and refund tracking.",
   },
 ];
 
