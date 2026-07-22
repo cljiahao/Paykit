@@ -5,6 +5,9 @@ import userEvent from "@testing-library/user-event";
 import { DashboardNav } from "./dashboard-nav";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/dashboard" }));
+vi.mock("@/components/support-form", () => ({
+  SupportForm: () => <div data-testid="support-form" />,
+}));
 
 describe("DashboardNav", () => {
   const baseProps = {
@@ -62,5 +65,17 @@ describe("DashboardNav", () => {
     await user.click(screen.getByRole("menuitem", { name: "Sign out" }));
 
     await waitFor(() => expect(baseProps.signOut).toHaveBeenCalled());
+  });
+
+  it("Get help opens a Sheet with the support form, not a mailto link", async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav {...baseProps} />);
+    await user.click(screen.getByRole("button", { name: /account menu/i }));
+
+    const getHelp = screen.getByRole("menuitem", { name: "Get help" });
+    expect(getHelp.tagName).not.toBe("A");
+
+    await user.click(getHelp);
+    expect(screen.getByTestId("support-form")).toBeInTheDocument();
   });
 });

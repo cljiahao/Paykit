@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **Real "Get help" support form**, replacing the mailto-link interim
+  pattern — files into the shared cross-kit `merqo.support_messages`
+  inbox (Merqo team picks it up in `/admin`), same pattern qkit's own
+  local support form uses, now shared infrastructure any kit can call.
+
 ### Fixed
 
 - Dashboard account menu was missing the dropdown chevron qkit/loopkit both

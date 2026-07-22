@@ -134,3 +134,19 @@ export const feedbackSchema = z.object({
   message: z.string().trim().max(2000).optional(),
 });
 export type FeedbackInput = z.infer<typeof feedbackSchema>;
+
+export const supportMessageSchema = z.object({
+  category: z.enum(["payment", "account", "billing", "other"]),
+  body: z.string().trim().min(1, "Tell us what's wrong").max(2000),
+});
+export type SupportMessageInput = z.infer<typeof supportMessageSchema>;
+
+export const SUPPORT_CATEGORY_LABELS: Record<
+  SupportMessageInput["category"],
+  string
+> = {
+  payment: "Payment / checkout",
+  account: "Account / sign-in",
+  billing: "Pro plan",
+  other: "Something else",
+};

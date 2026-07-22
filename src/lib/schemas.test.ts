@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   vendorPaymentConfigInputSchema,
   issueRefundInputSchema,
+  supportMessageSchema,
 } from "./schemas";
 
 describe("vendorPaymentConfigInputSchema", () => {
@@ -180,6 +181,32 @@ describe("issueRefundInputSchema", () => {
       transaction_id: VALID_TX_ID,
       refunded_amount_cents: "99999999999",
       reason: "",
+    });
+    expect(parsed.success).toBe(false);
+  });
+});
+
+describe("supportMessageSchema", () => {
+  it("accepts a valid payment-category message", () => {
+    const parsed = supportMessageSchema.safeParse({
+      category: "payment",
+      body: "My QR isn't generating.",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects an empty body", () => {
+    const parsed = supportMessageSchema.safeParse({
+      category: "payment",
+      body: "",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects an unknown category", () => {
+    const parsed = supportMessageSchema.safeParse({
+      category: "not-a-real-category",
+      body: "Help",
     });
     expect(parsed.success).toBe(false);
   });

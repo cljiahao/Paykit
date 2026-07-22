@@ -20,14 +20,17 @@ standard.md`: mobile burger + inline `Dashboard`/`Payment setup`/
   `isActive`/`usePathname`) on the left; an account-menu avatar (real
   photo via `AvatarImage` when `avatarUrl` is set, initials fallback
   otherwise, mint-colored wordmark) on the right, opening a dropdown to
-  Profile, Plan, Get help (a `mailto:` link — paykit's sanctioned interim
-  pattern until it has real support-ticket infrastructure, see the
-  standard doc), Feedback (a `Sheet` drawer rendering `FeedbackForm`), and
+  Profile, Plan, Get help (a `Sheet` drawer rendering `SupportForm` —
+  files into the shared cross-kit `merqo.support_messages` inbox as of
+  2026-07-23, replacing the earlier `mailto:` interim pattern; see
+  `merqo/docs/superpowers/specs/2026-07-23-cross-kit-support-messages-
+design.md`), Feedback (a `Sheet` drawer rendering `FeedbackForm`), and
   Sign out (a real `<form action={signOut}>` submit).
 - `dashboard-nav.dom.test.tsx` — RTL/jsdom tests: the inline links render
   with correct hrefs, the account-menu item order (Profile, Plan, Get
-  help, Feedback, then Sign out), and that Sign out is a genuine form
-  submit reaching the `signOut` action.
+  help, Feedback, then Sign out), that Sign out is a genuine form submit
+  reaching the `signOut` action, and that Get help opens the `SupportForm`
+  Sheet rather than navigating away.
 - `page.tsx` — `DashboardPage()` (server): shows a running monthly
   transaction count and an empty-state prompt to `/dashboard/config` when
   no payment method is set up yet; the Pro nudge (`shouldNudgePro`) appears
