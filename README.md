@@ -1,12 +1,15 @@
 # paykit
 
-The Merqo family's shared PayNow payment engine. A vendor sets up their
-PayNow config once here; any Merqo kit can then request a QR + track payment
-status for that vendor over paykit's HTTP API. paykit never touches funds —
-it renders a QR the customer scans in their own bank app, and a human
-confirms receipt.
+The Merqo family's shared payment engine. A vendor sets up their payment
+method once here — a generated PayNow QR, or their own BYO payment
+link/QR image — and any Merqo kit can then request a checkout + track
+payment status for that vendor over paykit's HTTP API. paykit never
+touches funds — it renders the checkout the customer pays through in
+their own bank/payment app, and a human confirms receipt.
 
-See `AGENTS.md` for stack, commands, data model, and rules. See
-`docs/superpowers/specs/2026-07-15-paykit-mvp-design.md` for the approved
-design and `docs/superpowers/plans/2026-07-15-paykit-mvp.md` for the
-implementation plan.
+See `AGENTS.md` for stack, commands, data model, and rules; `CHANGELOG.md`
+for what's shipped since the MVP. See
+`docs/superpowers/specs/2026-07-15-paykit-mvp-design.md` for the original
+approved design and `docs/superpowers/plans/2026-07-15-paykit-mvp.md` for
+its implementation plan — later work has its own dated specs/plans under
+the same `docs/superpowers/` folders.
