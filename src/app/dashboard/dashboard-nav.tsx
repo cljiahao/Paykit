@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ChevronDown,
   LifeBuoy,
   LogOut,
   Menu,
@@ -94,7 +95,7 @@ export function DashboardNav({
             aria-label="paykit dashboard home"
             className="shrink-0 rounded-sm text-xl font-bold tracking-tight outline-none transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
-            <span className="text-primary">Pay</span>Kit
+            <span className="text-mint">Pay</span>Kit
           </Link>
 
           <nav className="hidden items-center gap-1 sm:flex">
@@ -130,6 +131,7 @@ export function DashboardNav({
               <span className="hidden max-w-[9rem] truncate text-sm font-medium sm:inline">
                 {vendorName}
               </span>
+              <ChevronDown className="hidden size-4 text-muted-foreground md:inline" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 rounded-xl">
