@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
-import { usagePercent } from "@/lib/usage";
+import { shouldNudgePro } from "@/lib/usage";
 
 export default async function DashboardPage() {
   const { supabase, user } = await getVendorSession();
@@ -27,19 +27,23 @@ export default async function DashboardPage() {
         </p>
       )}
 
-      {plan === "free" && (
-        <div className="rounded-xl border p-4">
-          <p className="text-sm font-medium">
-            {count} / 100 transactions this month
+      <div className="rounded-xl border p-4">
+        <p className="text-sm font-medium">
+          {count} transaction{count === 1 ? "" : "s"} this month
+        </p>
+        {shouldNudgePro(plan, count) && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            You&apos;re doing real volume —{" "}
+            <Link
+              href="/dashboard/plan"
+              className="underline underline-offset-4"
+            >
+              Pro
+            </Link>{" "}
+            adds reports and refund tracking, $12/mo.
           </p>
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full bg-primary"
-              style={{ width: `${usagePercent(count)}%` }}
-            />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </main>
   );
 }
