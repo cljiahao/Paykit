@@ -4,13 +4,11 @@ import { POST } from "./route";
 const {
   verifyKitAuthMock,
   configMaybeSingle,
-  countHead,
   insertSingle,
   createServiceClientMock,
 } = vi.hoisted(() => ({
   verifyKitAuthMock: vi.fn(),
   configMaybeSingle: vi.fn(),
-  countHead: vi.fn(),
   insertSingle: vi.fn(),
   createServiceClientMock: vi.fn(),
 }));
@@ -30,7 +28,6 @@ function fakeSupabase() {
       }
       if (table === "transactions") {
         return {
-          select: () => ({ eq: () => ({ gte: countHead }) }),
           insert: () => ({ select: () => ({ single: insertSingle }) }),
         };
       }
@@ -53,7 +50,6 @@ beforeEach(() => {
     },
     error: null,
   });
-  countHead.mockReset().mockResolvedValue({ count: 3, error: null });
   insertSingle.mockReset().mockResolvedValue({
     data: { id: "tx1", qr_payload: "0002...6304ABCD" },
     error: null,
@@ -84,6 +80,28 @@ describe("POST /api/v1/checkout", () => {
     });
   });
 
+  it("creates a checkout for a free-tier vendor well past the old 100/mo cap", async () => {
+    configMaybeSingle.mockResolvedValue({
+      data: {
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        uen: "53312345A",
+        mobile: null,
+        payee_name: "Kopitiam Cart",
+        verification_method: "manual",
+        plan: "free",
+      },
+      error: null,
+    });
+    const res = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-501",
+      }),
+    );
+    expect(res.status).toBe(200);
+  });
+
   it("401s when the bearer token is missing/invalid", async () => {
     verifyKitAuthMock.mockResolvedValue(null);
     const res = await POST(
@@ -108,18 +126,6 @@ describe("POST /api/v1/checkout", () => {
     expect(res.status).toBe(422);
   });
 
-  it("402s when a free-tier vendor is at the 100/mo cap", async () => {
-    countHead.mockResolvedValue({ count: 100, error: null });
-    const res = await POST(
-      req({
-        vendor_id: "11111111-1111-1111-1111-111111111111",
-        amount_cents: 450,
-        order_ref: "A-001",
-      }),
-    );
-    expect(res.status).toBe(402);
-  });
-
   it("400s on an invalid request body", async () => {
     const res = await POST(
       req({ vendor_id: "not-a-uuid", amount_cents: -1, order_ref: "" }),
@@ -130,23 +136,6 @@ describe("POST /api/v1/checkout", () => {
   it("503s when the config read fails", async () => {
     configMaybeSingle.mockResolvedValue({
       data: null,
-      error: { message: "connection reset" },
-    });
-    const res = await POST(
-      req({
-        vendor_id: "11111111-1111-1111-1111-111111111111",
-        amount_cents: 450,
-        order_ref: "A-001",
-      }),
-    );
-    expect(res.status).toBe(503);
-    const json = await res.json();
-    expect(json.error).not.toMatch(/connection reset/);
-  });
-
-  it("503s when the usage count read fails", async () => {
-    countHead.mockResolvedValue({
-      count: null,
       error: { message: "connection reset" },
     });
     const res = await POST(

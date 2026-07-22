@@ -3,7 +3,6 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKitAuth } from "@/lib/kit-auth";
 import { checkoutRequestSchema } from "@/lib/api-schemas";
 import { paynowAdapter } from "@/lib/payments/adapter";
-import { freeTierExceeded } from "@/lib/usage";
 import type { VendorPaymentConfig } from "@/lib/types";
 
 export async function POST(request: Request) {
@@ -39,28 +38,6 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "vendor has no PayNow config" },
       { status: 422 },
-    );
-  }
-
-  const startOfMonth = new Date();
-  startOfMonth.setUTCDate(1);
-  startOfMonth.setUTCHours(0, 0, 0, 0);
-  const { count, error: countError } = await supabase
-    .from("transactions")
-    .select("id", { count: "exact", head: true })
-    .eq("vendor_id", vendor_id)
-    .gte("created_at", startOfMonth.toISOString());
-  if (countError) {
-    console.error("checkout: count read failed", countError.message);
-    return NextResponse.json(
-      { error: "Upstream unavailable" },
-      { status: 503 },
-    );
-  }
-  if (freeTierExceeded(config.plan, count ?? 0)) {
-    return NextResponse.json(
-      { error: "Free tier limit reached (100 tx/mo). Upgrade to Pro." },
-      { status: 402 },
     );
   }
 
