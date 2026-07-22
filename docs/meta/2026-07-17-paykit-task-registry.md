@@ -68,13 +68,15 @@ HitPay here without that conversation happening first.
 
 ## P3 — cosmetic, no functional dependency
 
-### T4. paykit's own PascalCase logo mark + accent color
+### T4. paykit's own PascalCase logo mark + accent color — DONE (2026-07-22)
 
 Per `docs/business/2026-07-15-kit-brand-naming-convention.md` (lives in the
 merqo hub repo) — every kit gets its own accent color chosen for a reason
 specific to that product (qkit → ember, loopkit → gold stamp-dots). paykit
-doesn't have one yet; pick one when paykit gets an actual visual-identity
-pass, not before.
+shipped its "Signal & Mint" visual identity (`--mint`/`--ink`, commit
+`ce3e0db`) plus the full brand-icon family (`src/lib/brand-icon.tsx`,
+`src/app/icon.tsx`, `src/app/apple-icon.tsx`, commit `b5d3120`), matching
+`docs/business/2026-07-21-brand-icon-family-standard.md`'s own color table.
 
 ## Note: architecture consistency worth flagging
 
