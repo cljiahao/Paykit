@@ -42,16 +42,20 @@ beforeEach(() => {
   configMaybeSingle.mockReset().mockResolvedValue({
     data: {
       vendor_id: "11111111-1111-1111-1111-111111111111",
+      kind: "paynow",
       uen: "53312345A",
       mobile: null,
       payee_name: "Kopitiam Cart",
+      label: null,
+      url: null,
+      qr_image_url: null,
       verification_method: "manual",
       plan: "free",
     },
     error: null,
   });
   insertSingle.mockReset().mockResolvedValue({
-    data: { id: "tx1", qr_payload: "0002...6304ABCD" },
+    data: { id: "tx1", qr_payload: "0002...6304ABCD", type: "qr" },
     error: null,
   });
 });
@@ -75,8 +79,9 @@ describe("POST /api/v1/checkout", () => {
     );
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
+      type: "qr",
       transaction_id: "tx1",
-      qr_payload: "0002...6304ABCD",
+      payload: "0002...6304ABCD",
     });
   });
 
@@ -84,9 +89,13 @@ describe("POST /api/v1/checkout", () => {
     configMaybeSingle.mockResolvedValue({
       data: {
         vendor_id: "11111111-1111-1111-1111-111111111111",
+        kind: "paynow",
         uen: "53312345A",
         mobile: null,
         payee_name: "Kopitiam Cart",
+        label: null,
+        url: null,
+        qr_image_url: null,
         verification_method: "manual",
         plan: "free",
       },
@@ -100,6 +109,72 @@ describe("POST /api/v1/checkout", () => {
       }),
     );
     expect(res.status).toBe(200);
+  });
+
+  it("creates a link checkout for a pointer-kind vendor", async () => {
+    configMaybeSingle.mockResolvedValue({
+      data: {
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        kind: "pointer",
+        uen: null,
+        mobile: null,
+        payee_name: null,
+        label: "Pay with PayLah",
+        url: "https://pay.example/kopitiam",
+        qr_image_url: null,
+        verification_method: "manual",
+        plan: "free",
+      },
+      error: null,
+    });
+    insertSingle.mockResolvedValue({
+      data: {
+        id: "tx2",
+        qr_payload: "https://pay.example/kopitiam",
+        type: "link",
+      },
+      error: null,
+    });
+    const res = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-002",
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      type: "link",
+      transaction_id: "tx2",
+      url: "https://pay.example/kopitiam",
+      label: "Pay with PayLah",
+    });
+  });
+
+  it("422s when a pointer-kind vendor's config is incomplete", async () => {
+    configMaybeSingle.mockResolvedValue({
+      data: {
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        kind: "pointer",
+        uen: null,
+        mobile: null,
+        payee_name: null,
+        label: "Pay with PayLah",
+        url: null,
+        qr_image_url: null,
+        verification_method: "manual",
+        plan: "free",
+      },
+      error: null,
+    });
+    const res = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-003",
+      }),
+    );
+    expect(res.status).toBe(422);
   });
 
   it("401s when the bearer token is missing/invalid", async () => {

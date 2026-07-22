@@ -12,10 +12,24 @@ export const checkoutRequestSchema = z.object({
 });
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 
-export const checkoutResponseSchema = z.object({
-  transaction_id: z.string().uuid(),
-  qr_payload: z.string().min(1),
-});
+export const checkoutResponseSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("qr"),
+    transaction_id: z.string().uuid(),
+    payload: z.string().min(1),
+  }),
+  z.object({
+    type: z.literal("link"),
+    transaction_id: z.string().uuid(),
+    url: z.string().url(),
+    label: z.string(),
+  }),
+  z.object({
+    type: z.literal("image"),
+    transaction_id: z.string().uuid(),
+    url: z.string().url(),
+  }),
+]);
 export type CheckoutResponse = z.infer<typeof checkoutResponseSchema>;
 
 export const transactionStatusResponseSchema = z.object({
@@ -34,7 +48,7 @@ export type TransactionStatusResponse = z.infer<
 
 export const vendorConfigResponseSchema = z.object({
   has_config: z.boolean(),
-  payee_name: z.string().nullable(),
+  display_name: z.string().nullable(),
 });
 export type VendorConfigResponse = z.infer<typeof vendorConfigResponseSchema>;
 

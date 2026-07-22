@@ -5,58 +5,122 @@ import {
 } from "./schemas";
 
 describe("vendorPaymentConfigInputSchema", () => {
-  it("accepts a valid UEN-only config", () => {
-    const parsed = vendorPaymentConfigInputSchema.safeParse({
-      payee_name: "Kopitiam Cart",
-      uen: "53312345A",
-      mobile: "",
+  describe("kind: paynow", () => {
+    it("accepts a valid UEN-only config", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "53312345A",
+        mobile: "",
+      });
+      expect(parsed.success).toBe(true);
     });
-    expect(parsed.success).toBe(true);
+
+    it("accepts a valid mobile-only config", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "",
+        mobile: "+6591234567",
+      });
+      expect(parsed.success).toBe(true);
+    });
+
+    it("rejects both uen and mobile set", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "53312345A",
+        mobile: "+6591234567",
+      });
+      expect(parsed.success).toBe(false);
+    });
+
+    it("rejects neither uen nor mobile set", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "",
+        mobile: "",
+      });
+      expect(parsed.success).toBe(false);
+    });
+
+    it("rejects an invalid UEN format", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "!!!",
+        mobile: "",
+      });
+      expect(parsed.success).toBe(false);
+    });
+
+    it("rejects an empty payee name", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "paynow",
+        payee_name: "",
+        uen: "53312345A",
+        mobile: "",
+      });
+      expect(parsed.success).toBe(false);
+    });
   });
 
-  it("accepts a valid mobile-only config", () => {
-    const parsed = vendorPaymentConfigInputSchema.safeParse({
-      payee_name: "Kopitiam Cart",
-      uen: "",
-      mobile: "+6591234567",
+  describe("kind: pointer", () => {
+    it("accepts a valid payment-link config", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "Pay with PayLah",
+        url: "https://pay.example/kopitiam",
+      });
+      expect(parsed.success).toBe(true);
     });
-    expect(parsed.success).toBe(true);
-  });
 
-  it("rejects both uen and mobile set", () => {
-    const parsed = vendorPaymentConfigInputSchema.safeParse({
-      payee_name: "Kopitiam Cart",
-      uen: "53312345A",
-      mobile: "+6591234567",
+    it("accepts a valid QR-image config", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "Scan our QR",
+        qr_image_url: "https://cdn.example/qr.webp",
+      });
+      expect(parsed.success).toBe(true);
     });
-    expect(parsed.success).toBe(false);
-  });
 
-  it("rejects neither uen nor mobile set", () => {
-    const parsed = vendorPaymentConfigInputSchema.safeParse({
-      payee_name: "Kopitiam Cart",
-      uen: "",
-      mobile: "",
+    it("rejects both url and qr_image_url set", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "Pay",
+        url: "https://pay.example/kopitiam",
+        qr_image_url: "https://cdn.example/qr.webp",
+      });
+      expect(parsed.success).toBe(false);
     });
-    expect(parsed.success).toBe(false);
-  });
 
-  it("rejects an invalid UEN format", () => {
-    const parsed = vendorPaymentConfigInputSchema.safeParse({
-      payee_name: "Kopitiam Cart",
-      uen: "!!!",
-      mobile: "",
+    it("rejects neither url nor qr_image_url set", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "Pay",
+      });
+      expect(parsed.success).toBe(false);
     });
-    expect(parsed.success).toBe(false);
-  });
 
-  it("rejects an empty payee name", () => {
-    const parsed = vendorPaymentConfigInputSchema.safeParse({
-      payee_name: "",
-      uen: "53312345A",
-      mobile: "",
+    it("rejects an empty label", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "",
+        url: "https://pay.example/kopitiam",
+      });
+      expect(parsed.success).toBe(false);
     });
-    expect(parsed.success).toBe(false);
+
+    it("rejects an invalid url", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "Pay",
+        url: "not-a-url",
+      });
+      expect(parsed.success).toBe(false);
+    });
   });
 });
 

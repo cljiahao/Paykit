@@ -1,30 +1,52 @@
 import { z } from "zod";
 import type { SocialLinks } from "@/lib/types";
 
+const payNowInputSchema = z.object({
+  kind: z.literal("paynow"),
+  payee_name: z.string().trim().min(1, "Payee name is required").max(100),
+  uen: z
+    .string()
+    .trim()
+    .regex(/^[0-9A-Za-z]{8,12}$/, "Invalid UEN")
+    .optional()
+    .or(z.literal("")),
+  mobile: z
+    .string()
+    .trim()
+    .regex(/^\+65[0-9]{8}$/, "Use +65XXXXXXXX")
+    .optional()
+    .or(z.literal("")),
+});
+
+const pointerInputSchema = z.object({
+  kind: z.literal("pointer"),
+  label: z.string().trim().min(1, "Label is required").max(60),
+  url: z.string().trim().url("Enter a valid link").max(500).optional(),
+  qr_image_url: z.string().trim().url().max(500).optional(),
+});
+
 export const vendorPaymentConfigInputSchema = z
-  .object({
-    payee_name: z.string().trim().min(1, "Payee name is required").max(100),
-    uen: z
-      .string()
-      .trim()
-      .regex(/^[0-9A-Za-z]{8,12}$/, "Invalid UEN")
-      .optional()
-      .or(z.literal("")),
-    mobile: z
-      .string()
-      .trim()
-      .regex(/^\+65[0-9]{8}$/, "Use +65XXXXXXXX")
-      .optional()
-      .or(z.literal("")),
-  })
-  .transform((v) => ({
-    payee_name: v.payee_name,
-    uen: v.uen || undefined,
-    mobile: v.mobile || undefined,
-  }))
-  .refine((v) => Boolean(v.uen) !== Boolean(v.mobile), {
-    message: "Provide either a UEN or a mobile number, not both",
-    path: ["uen"],
+  .discriminatedUnion("kind", [payNowInputSchema, pointerInputSchema])
+  .transform((v) =>
+    v.kind === "paynow"
+      ? { ...v, uen: v.uen || undefined, mobile: v.mobile || undefined }
+      : v,
+  )
+  .superRefine((v, ctx) => {
+    if (v.kind === "paynow" && Boolean(v.uen) === Boolean(v.mobile)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide either a UEN or a mobile number, not both",
+        path: ["uen"],
+      });
+    }
+    if (v.kind === "pointer" && Boolean(v.url) === Boolean(v.qr_image_url)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide either a payment link or a QR image, not both",
+        path: ["url"],
+      });
+    }
   });
 
 export type VendorPaymentConfigInput = z.infer<

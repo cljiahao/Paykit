@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKitAuth } from "@/lib/kit-auth";
 import { checkoutRequestSchema } from "@/lib/api-schemas";
-import { paynowAdapter } from "@/lib/payments/adapter";
+import { renderCheckout } from "@/lib/payments/adapter";
 import type { VendorPaymentConfig } from "@/lib/types";
 
 export async function POST(request: Request) {
@@ -41,10 +41,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const view = paynowAdapter.renderCheckout(config as VendorPaymentConfig, {
+  const view = renderCheckout(config as VendorPaymentConfig, {
     amountCents: amount_cents,
     orderRef: order_ref,
   });
+  if (!view) {
+    return NextResponse.json(
+      { error: "vendor payment config is incomplete" },
+      { status: 422 },
+    );
+  }
+
+  // qr_payload is a generic "checkout payload" store — the QR payload for
+  // type "qr", the link/image URL for "link"/"image". Column name unchanged
+  // (additive-only migration), meaning generalized. See the design spec.
+  const payloadValue = view.type === "qr" ? view.payload : view.url;
 
   const { data: inserted, error: insertError } = await supabase
     .from("transactions")
@@ -53,7 +64,7 @@ export async function POST(request: Request) {
       kit_slug: auth.kitSlug,
       order_ref,
       amount_cents,
-      qr_payload: view.payload,
+      qr_payload: payloadValue,
     })
     .select("id, qr_payload")
     .single();
@@ -65,8 +76,24 @@ export async function POST(request: Request) {
     );
   }
 
+  if (view.type === "qr") {
+    return NextResponse.json({
+      type: "qr",
+      transaction_id: inserted.id,
+      payload: inserted.qr_payload,
+    });
+  }
+  if (view.type === "link") {
+    return NextResponse.json({
+      type: "link",
+      transaction_id: inserted.id,
+      url: inserted.qr_payload,
+      label: view.label,
+    });
+  }
   return NextResponse.json({
+    type: "image",
     transaction_id: inserted.id,
-    qr_payload: inserted.qr_payload,
+    url: inserted.qr_payload,
   });
 }

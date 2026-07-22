@@ -35,21 +35,35 @@ function ctx(vendor_id: string = VENDOR_ID) {
 }
 
 describe("GET /api/v1/vendors/[vendor_id]/config", () => {
-  it("reports has_config true + payee_name when configured", async () => {
+  it("reports has_config true + display_name from payee_name for a paynow config", async () => {
     maybeSingleMock.mockResolvedValue({
-      data: { payee_name: "Kopitiam Cart" },
+      data: { kind: "paynow", payee_name: "Kopitiam Cart", label: null },
       error: null,
     });
     const res = await GET(req(), ctx());
     expect(await res.json()).toEqual({
       has_config: true,
-      payee_name: "Kopitiam Cart",
+      display_name: "Kopitiam Cart",
+    });
+  });
+  it("reports display_name from label for a pointer config", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { kind: "pointer", payee_name: null, label: "Pay with PayLah" },
+      error: null,
+    });
+    const res = await GET(req(), ctx());
+    expect(await res.json()).toEqual({
+      has_config: true,
+      display_name: "Pay with PayLah",
     });
   });
   it("reports has_config false when unconfigured", async () => {
     maybeSingleMock.mockResolvedValue({ data: null, error: null });
     const res = await GET(req(), ctx());
-    expect(await res.json()).toEqual({ has_config: false, payee_name: null });
+    expect(await res.json()).toEqual({
+      has_config: false,
+      display_name: null,
+    });
   });
   it("401s when unauthorized", async () => {
     verifyKitAuthMock.mockResolvedValue(null);

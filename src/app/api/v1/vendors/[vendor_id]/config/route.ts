@@ -18,7 +18,7 @@ export async function GET(
   const supabase = await createServiceClient();
   const { data, error } = await supabase
     .from("vendor_payment_config")
-    .select("payee_name")
+    .select("kind, payee_name, label")
     .eq("vendor_id", vendor_id)
     .maybeSingle();
   if (error) {
@@ -29,8 +29,14 @@ export async function GET(
     );
   }
 
+  const display_name = data
+    ? data.kind === "paynow"
+      ? data.payee_name
+      : data.label
+    : null;
+
   return NextResponse.json({
     has_config: Boolean(data),
-    payee_name: data?.payee_name ?? null,
+    display_name,
   });
 }

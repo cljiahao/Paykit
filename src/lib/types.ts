@@ -12,11 +12,17 @@ export type SocialLinks = {
 export type VendorPlan = "free" | "pro";
 export type VerificationMethod = "manual" | "auto";
 
+export type PaymentConfigKind = "paynow" | "pointer";
+
 export type VendorPaymentConfig = {
   vendor_id: string;
+  kind: PaymentConfigKind;
   uen: string | null;
   mobile: string | null;
-  payee_name: string;
+  payee_name: string | null;
+  label: string | null;
+  url: string | null;
+  qr_image_url: string | null;
   verification_method: VerificationMethod;
   plan: VendorPlan;
   created_at: string;
@@ -60,18 +66,26 @@ export interface Database {
         Row: VendorPaymentConfig;
         Insert: {
           vendor_id: string;
+          kind?: PaymentConfigKind;
           uen?: string | null;
           mobile?: string | null;
-          payee_name: string;
+          payee_name?: string | null;
+          label?: string | null;
+          url?: string | null;
+          qr_image_url?: string | null;
           verification_method?: VerificationMethod;
           plan?: VendorPlan;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
+          kind?: PaymentConfigKind;
           uen?: string | null;
           mobile?: string | null;
-          payee_name?: string;
+          payee_name?: string | null;
+          label?: string | null;
+          url?: string | null;
+          qr_image_url?: string | null;
           verification_method?: VerificationMethod;
           plan?: VendorPlan;
           updated_at?: string;

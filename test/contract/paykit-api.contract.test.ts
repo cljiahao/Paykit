@@ -37,6 +37,6 @@ describe("paykit /api/v1 contract", () => {
 
   it("vendor-config sample never carries a secret field", () => {
     const sample = loadSample("vendor-config.sample.json");
-    expect(Object.keys(sample).sort()).toEqual(["has_config", "payee_name"]);
+    expect(Object.keys(sample).sort()).toEqual(["display_name", "has_config"]);
   });
 });

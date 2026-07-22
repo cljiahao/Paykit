@@ -52,8 +52,9 @@ describe("checkoutResponseSchema / transactionStatusResponseSchema / vendorConfi
   it("accept well-formed payloads", () => {
     expect(
       checkoutResponseSchema.safeParse({
+        type: "qr",
         transaction_id: "11111111-1111-1111-1111-111111111111",
-        qr_payload: "00020101...6304ABCD",
+        payload: "00020101...6304ABCD",
       }).success,
     ).toBe(true);
     expect(
@@ -71,7 +72,7 @@ describe("checkoutResponseSchema / transactionStatusResponseSchema / vendorConfi
     expect(
       vendorConfigResponseSchema.safeParse({
         has_config: true,
-        payee_name: "Kopitiam Cart",
+        display_name: "Kopitiam Cart",
       }).success,
     ).toBe(true);
   });
