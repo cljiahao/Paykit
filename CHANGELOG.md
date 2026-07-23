@@ -19,3 +19,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   show, and the nav wordmark used the generic (still shadcn-default,
   near-black) `--primary` token instead of paykit's own mint brand color
   already used everywhere else (landing wordmark, hero, icons).
+
+### Docs
+
+- Added the `src/lib/`, `src/lib/payments/`, `src/lib/supabase/`,
+  `src/components/`, `src/components/landing/`, and `src/components/ui/`
+  `README.md` files — previously bypassed via the `skip-readme-check`
+  label on prior PRs that touched those folders.
