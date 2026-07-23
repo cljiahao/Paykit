@@ -1,13 +1,16 @@
 {
-  "templatecentral_version": "5.7.0",
+  "templatecentral_version": "5.11.0",
   "stack": "nextjs",
   "adapted": "Next 16 + Supabase (auth/db) — Supabase variant, based on qkit harness",
   "seeded_at": "2026-07-22",
-  "review_note": "Harness built to match the AGENTS.md 'AI Harness' section that had described it since the qkit-seeded bootstrap but was never actually built. Hooks/skills match qkit's simpler pattern; git-hook layer (lefthook) matches loopkit's, since that's this plan's chosen baseline. CI gates (changelog, readme-freshness, coverage) added to match loopkit's real working jobs.",
+  "review_note": "Harness built to match the AGENTS.md 'AI Harness' section that had described it since the qkit-seeded bootstrap but was never actually built. Hooks/skills match qkit's simpler pattern; git-hook layer (lefthook) matches loopkit's, since that's this plan's chosen baseline. CI gates (changelog, readme-freshness, coverage) added to match loopkit's real working jobs. Follow-up: added the missing .claude/hooks/* Claude-Code-hook script layer (previously inline `node -e` one-liners embedded in settings.json), and fixed lefthook.yml's format-lint command, which had no exclude list and would have reformatted/drifted those scripts on first commit; version marker bumped 5.7.0 -> 5.11.0 to match sibling repo loopkit's harness architecture, which this change brings paykit's Claude Code hook layer up to.",
   "adoWiki": false,
   "richReadme": true,
   "seeded_files": {
-    "AGENTS.md": { "origin_hash": "<pending>", "path": "AGENTS.md" },
+    "AGENTS.md": {
+      "origin_hash": "<pending>",
+      "path": "AGENTS.md"
+    },
     ".claude/settings.json": {
       "origin_hash": "<pending>",
       "path": ".claude/settings.json"
@@ -15,6 +18,42 @@
     ".claude/hooks/verify.sh": {
       "origin_hash": "<pending>",
       "path": ".claude/hooks/verify.sh"
+    },
+    ".claude/hooks/block-no-verify.sh": {
+      "origin_hash": "f0f147dcf4bd5df66bd723a7b5c3bde69df758f232b1403e9eb02ab7500d35ea",
+      "path": ".claude/hooks/block-no-verify.sh"
+    },
+    ".claude/hooks/protect-files.sh": {
+      "origin_hash": "2ba25f7c278bbd4c803b283b91fcb1ef4836af2429b8ae9847a9e64a4a0e3b76",
+      "path": ".claude/hooks/protect-files.sh"
+    },
+    ".claude/hooks/user-prompt-guard.cjs": {
+      "origin_hash": "d1c376ffcbaba440838b52da3114b4671038042958126c4a316b4ef7de4056f6",
+      "path": ".claude/hooks/user-prompt-guard.cjs"
+    },
+    ".claude/hooks/post-edit-typecheck.sh": {
+      "origin_hash": "f17a4f6cb67b023f1058acb542b43ccf294de612e5d15352776ffbb50366b509",
+      "path": ".claude/hooks/post-edit-typecheck.sh"
+    },
+    ".claude/hooks/post-tool-failure.sh": {
+      "origin_hash": "31af87da10f31b5ead1d5fa455ffeb8903956ed2dacb5ef7319b1e8a2822efcd",
+      "path": ".claude/hooks/post-tool-failure.sh"
+    },
+    ".claude/hooks/session-context.sh": {
+      "origin_hash": "8e563afe1421e080fc7ed651f80422d4b8d901898d6c52e7a770efb85d5e5982",
+      "path": ".claude/hooks/session-context.sh"
+    },
+    ".claude/hooks/skill-usage-log.sh": {
+      "origin_hash": "5405cf6e00bfee4c2f0bf7f90285215825f9671376383154b2a7aff2dd6db74f",
+      "path": ".claude/hooks/skill-usage-log.sh"
+    },
+    ".claude/hooks/stop-checks.sh": {
+      "origin_hash": "6c1142a9207b1ff1f055596875eb962d6ef3da8dd1c7d97c5c9f35fcad973b2e",
+      "path": ".claude/hooks/stop-checks.sh"
+    },
+    ".claude/hooks/subagent-stop.sh": {
+      "origin_hash": "8107bdb11b7dbe71121d24e1e585284f430503f96713b5bcc646308a9c777da5",
+      "path": ".claude/hooks/subagent-stop.sh"
     },
     ".claude/skills/next-verify/SKILL.md": {
       "origin_hash": "<pending>",
@@ -24,7 +63,10 @@
       "origin_hash": "<pending>",
       "path": ".claude/skills/supabase-migrate/SKILL.md"
     },
-    "lefthook.yml": { "origin_hash": "<pending>", "path": "lefthook.yml" },
+    "lefthook.yml": {
+      "origin_hash": "<pending>",
+      "path": "lefthook.yml"
+    },
     ".lefthook/commit-msg.sh": {
       "origin_hash": "<pending>",
       "path": ".lefthook/commit-msg.sh"
@@ -37,7 +79,10 @@
       "origin_hash": "<pending>",
       "path": ".lefthook/readme-coupling.sh"
     },
-    ".gitleaks.toml": { "origin_hash": "<pending>", "path": ".gitleaks.toml" },
+    ".gitleaks.toml": {
+      "origin_hash": "<pending>",
+      "path": ".gitleaks.toml"
+    },
     ".github/workflows/ci.yml": {
       "origin_hash": "<pending>",
       "path": ".github/workflows/ci.yml"
