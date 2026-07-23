@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `SupportForm`'s category `ToggleGroup` was missing `spacing={1.5}`,
+  rendering the category buttons edge-to-edge instead of qkit's
+  separated-pill layout.
+
 ### Changed
 
 - `FeedbackForm`'s NPS score picker and comment field now use shadcn
