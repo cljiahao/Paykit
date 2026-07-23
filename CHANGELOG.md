@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- `FeedbackForm`'s NPS score picker and comment field now use shadcn
+  `ToggleGroup`/`Textarea` instead of hand-rolled radio buttons and a plain
+  `<textarea>`, matching `SupportForm` and qkit's equivalent component. No
+  behavior, copy, or schema change.
+
 ### Security
 
 - Bumped `next` 16.2.10 → 16.2.11, clearing 9 known advisories (4 high: App

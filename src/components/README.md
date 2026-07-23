@@ -9,13 +9,14 @@ sits flat here.
 
 ## Contents
 
-- `feedback-form.tsx` — `FeedbackForm`: vendor NPS + optional comment
-  widget, mounted in a Sheet off the account menu. Ported from Merqo hub's
-  own FeedbackForm; paykit has no orders/booths so only the NPS branch
-  applies.
-- `support-form.tsx` — `SupportForm`: Get-help widget, same Sheet-mounted
-  shape as `FeedbackForm`. Submits to the shared cross-kit
-  `merqo.support_messages` inbox via `submitSupportMessageAction`.
+- `feedback-form.tsx` — `FeedbackForm`: vendor NPS (shadcn `ToggleGroup`,
+  0–10) + optional comment (shadcn `Textarea`) widget, mounted in a Sheet
+  off the account menu. Ported from Merqo hub's own FeedbackForm; paykit
+  has no orders/booths so only the NPS branch applies.
+- `support-form.tsx` — `SupportForm`: categorized (shadcn `ToggleGroup`)
+  Get-help widget, same Sheet-mounted shape as `FeedbackForm`. Submits to
+  the shared cross-kit `merqo.support_messages` inbox via
+  `submitSupportMessageAction`.
 - `image-uploader.tsx` — client-side image picker: resizes/re-encodes to
   WebP (`@/lib/image-resize`) before uploading via the browser Supabase
   client. Accepts jpeg/png/webp only (no SVG).
