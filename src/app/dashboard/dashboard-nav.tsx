@@ -30,6 +30,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { FeedbackForm } from "@/components/feedback-form";
+import { SupportForm } from "@/components/support-form";
 import { cn } from "@/lib/utils";
 
 type Tier = "free" | "pro";
@@ -53,8 +54,7 @@ function initials(label: string): string {
 /**
  * Dashboard sticky-header row, per docs/business/2026-07-21-dashboard-nav-standard.md:
  * burger far-left (below sm), inline links sm+, account menu far-right at
- * every width. Get-help is a mailto link (no support-ticket infra in paykit
- * yet — see the plan's Global Constraints); Feedback opens a Sheet form.
+ * every width. Get-help and Feedback both open a Sheet form.
  */
 export function DashboardNav({
   signOut,
@@ -69,6 +69,7 @@ export function DashboardNav({
 }) {
   const path = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const signOutFormRef = useRef<HTMLFormElement>(null);
 
@@ -151,11 +152,12 @@ export function DashboardNav({
                 Plan
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a href="mailto:support@merqo.app?subject=paykit%20support">
-                <LifeBuoy className="size-4" />
-                Get help
-              </a>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={() => setHelpOpen(true)}
+            >
+              <LifeBuoy className="size-4" />
+              Get help
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer"
@@ -212,6 +214,21 @@ export function DashboardNav({
           </div>
         </>
       )}
+
+      <Sheet open={helpOpen} onOpenChange={setHelpOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle className="text-2xl">Get help</SheetTitle>
+            <SheetDescription>
+              Trouble with a payment or your Pro plan? Tell us and we&apos;ll
+              sort it out.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="px-4 pb-6">
+            <SupportForm />
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <Sheet open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <SheetContent side="right" className="w-full sm:max-w-md">
