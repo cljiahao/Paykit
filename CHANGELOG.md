@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- Bumped `next` 16.2.10 → 16.2.11, clearing 9 known advisories (4 high: App
+  Router middleware/proxy bypass, Server Actions DoS, Server Actions SSRF
+  on custom servers, rewrites SSRF via attacker-controlled hostname; 5
+  moderate: response-body cache confusion x2, unbounded Server Action
+  payload on Edge, Image Optimization SVG DoS, internal Server Function
+  endpoint disclosure) — all fixed upstream, no app code changes needed.
+
 ### Added
 
 - **Real "Get help" support form**, replacing the mailto-link interim
