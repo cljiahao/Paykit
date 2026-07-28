@@ -30,6 +30,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `GET /api/merqo/vendor-status` and `POST /api/merqo/vendor-provision` —
+  merqo hub integration routes, bearer-secured via new `MERQO_METRICS_SECRET`/
+  `MERQO_PROVISION_SECRET` env vars. Both routes are read-only: paykit has no
+  safe default for `vendor_payment_config`'s `payee_name`/`uen`/`mobile`
+  fields, so provisioning only reports whether a vendor has already
+  configured payment collection (`needs_setup: true/false`), never creates a
+  placeholder row.
 - **Real "Get help" support form**, replacing the mailto-link interim
   pattern — files into the shared cross-kit `merqo.support_messages`
   inbox (Merqo team picks it up in `/admin`), same pattern qkit's own
