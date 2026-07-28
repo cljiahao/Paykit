@@ -44,6 +44,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
+    already_existed: Boolean(data),
     needs_setup: !data,
     plan: data?.plan ?? null,
   });

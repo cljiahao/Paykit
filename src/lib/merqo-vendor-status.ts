@@ -1,5 +1,7 @@
+import type { VendorPlan } from "@/lib/types";
+
 export type VendorStatus =
-  { active: true; plan: string } | { active: false; plan: null };
+  { active: true; plan: VendorPlan } | { active: false; plan: null };
 
 /**
  * paykit.vendor_payment_config has no email column (vendor_id references
@@ -11,7 +13,7 @@ export type VendorStatus =
 export function resolveVendorStatus(
   email: string,
   authUsers: { id: string; email: string | null }[],
-  configs: { vendor_id: string; plan: string }[],
+  configs: { vendor_id: string; plan: VendorPlan }[],
 ): VendorStatus {
   const key = email.toLowerCase();
   const user = authUsers.find((u) => u.email?.toLowerCase() === key);

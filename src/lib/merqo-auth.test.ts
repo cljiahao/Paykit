@@ -48,3 +48,17 @@ describe("provisionBearerOk", () => {
     expect(provisionBearerOk(reqWithAuth("Bearer p1"))).toBe(true);
   });
 });
+
+describe("bearerOk / provisionBearerOk cross-rejection", () => {
+  afterEach(() => {
+    delete process.env.MERQO_METRICS_SECRET;
+    delete process.env.MERQO_PROVISION_SECRET;
+  });
+
+  it("each helper rejects the other's secret when both are set", () => {
+    process.env.MERQO_METRICS_SECRET = "m1";
+    process.env.MERQO_PROVISION_SECRET = "p1";
+    expect(provisionBearerOk(reqWithAuth("Bearer m1"))).toBe(false);
+    expect(bearerOk(reqWithAuth("Bearer p1"))).toBe(false);
+  });
+});

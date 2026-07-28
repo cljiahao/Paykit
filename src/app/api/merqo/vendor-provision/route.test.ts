@@ -71,6 +71,7 @@ describe("POST /api/merqo/vendor-provision (paykit)", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       ok: true,
+      already_existed: false,
       needs_setup: true,
       plan: null,
     });
@@ -85,6 +86,7 @@ describe("POST /api/merqo/vendor-provision (paykit)", () => {
     const res = await POST(req({ user_id: USER_ID }, "Bearer test-secret"));
     expect(await res.json()).toEqual({
       ok: true,
+      already_existed: true,
       needs_setup: false,
       plan: "pro",
     });

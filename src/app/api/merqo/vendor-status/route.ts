@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { bearerOk, listAllAuthUsers } from "@/lib/merqo-auth";
 import { resolveVendorStatus } from "@/lib/merqo-vendor-status";
+import type { VendorPlan } from "@/lib/types";
 
 export const revalidate = 0;
 
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
       id: u.id,
       email: u.email ?? null,
     })),
-    (configsRes.data ?? []) as { vendor_id: string; plan: string }[],
+    (configsRes.data ?? []) as { vendor_id: string; plan: VendorPlan }[],
   );
 
   return NextResponse.json(status);
