@@ -48,6 +48,15 @@ larger clusters; everything else sits flat here.
 - `merqo-support.ts` — same generic-RPC-wrapper pattern as
   `merqo-vendor-profile.ts`, for `merqo.submit_support_message` (the
   shared cross-kit Get-help inbox, `kit_slug: "paykit"`).
+- `merqo-vendor-feedback.ts` — same generic-RPC-wrapper pattern as
+  `merqo-vendor-profile.ts`/`merqo-support.ts`, for
+  `merqo.submit_vendor_feedback` (the shared cross-kit NPS/feedback
+  channel, `p_kit_slug: "paykit"`).
+- `merqo-vendor-status.ts` — `resolveVendorStatus(email, authUsers,
+  configs)`: pure two-step lookup (email → auth user → that user's
+  `vendor_payment_config`) since `vendor_payment_config` has no email
+  column. Ported from qkit's identically-named function. Backs
+  `GET /api/merqo/vendor-status`.
 - `brand-icon.tsx` — `brandIcon(size)` + `BRAND_MINT`/`BRAND_INK`: the
   paykit "P" mark as a `ReactElement` for `ImageResponse`-generated icons
   (favicon, apple-touch) — hex literals, not theme tokens, since

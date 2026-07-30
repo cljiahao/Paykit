@@ -38,7 +38,7 @@ design.md`), Feedback (a `Sheet` drawer rendering `FeedbackForm`), and
   `docs/superpowers/specs/2026-07-22-paykit-freemium-nudge-redesign-
 design.md`.
 - `config/` — payment method setup (PayNow QR, or a vendor's own BYO
-  payment link/QR image; own README).
+  payment link/QR image; no README of its own yet).
 - `transactions/` — transaction history + refund dialog (Pro only).
 - `stats/` — revenue-by-day chart, Pro only.
 - `plan/` — current tier, usage, and the Pro upsell.
