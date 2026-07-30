@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { getVendorSession } from "@/lib/vendor-session";
 import { getOrCreateVendorProfile } from "@/lib/merqo-vendor-profile";
+import { BackButton } from "@/components/back-button";
 import { ProfileForm } from "./profile-form";
 
 export const revalidate = 0;
@@ -23,12 +23,7 @@ export default async function ProfilePage() {
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-6 md:max-w-4xl">
       <div>
-        <Link
-          href="/dashboard"
-          className="text-sm text-muted-foreground underline underline-offset-4"
-        >
-          ← Dashboard
-        </Link>
+        <BackButton href="/dashboard" label="Dashboard" />
       </div>
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
