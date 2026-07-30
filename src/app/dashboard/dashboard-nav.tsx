@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +52,35 @@ function initials(label: string): string {
   return first ? first.toUpperCase() : "•";
 }
 
+// A small mono "ticket stamp" for the account's plan, ported from qkit's
+// TierBadge — simplified to paykit's 2-tier (free/pro) set, so it's a flat
+// lookup rather than qkit's 3-rung logic.
+const TIER_BADGE: Record<Tier, { label: string; className: string }> = {
+  free: {
+    label: "Free",
+    className: "bg-secondary text-muted-foreground ring-border",
+  },
+  pro: {
+    label: "Pro",
+    className:
+      "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-400/15 dark:text-emerald-400 dark:ring-emerald-400/30",
+  },
+};
+
+function TierBadge({ tier }: { tier: Tier }) {
+  const { label, className } = TIER_BADGE[tier];
+  return (
+    <span
+      className={cn(
+        "shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[0.6rem] font-semibold uppercase tracking-wider ring-1 ring-inset",
+        className,
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
 /**
  * Dashboard sticky-header row, per docs/business/2026-07-21-dashboard-nav-standard.md:
  * burger far-left (below sm), inline links sm+, account menu far-right at
@@ -77,19 +107,20 @@ export function DashboardNav({
     <>
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-1 sm:gap-3">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((v) => !v)}
-            className="-ml-1.5 shrink-0 rounded-lg p-1.5 text-muted-foreground hover:bg-secondary sm:hidden"
+            className="-ml-1.5 shrink-0 rounded-lg sm:hidden"
           >
             {mobileOpen ? (
               <X className="size-5" />
             ) : (
               <Menu className="size-5" />
             )}
-          </button>
+          </Button>
 
           <Link
             href="/dashboard"
@@ -129,15 +160,16 @@ export function DashboardNav({
                   {initials(vendorName)}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden max-w-[9rem] truncate text-sm font-medium sm:inline">
+              <span className="hidden max-w-[9rem] truncate text-sm font-medium md:inline">
                 {vendorName}
               </span>
               <ChevronDown className="hidden size-4 text-muted-foreground md:inline" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 rounded-xl">
-            <DropdownMenuLabel className="truncate px-2 py-2 text-xs font-normal text-muted-foreground">
-              {vendorName} · <span className="capitalize">{plan}</span>
+            <DropdownMenuLabel className="flex items-center gap-2 px-2 py-2 text-xs font-normal text-muted-foreground">
+              <span className="truncate">{vendorName}</span>
+              <TierBadge tier={plan} />
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
