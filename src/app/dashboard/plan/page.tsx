@@ -1,9 +1,12 @@
-import Link from "next/link";
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
 import { shouldNudgePro } from "@/lib/usage";
+import { BackButton } from "@/components/back-button";
+import { UpgradeCta } from "./upgrade-cta";
 
 export const revalidate = 0;
+
+const PRO_PRICE = "$12/mo";
 
 export default async function PlanPage() {
   const { supabase, user } = await getVendorSession();
@@ -14,12 +17,7 @@ export default async function PlanPage() {
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-6">
       <div>
-        <Link
-          href="/dashboard"
-          className="text-sm text-muted-foreground underline underline-offset-4"
-        >
-          ← Dashboard
-        </Link>
+        <BackButton href="/dashboard" label="Dashboard" />
       </div>
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -37,8 +35,8 @@ export default async function PlanPage() {
         </p>
         {shouldNudgePro(plan, count) && (
           <p className="mt-2 text-sm text-muted-foreground">
-            You&apos;re doing real volume — Pro adds stats and refund tracking,
-            $12/mo.
+            You&apos;re doing real volume — Pro adds stats and refund tracking,{" "}
+            {PRO_PRICE}.
           </p>
         )}
       </div>
@@ -55,9 +53,13 @@ export default async function PlanPage() {
           )}
         </ul>
         {plan === "free" && (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Ask us to upgrade your account to Pro for stats and refunds.
-          </p>
+          <div className="mt-3">
+            <p className="text-sm text-muted-foreground">
+              Ask us to upgrade your account to Pro for stats and refunds,{" "}
+              {PRO_PRICE}.
+            </p>
+            <UpgradeCta />
+          </div>
         )}
       </div>
     </main>

@@ -45,7 +45,9 @@ design.md`.
   payment link/QR image; no README of its own yet).
 - `transactions/` — transaction history + refund dialog (Pro only).
 - `stats/` — revenue-by-day chart, Pro only.
-- `plan/` — current tier, usage, and the Pro upsell.
+- `plan/` — current tier, usage, and the Pro upsell (`UpgradeCta` — a
+  button that files a Pro-upgrade request via `requestProUpgradeAction`
+  and shows toast feedback; no README of its own yet).
 - `profile/` — stall/shop name and social links (shared across every
   Merqo kit), plus display name/avatar/password (local to paykit; own
   README).
