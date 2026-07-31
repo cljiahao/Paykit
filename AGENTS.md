@@ -154,15 +154,18 @@ and other `.env.<env>` variants, `./secrets/**` — `.env.example` is the one
 whitelisted env file) and irreversible ops (`rm -rf`, `git push --force`/`-f`,
 `git reset --hard`, `git clean -fd/-fx`, `git filter-branch`, ref-delete). `ask`
 gates `Edit(...)` (covers both Edit and Write) on the medium-security governance
-files: `AGENTS.md`, `CLAUDE.md`, `docs/constitution.md`, `.claude/harness.json`,
+files: `AGENTS.md`, `CLAUDE.md`, `docs/CONSTITUTION.md`, `.claude/harness.json`,
 `.claude/settings.json`, `.claude/settings.local.json`. Deny always wins (enforced
 even under bypass); it's a guardrail, not a sandbox.
-Git hooks (lefthook): pre-commit runs format/lint/typecheck, a
+Git hooks (husky): pre-commit runs format/lint/typecheck, a
 `--frozen-lockfile` install gated on `package.json` changes
 (lockfile-in-sync — also re-checked in CI), gitleaks secret-scan on staged
 files, and a readme-coupling staleness warning; commit-msg enforces
 Conventional Commits; pre-push runs the harness integrity check + quality
-gate. Hard-local; coverage/changed-line gates run in CI.
+gate. Hard-local; coverage/changed-line gates run in CI. Migrated
+2026-08-01 off lefthook, whose unsigned `lefthook.exe` Windows Smart App
+Control blocks unconditionally — see
+`docs/superpowers/specs/2026-08-01-lefthook-to-husky-migration-design.md`.
 CI (GitHub Actions): `test` (check + unit + coverage) with a hard gate on
 changed-line coverage (`diff-cover` ≥80%), `build` (`next build` — the one
 job that catches Next.js client/server bundle-boundary errors `pnpm
@@ -172,14 +175,9 @@ check, a readme-freshness check, harness integrity, and (via
 `security.yml`) a full-history gitleaks scan + `pnpm audit` + CodeQL.
 RLS isolation: `supabase/tests/rls.test.sql` via `supabase test db`.
 Project skills (directory form, `<name>/SKILL.md`): `.claude/skills/` |
-Manifest: `.claude/harness.json`. Partially armed: the `.claude/hooks/*`
-script files added in the 2026-07-24 hook-script migration carry real
-sha256 `origin_hash` values and are drift-checked for real; the
-pre-existing seeded files (`AGENTS.md`, `.claude/settings.json`,
-`.claude/hooks/verify.sh`, etc.) still carry the placeholder `<pending>`,
-which `verify-harness.sh` explicitly skips — so those specific files pass
-the integrity check trivially until a human runs `.claude/regen-harness.sh`
-to hash them for real.
+Manifest: `.claude/harness.json`. Fully armed: every `.claude/harness.json`
+entry carries a real sha256 as of the 2026-08-01 husky migration's
+`regen-harness.sh` run.
 
 ## Skills Security
 
