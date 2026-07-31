@@ -175,15 +175,9 @@ check, a readme-freshness check, harness integrity, and (via
 `security.yml`) a full-history gitleaks scan + `pnpm audit` + CodeQL.
 RLS isolation: `supabase/tests/rls.test.sql` via `supabase test db`.
 Project skills (directory form, `<name>/SKILL.md`): `.claude/skills/` |
-Manifest: `.claude/harness.json`. Partially armed: the `.claude/hooks/*`
-script files added in the 2026-07-24 hook-script migration carry real
-sha256 `origin_hash` values and are drift-checked for real; the
-pre-existing seeded files (`AGENTS.md`, `.claude/settings.json`,
-`.claude/hooks/verify.sh`, etc.) still carry the placeholder `<pending>`,
-which `verify-harness.sh` explicitly skips — so those specific files pass
-the integrity check trivially until a human runs `.claude/regen-harness.sh`
-to hash them for real. This migration's own regen-harness.sh run
-(2026-08-01) blessed the new .husky/* entries at the same time.
+Manifest: `.claude/harness.json`. Fully armed: every `.claude/harness.json`
+entry carries a real sha256 as of the 2026-08-01 husky migration's
+`regen-harness.sh` run.
 
 ## Skills Security
 
