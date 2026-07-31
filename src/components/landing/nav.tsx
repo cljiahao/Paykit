@@ -14,6 +14,14 @@ export function Nav({ authed = false }: { authed?: boolean }) {
           <span className="sr-only">paykit home</span>
         </Link>
         <div className="flex items-center gap-3">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="hidden rounded-lg sm:inline-flex"
+          >
+            <a href="#faq">FAQ</a>
+          </Button>
           {authed ? (
             <Button asChild size="sm">
               <Link href="/dashboard">Dashboard</Link>

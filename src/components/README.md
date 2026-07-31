@@ -9,6 +9,10 @@ sits flat here.
 
 ## Contents
 
+- `back-button.tsx` — `BackButton({ href, label })`: a shadcn
+  `Button asChild variant="ghost"` + `ArrowLeft` "leave this page" link,
+  ported from qkit. Used in place of a plain underlined `<Link>` so the
+  back-to-dashboard nav is a real hit target with hover/focus state.
 - `feedback-form.tsx` — `FeedbackForm`: vendor NPS (shadcn `ToggleGroup`,
   0–10) + optional comment (shadcn `Textarea`) widget, mounted in a Sheet
   off the account menu. Ported from Merqo hub's own FeedbackForm; paykit
@@ -36,7 +40,8 @@ sits flat here.
 `FeedbackForm`/`SupportForm` are rendered inside `dashboard-nav.tsx`'s
 Feedback/Get-help `Sheet` drawers and call actions in `src/app/actions/`.
 `Section`/`InfoTooltip`/`social-links-fields.tsx` are used by the dashboard
-profile/config settings pages. `landing/` is only used by `src/app/page.tsx`.
+profile/config settings pages. `BackButton` is used by the dashboard
+`profile/` and `plan/` pages. `landing/` is only used by `src/app/page.tsx`.
 `ui/` is used everywhere.
 
 ## Parent

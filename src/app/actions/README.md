@@ -3,8 +3,9 @@
 ## Purpose
 
 Server actions shared across the app rather than scoped to one dashboard
-sub-route — sign-out and the two Sheet-embedded widgets reachable from
-`dashboard-nav.tsx` (Feedback, Get help).
+sub-route — sign-out, the two Sheet-embedded widgets reachable from
+`dashboard-nav.tsx` (Feedback, Get help), and the plan-page Pro-upgrade
+request.
 
 ## Contents
 
@@ -36,6 +37,16 @@ sub-route — sign-out and the two Sheet-embedded widgets reachable from
   input never reaches the RPC, an unauthenticated caller gets an error
   without a redirect, and an RPC failure surfaces a friendly message
   (never the raw error).
+- `plan.ts` — `requestProUpgradeAction()`: the "Ask us to upgrade to Pro"
+  CTA on the plan page. paykit has no `upgrade_requests` table (and no
+  payment-provider integration to sell Pro through), so it reuses the same
+  `submitSupportMessage` (`@/lib/merqo-support`) mechanism as `support.ts`,
+  filed under the existing `billing` category, rather than adding new
+  schema for what's still just a "message us" request.
+- `plan.test.ts` — same mock shape as `support.test.ts`: the RPC is called
+  with the fixed `billing` category and request body, an unauthenticated
+  caller gets an error without calling the RPC, and an RPC failure
+  surfaces a friendly message (never the raw error).
 
 ## Connectivity
 
@@ -43,7 +54,8 @@ sub-route — sign-out and the two Sheet-embedded widgets reachable from
 `dashboard/layout.tsx`. `feedback.ts`'s and `support.ts`'s actions are
 called by `FeedbackForm` and `SupportForm` (`@/components`) respectively,
 both rendered inside `dashboard-nav.tsx`'s Feedback/Get-help `Sheet`
-drawers.
+drawers. `plan.ts`'s action is called by `UpgradeCta`
+(`dashboard/plan/upgrade-cta.tsx`).
 
 ## Parent
 

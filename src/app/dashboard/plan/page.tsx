@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
-import { shouldNudgePro } from "@/lib/usage";
+import { resolvePlanView, PRO_PRICE } from "@/lib/plan-view";
+import { BackButton } from "@/components/back-button";
+import { UpgradeCta } from "./upgrade-cta";
 
 export const revalidate = 0;
 
@@ -10,16 +11,12 @@ export default async function PlanPage() {
   const config = await getVendorPlan(supabase, user.id);
   const plan = config?.plan ?? "free";
   const count = await txCountThisMonth(user.id);
+  const view = resolvePlanView(plan, count);
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-6">
       <div>
-        <Link
-          href="/dashboard"
-          className="text-sm text-muted-foreground underline underline-offset-4"
-        >
-          ← Dashboard
-        </Link>
+        <BackButton href="/dashboard" label="Dashboard" />
       </div>
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -30,34 +27,32 @@ export default async function PlanPage() {
 
       <div className="rounded-xl border p-4">
         <p className="text-sm font-medium">
-          Current plan: <span className="capitalize">{plan}</span>
+          Current plan: <span className="capitalize">{view.plan}</span>
         </p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {count} transaction{count === 1 ? "" : "s"} this month
-        </p>
-        {shouldNudgePro(plan, count) && (
+        <p className="mt-2 text-sm text-muted-foreground">{view.countLabel}</p>
+        {view.showNudge && (
           <p className="mt-2 text-sm text-muted-foreground">
-            You&apos;re doing real volume — Pro adds stats and refund tracking,
-            $12/mo.
+            You&apos;re doing real volume — Pro adds stats and refund tracking,{" "}
+            {PRO_PRICE}.
           </p>
         )}
       </div>
 
       <div className="rounded-xl border p-4">
-        <p className="text-sm font-medium">{plan === "pro" ? "Pro" : "Free"}</p>
+        <p className="text-sm font-medium">{view.planLabel}</p>
         <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-          <li>Unlimited transactions</li>
-          {plan === "pro" && (
-            <>
-              <li>Stats</li>
-              <li>Refunds</li>
-            </>
-          )}
+          {view.features.map((feature) => (
+            <li key={feature}>{feature}</li>
+          ))}
         </ul>
-        {plan === "free" && (
-          <p className="mt-3 text-sm text-muted-foreground">
-            Ask us to upgrade your account to Pro for stats and refunds.
-          </p>
+        {view.showUpgrade && (
+          <div className="mt-3">
+            <p className="text-sm text-muted-foreground">
+              Ask us to upgrade your account to Pro for stats and refunds,{" "}
+              {PRO_PRICE}.
+            </p>
+            <UpgradeCta />
+          </div>
         )}
       </div>
     </main>

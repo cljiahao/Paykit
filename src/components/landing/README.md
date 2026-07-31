@@ -8,7 +8,8 @@ file. Presentational only — no data fetching, no client state beyond the
 
 ## Contents
 
-- `nav.tsx` — sticky top nav: `Wordmark` + sign-in/dashboard link.
+- `nav.tsx` — sticky top nav: `Wordmark` + an `#faq` anchor link (sm+,
+  same-page hash jump to `faq.tsx`'s section) + sign-in/dashboard link.
 - `hero.tsx` — headline, stat row, CTA, and the decorative `CheckoutCard`.
 - `checkout-card.tsx` — stylized non-functional "live checkout" artifact for
   the hero (not a real scannable QR — a stand-in with a status pill using

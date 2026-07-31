@@ -15,15 +15,19 @@ revenue stats, manage their Pro plan, and edit their account profile.
   the sticky header (`DashboardNav`) around `{children}`.
 - `dashboard-nav.tsx` — `DashboardNav({ signOut, vendorName, avatarUrl,
 plan })` client component, per `docs/business/2026-07-21-dashboard-nav-
-standard.md`: mobile burger + inline `Dashboard`/`Payment setup`/
+standard.md`: mobile burger (a shadcn `Button variant="ghost" size="icon"`,
+  not a raw `<button>`) + inline `Dashboard`/`Payment setup`/
   `Transactions`/`Stats` links (`LINKS`, active-route highlighting via
   `isActive`/`usePathname`) on the left; an account-menu avatar (real
   photo via `AvatarImage` when `avatarUrl` is set, initials fallback
-  otherwise, mint-colored wordmark) on the right, opening a dropdown to
-  Profile, Plan, Get help (a `Sheet` drawer rendering `SupportForm` —
-  files into the shared cross-kit `merqo.support_messages` inbox as of
-  2026-07-23, replacing the earlier `mailto:` interim pattern; see
-  `merqo/docs/superpowers/specs/2026-07-23-cross-kit-support-messages-
+  otherwise, mint-colored wordmark, vendor name + `ChevronDown` both
+  revealed at the same `md:inline` breakpoint) on the right, opening a
+  dropdown whose label shows the vendor name next to a `TierBadge` pill
+  (free/pro, ported from qkit's 3-tier badge and flattened to paykit's
+  2-tier set) to Profile, Plan, Get help (a `Sheet` drawer rendering
+  `SupportForm` — files into the shared cross-kit `merqo.support_messages`
+  inbox as of 2026-07-23, replacing the earlier `mailto:` interim pattern;
+  see `merqo/docs/superpowers/specs/2026-07-23-cross-kit-support-messages-
 design.md`), Feedback (a `Sheet` drawer rendering `FeedbackForm`), and
   Sign out (a real `<form action={signOut}>` submit).
 - `dashboard-nav.dom.test.tsx` — RTL/jsdom tests: the inline links render
@@ -38,10 +42,12 @@ design.md`), Feedback (a `Sheet` drawer rendering `FeedbackForm`), and
   `docs/superpowers/specs/2026-07-22-paykit-freemium-nudge-redesign-
 design.md`.
 - `config/` — payment method setup (PayNow QR, or a vendor's own BYO
-  payment link/QR image; own README).
+  payment link/QR image; no README of its own yet).
 - `transactions/` — transaction history + refund dialog (Pro only).
 - `stats/` — revenue-by-day chart, Pro only.
-- `plan/` — current tier, usage, and the Pro upsell.
+- `plan/` — current tier, usage, and the Pro upsell (`UpgradeCta` — a
+  button that files a Pro-upgrade request via `requestProUpgradeAction`
+  and shows toast feedback; own README).
 - `profile/` — stall/shop name and social links (shared across every
   Merqo kit), plus display name/avatar/password (local to paykit; own
   README).

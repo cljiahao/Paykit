@@ -29,6 +29,11 @@ larger clusters; everything else sits flat here.
 - `usage.ts` — `shouldNudgePro`/`PRO_NUDGE_THRESHOLD`: friction-based
   Free→Pro nudge (not a hard cap — Free tier has no transaction-volume
   cap, see root `AGENTS.md`).
+- `plan-view.ts` — `resolvePlanView(plan, countThisMonth)`/`PRO_PRICE`: pure
+  view-model for the dashboard Plan page (feature list, transaction-count
+  copy, `shouldNudgePro`-backed nudge visibility, upgrade-CTA visibility) —
+  kept out of `plan/page.tsx`'s JSX so the free/pro branching is
+  unit-testable without rendering that async server component.
 - `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
   for calling kits, checked on every `/api/v1/*` route before any DB access.
 - `vendor-session.ts` — `getVendorSession()` (dashboard auth guard,
@@ -48,6 +53,15 @@ larger clusters; everything else sits flat here.
 - `merqo-support.ts` — same generic-RPC-wrapper pattern as
   `merqo-vendor-profile.ts`, for `merqo.submit_support_message` (the
   shared cross-kit Get-help inbox, `kit_slug: "paykit"`).
+- `merqo-vendor-feedback.ts` — same generic-RPC-wrapper pattern as
+  `merqo-vendor-profile.ts`/`merqo-support.ts`, for
+  `merqo.submit_vendor_feedback` (the shared cross-kit NPS/feedback
+  channel, `p_kit_slug: "paykit"`).
+- `merqo-vendor-status.ts` — `resolveVendorStatus(email, authUsers,
+configs)`: pure two-step lookup (email → auth user → that user's
+  `vendor_payment_config`) since `vendor_payment_config` has no email
+  column. Ported from qkit's identically-named function. Backs
+  `GET /api/merqo/vendor-status`.
 - `brand-icon.tsx` — `brandIcon(size)` + `BRAND_MINT`/`BRAND_INK`: the
   paykit "P" mark as a `ReactElement` for `ImageResponse`-generated icons
   (favicon, apple-touch) — hex literals, not theme tokens, since

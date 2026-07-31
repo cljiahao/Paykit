@@ -6,11 +6,37 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Real "Forgot password?" flow on `/login` (sign-in mode only): emails a
+  Supabase reset link via `resetPasswordForEmail`, landing on
+  `/auth/callback` → `/dashboard/profile`'s existing "Change password"
+  field. Toasts an error when the email field is empty or the call fails.
+- A real, clickable Pro-upgrade action on the dashboard Plan page
+  (`UpgradeCta`) — files an in-product request via the new
+  `requestProUpgradeAction` server action instead of just describing the
+  upgrade in text; no payment provider involved, Pro is granted manually.
+- `BackButton` (`@/components/back-button`), ported from qkit: a real
+  hit-target "leave this page" button, replacing the plain underlined
+  `<Link>` previously used on the dashboard Plan and Profile pages.
+- FAQ link in the landing nav (`landing/nav.tsx`), jumping to the existing
+  `faq.tsx` section.
+- Login card now uses the shared `Wordmark` (was plain "paykit" text) and a
+  real Google "G" mark next to "Continue with Google" (was a bare label,
+  no brand glyph).
+
 ### Fixed
 
 - `SupportForm`'s category `ToggleGroup` was missing `spacing={1.5}`,
   rendering the category buttons edge-to-edge instead of qkit's
   separated-pill layout.
+- Dashboard nav's mobile burger button appeared at the wrong breakpoint
+  relative to the inline links, and the account-menu `TierBadge` pill was
+  misrendered; both fixed alongside a `Button` sizing fix.
+- Sign-up on `/login` no longer silently redirects to `/dashboard` when
+  Supabase returns no session (email confirmation on) — it now shows a
+  "Check your email" state, with "Back to sign in" returning to the normal
+  form.
 
 ### Changed
 
