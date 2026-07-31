@@ -7,6 +7,12 @@ payment status for that vendor over paykit's HTTP API. paykit never
 touches funds — it renders the checkout the customer pays through in
 their own bank/payment app, and a human confirms receipt.
 
+Sign-in (`/login`) supports email+password (with a "Check your email"
+confirmation state and a real forgot-password flow) and Google OAuth. Once
+signed in, a Free-tier vendor can file a real, one-click Pro-upgrade request
+from the dashboard's Plan page — no payment provider involved; Pro is
+granted manually.
+
 See `AGENTS.md` for stack, commands, data model, and rules; `CHANGELOG.md`
 for what's shipped since the MVP. Folder-level `README.md`s (`src/lib/`,
 `src/components/`, and their subfolders) cover what each module does and

@@ -1,0 +1,39 @@
+# plan
+
+## Purpose
+
+The vendor's billing page: current tier, this month's transaction count, the
+Free feature list vs. Pro's (stats + refunds), and — for Free vendors — a
+real Pro-upgrade CTA. No payment provider is involved; Pro is granted
+manually once a vendor's upgrade request comes in.
+
+## Contents
+
+- `page.tsx` — `PlanPage()` (server, `revalidate = 0`): calls
+  `getVendorSession()`/`getVendorPlan()` and `txCountThisMonth()`, resolves
+  the free/pro branching through `resolvePlanView()` (`@/lib/plan-view`),
+  and renders the plan card + feature list + (Free only) the nudge copy and
+  `UpgradeCta`. Kept deliberately thin — the feature list, count-copy
+  pluralization, and nudge/upgrade visibility are pure logic in
+  `plan-view.ts`, not inline JSX branching, so they're unit-testable without
+  rendering this async server component (no precedent in this repo for
+  directly rendering a server-component page).
+- `upgrade-cta.tsx` — `UpgradeCta`: client component, "Ask us to upgrade to
+  Pro" button. Calls `requestProUpgradeAction()` (`@/app/actions/plan`) in a
+  transition and toasts success/failure — mirrors qkit's `UpgradeCta`
+  pattern, simplified for paykit's single free→pro path.
+- `upgrade-cta.dom.test.tsx` — jsdom tests: renders idle with no action
+  call, files the request and toasts success, toasts the action's error
+  message on failure.
+
+## Connectivity
+
+Reachable from `dashboard-nav.tsx`'s account-menu "Plan" item. `page.tsx`
+reads plan/usage state via `@/lib/vendor-session` and `@/lib/transactions`,
+formats it via `@/lib/plan-view`, and renders `upgrade-cta.tsx`, which calls
+the `requestProUpgradeAction` server action in `src/app/actions/plan.ts`
+(files into the shared `merqo.support_messages` inbox, category `billing`).
+
+## Parent
+
+[dashboard](../README.md)
