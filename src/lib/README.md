@@ -29,6 +29,11 @@ larger clusters; everything else sits flat here.
 - `usage.ts` — `shouldNudgePro`/`PRO_NUDGE_THRESHOLD`: friction-based
   Free→Pro nudge (not a hard cap — Free tier has no transaction-volume
   cap, see root `AGENTS.md`).
+- `plan-view.ts` — `resolvePlanView(plan, countThisMonth)`/`PRO_PRICE`: pure
+  view-model for the dashboard Plan page (feature list, transaction-count
+  copy, `shouldNudgePro`-backed nudge visibility, upgrade-CTA visibility) —
+  kept out of `plan/page.tsx`'s JSX so the free/pro branching is
+  unit-testable without rendering that async server component.
 - `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
   for calling kits, checked on every `/api/v1/*` route before any DB access.
 - `vendor-session.ts` — `getVendorSession()` (dashboard auth guard,
