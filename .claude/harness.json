@@ -88,7 +88,7 @@
       "path": ".github/workflows/ci.yml"
     },
     ".claude/verify-harness.sh": {
-      "origin_hash": "74915be4fe3af153d28be775e30e84fa4eb4b2a4d4e4c509dbee28e138dc749c",
+      "origin_hash": "54a5f6b03db4e1925a74ecc4dd69d37c265ffbdf594db1978b4599a94adfcaf0",
       "path": ".claude/verify-harness.sh"
     },
     ".claude/regen-harness.sh": {
