@@ -35,6 +35,12 @@ vi.mock("@/lib/supabase/client", () => ({
   })),
 }));
 
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+import { toast } from "sonner";
+
 beforeEach(() => {
   useRouterMock.mockReset().mockReturnValue({
     push: vi.fn(),
@@ -47,6 +53,8 @@ beforeEach(() => {
     .mockReset()
     .mockResolvedValue({ data: { session: {} }, error: null });
   resetPasswordForEmailMock.mockReset().mockResolvedValue({ error: null });
+  vi.mocked(toast.success).mockReset();
+  vi.mocked(toast.error).mockReset();
 });
 
 describe("LoginPage", () => {
@@ -138,5 +146,58 @@ describe("LoginPage", () => {
     expect(
       screen.queryByRole("button", { name: /forgot password/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("toasts an error and does not send a reset email when the email field is empty", async () => {
+    const user = userEvent.setup();
+    const { default: LoginPage } = await import("./page");
+    render(<LoginPage />);
+
+    await user.click(screen.getByRole("button", { name: /forgot password/i }));
+
+    expect(toast.error).toHaveBeenCalledWith("Enter your email first");
+    expect(resetPasswordForEmailMock).not.toHaveBeenCalled();
+  });
+
+  it("toasts the Supabase error message when resetPasswordForEmail fails", async () => {
+    resetPasswordForEmailMock.mockResolvedValue({
+      error: { message: "Too many requests" },
+    });
+    const user = userEvent.setup();
+    const { default: LoginPage } = await import("./page");
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/email/i), "vendor@example.com");
+    await user.click(screen.getByRole("button", { name: /forgot password/i }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Too many requests");
+    });
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it("returns to the sign-in form from the check-your-email state via Back to sign in", async () => {
+    signUpMock.mockResolvedValue({ data: { session: null }, error: null });
+    const user = userEvent.setup();
+    const { default: LoginPage } = await import("./page");
+    render(<LoginPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: /create an account/i }),
+    );
+    await user.type(screen.getByLabelText(/email/i), "new@example.com");
+    await user.type(screen.getByLabelText(/^password/i), "password123");
+    await user.click(screen.getByRole("button", { name: /create account/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/check your email/i)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: /back to sign in/i }));
+
+    expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /welcome back/i }),
+    ).toBeInTheDocument();
   });
 });
