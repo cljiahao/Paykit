@@ -53,7 +53,7 @@ larger clusters; everything else sits flat here.
   `merqo.submit_vendor_feedback` (the shared cross-kit NPS/feedback
   channel, `p_kit_slug: "paykit"`).
 - `merqo-vendor-status.ts` — `resolveVendorStatus(email, authUsers,
-  configs)`: pure two-step lookup (email → auth user → that user's
+configs)`: pure two-step lookup (email → auth user → that user's
   `vendor_payment_config`) since `vendor_payment_config` has no email
   column. Ported from qkit's identically-named function. Backs
   `GET /api/merqo/vendor-status`.

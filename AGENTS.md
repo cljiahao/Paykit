@@ -16,7 +16,7 @@ PayNow QR + tracks payment status over paykit's bearer-secret HTTP API
 (`/api/v1/*`). paykit never touches funds — it renders a QR the customer
 scans in their own bank app and tracks a status a human confirms. merqo
 calls paykit's admin-facing `/api/merqo/vendor-provision` and
-`/api/merqo/vendor-status` routes (shipped 2026-07-28), but no *checkout*
+`/api/merqo/vendor-status` routes (shipped 2026-07-28), but no _checkout_
 kit calls the `/api/v1/*` payment API yet; qkit's own local payment code
 (`booths.payment`, `claimPayment`/`confirmPayment`) is untouched and stays
 that way until a later, separate cutover spec.
