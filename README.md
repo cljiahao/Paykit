@@ -13,7 +13,8 @@ signed in, a Free-tier vendor can file a real, one-click Pro-upgrade request
 from the dashboard's Plan page — no payment provider involved; Pro is
 granted manually.
 
-See `AGENTS.md` for stack, commands, data model, and rules; `CHANGELOG.md`
+See `AGENTS.md` for stack, commands, data model, rules, and the AI
+harness/CI setup (templateCentral-based); `CHANGELOG.md`
 for what's shipped since the MVP. Folder-level `README.md`s (`src/lib/`,
 `src/components/`, and their subfolders) cover what each module does and
 how it's wired together. See

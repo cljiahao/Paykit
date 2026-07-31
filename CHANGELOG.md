@@ -37,9 +37,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   Supabase returns no session (email confirmation on) — it now shows a
   "Check your email" state, with "Back to sign in" returning to the normal
   form.
+- templateCentral 5.12 harness sync: `package.json`'s `prepare` script now
+  tolerates a missing `.git` (`lefthook install || true`) so a Docker build
+  stage without `.git` present doesn't hard-fail; `docs/constitution.md`
+  references in `.claude/settings.json` and `AGENTS.md` corrected to the
+  canonical uppercase `docs/CONSTITUTION.md` casing (already used by
+  `protect-files.sh`) so the ask-gate would actually fire if that file is
+  ever added; removed the unused, unwired `.claude/hooks/verify.sh`; bumped
+  `pnpm/action-setup` in CI from v4.3.0 to v4.4.0.
 
 ### Changed
 
+- Migrated git hooks from lefthook to husky — lefthook's unsigned
+  `lefthook.exe` is unconditionally blocked by Windows Smart App Control on
+  this machine; husky has no native binary. Same checks, same rigor.
 - `FeedbackForm`'s NPS score picker and comment field now use shadcn
   `ToggleGroup`/`Textarea` instead of hand-rolled radio buttons and a plain
   `<textarea>`, matching `SupportForm` and qkit's equivalent component. No

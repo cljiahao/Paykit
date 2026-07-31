@@ -15,10 +15,6 @@
       "origin_hash": "<pending>",
       "path": ".claude/settings.json"
     },
-    ".claude/hooks/verify.sh": {
-      "origin_hash": "<pending>",
-      "path": ".claude/hooks/verify.sh"
-    },
     ".claude/hooks/block-no-verify.sh": {
       "origin_hash": "f0f147dcf4bd5df66bd723a7b5c3bde69df758f232b1403e9eb02ab7500d35ea",
       "path": ".claude/hooks/block-no-verify.sh"
@@ -63,22 +59,11 @@
       "origin_hash": "<pending>",
       "path": ".claude/skills/supabase-migrate/SKILL.md"
     },
-    "lefthook.yml": {
-      "origin_hash": "<pending>",
-      "path": "lefthook.yml"
-    },
-    ".lefthook/commit-msg.sh": {
-      "origin_hash": "<pending>",
-      "path": ".lefthook/commit-msg.sh"
-    },
-    ".lefthook/commit-msg/commit-msg.sh": {
-      "origin_hash": "<pending>",
-      "path": ".lefthook/commit-msg/commit-msg.sh"
-    },
-    ".lefthook/readme-coupling.sh": {
-      "origin_hash": "<pending>",
-      "path": ".lefthook/readme-coupling.sh"
-    },
+    ".husky/pre-commit": { "origin_hash": "<pending>", "path": ".husky/pre-commit" },
+    ".husky/commit-msg": { "origin_hash": "<pending>", "path": ".husky/commit-msg" },
+    ".husky/pre-push": { "origin_hash": "<pending>", "path": ".husky/pre-push" },
+    ".husky/lib/readme-coupling.sh": { "origin_hash": "<pending>", "path": ".husky/lib/readme-coupling.sh" },
+    ".husky/lib/commit-msg-check.sh": { "origin_hash": "<pending>", "path": ".husky/lib/commit-msg-check.sh" },
     ".gitleaks.toml": {
       "origin_hash": "<pending>",
       "path": ".gitleaks.toml"
