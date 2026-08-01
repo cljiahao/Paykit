@@ -125,7 +125,7 @@ export function DashboardNav({
           <Link
             href="/dashboard"
             aria-label="paykit dashboard home"
-            className="shrink-0 rounded-sm text-xl font-bold tracking-tight outline-none transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="font-display shrink-0 rounded-sm text-3xl font-semibold tracking-tight outline-none transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50"
           >
             <span className="text-mint">Pay</span>Kit
           </Link>
