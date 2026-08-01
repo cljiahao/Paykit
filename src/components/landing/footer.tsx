@@ -8,7 +8,7 @@ export function Footer() {
         <div>
           <Wordmark className="text-xl" />
           <p className="mt-1 text-xs text-muted-foreground">
-            The Merqo family&apos;s shared PayNow payment engine.
+            The Merqo family&apos;s shared vendor payment engine.
           </p>
         </div>
         <div className="flex items-center gap-5 text-sm text-muted-foreground">
