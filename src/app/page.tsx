@@ -5,6 +5,7 @@ import { Benefits } from "@/components/landing/benefits";
 import { Faq } from "@/components/landing/faq";
 import { Cta } from "@/components/landing/cta";
 import { Footer } from "@/components/landing/footer";
+import { BackToTop } from "@/components/landing/back-to-top";
 import { createServerClient } from "@/lib/supabase/server";
 
 export default async function HomePage() {
@@ -27,6 +28,7 @@ export default async function HomePage() {
         <Cta authed={authed} />
       </main>
       <Footer />
+      <BackToTop />
     </>
   );
 }

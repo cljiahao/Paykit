@@ -12,9 +12,9 @@ describe("Nav", () => {
     );
   });
 
-  it("shows Log in / Get started, not a Dashboard link, when signed out", () => {
+  it("shows Sign in / Get started, not a Dashboard link, when signed out", () => {
     render(<Nav />);
-    expect(screen.getByRole("link", { name: "Log in" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
       "href",
       "/login",
     );
@@ -27,14 +27,14 @@ describe("Nav", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows a Dashboard link, not Log in / Get started, when authed", () => {
+  it("shows a Dashboard link, not Sign in / Get started, when authed", () => {
     render(<Nav authed />);
     expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
       "href",
       "/dashboard",
     );
     expect(
-      screen.queryByRole("link", { name: "Log in" }),
+      screen.queryByRole("link", { name: "Sign in" }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Get started" }),

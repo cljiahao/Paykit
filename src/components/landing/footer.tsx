@@ -13,7 +13,7 @@ export function Footer() {
         </div>
         <div className="flex items-center gap-5 text-sm text-muted-foreground">
           <Link href="/login" className="hover:text-foreground">
-            Log in
+            Sign in
           </Link>
           <span className="text-xs">© 2026 paykit · a Merqo kit</span>
         </div>
