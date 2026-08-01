@@ -8,6 +8,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Dashboard and landing navbar height, padding, and logo size now match
+  qkit's spec (`px-5 py-3.5`/`py-4`, `text-3xl` logo).
+
 - Browser-tab title lowercased to match the kit naming convention (was
   "PayKit", PascalCase reserved for the logo mark only) and given a tagline:
   "paykit: PayNow payments".

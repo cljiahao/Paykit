@@ -12,7 +12,9 @@ revenue stats, manage their Pro plan, and edit their account profile.
   `getVendorSession()` (redirects to `/login` if signed out) and
   `getVendorPlan()`/`getOrCreateVendorProfile()` in parallel, reads the
   vendor's profile icon off `user.user_metadata.avatar_url`, and renders
-  the sticky header (`DashboardNav`) around `{children}`.
+  the sticky header (`DashboardNav`) around `{children}`. The header itself
+  (`px-5 py-3.5`, `border-border`, `bg-background/85`, `backdrop-blur-md`,
+  `text-3xl` logo) matches qkit's dashboard-header sizing exactly.
 - `dashboard-nav.tsx` — `DashboardNav({ signOut, vendorName, avatarUrl,
 plan })` client component, per `docs/business/2026-07-21-dashboard-nav-
 standard.md`: mobile burger (a shadcn `Button variant="ghost" size="icon"`,
