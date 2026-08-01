@@ -13,6 +13,9 @@ sits flat here.
   `Button asChild variant="ghost"` + `ArrowLeft` "leave this page" link,
   ported from qkit. Used in place of a plain underlined `<Link>` so the
   back-to-dashboard nav is a real hit target with hover/focus state.
+- `elevated-card.tsx` — `ElevatedCard({ as, className, children })`: the
+  shared raised-card container (rounded, bordered, soft shadow) used by the
+  login page, matching every other kit's login page.
 - `feedback-form.tsx` — `FeedbackForm`: vendor NPS (shadcn `ToggleGroup`,
   0–10) + optional comment (shadcn `Textarea`) widget, mounted in a Sheet
   off the account menu. Ported from Merqo hub's own FeedbackForm; paykit
