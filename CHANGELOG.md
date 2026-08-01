@@ -6,6 +6,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Google OAuth on `/login` now forces an English consent screen
+  (`queryParams: { hl: "en" }`), matching merqo/qkit/loopkit.
+
 ### Added
 
 - Real "Forgot password?" flow on `/login` (sign-in mode only): emails a
