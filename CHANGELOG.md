@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Shared-session SSO across `*.merqo.io` kits: `NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`
+  scopes the Supabase auth cookie to `.merqo.io` in production, so signing
+  in on one kit signs you in on the rest. A one-time cleanup in
+  `src/lib/supabase/middleware.ts` clears each already-signed-in vendor's
+  pre-existing host-only cookie (forcing a single re-login) without
+  clobbering a same-request token refresh.
+
 ### Fixed
 
 - Login page brought to cross-kit parity: card container standardized to
