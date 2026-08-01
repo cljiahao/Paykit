@@ -22,7 +22,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b bg-background/85 px-5 py-3 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-5 py-3.5 backdrop-blur-md print:hidden">
         <DashboardNav
           signOut={signOutAction}
           vendorName={profile.stall_name || (user.email ?? "Account")}
