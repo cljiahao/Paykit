@@ -8,6 +8,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Browser-tab title lowercased to match the kit naming convention (was
+  "PayKit", PascalCase reserved for the logo mark only) and given a tagline:
+  "paykit: PayNow payments".
 - Google OAuth on `/login` now forces an English consent screen
   (`queryParams: { hl: "en" }`), matching merqo/qkit/loopkit.
 
