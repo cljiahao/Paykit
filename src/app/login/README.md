@@ -26,14 +26,19 @@ route; mode is a client-side toggle on this one page.
     session and forwards to `/dashboard/profile`, where "Change password"
     already lets a signed-in (recovery counts) user set a new one — no
     separate reset-password page needed.
-  - `Wordmark` (`@/components/landing/wordmark`) and a hand-drawn
-    `GoogleMark` SVG brand the card; no external icon package pulled in for
-    one glyph.
+  - `Wordmark` (`@/components/landing/wordmark`) and `GoogleMark`
+    (`./google-mark`) brand the card; the card container is `ElevatedCard`
+    (`@/components/elevated-card`), matching every other kit's login page.
+- `google-mark.tsx` — `GoogleMark`: the Google "G" icon SVG, extracted out
+  of `page.tsx` so it matches the shared component used across every kit's
+  login page.
 - `page.test.tsx` — RTL/jsdom tests: the `?error=oauth` banner, the
   check-your-email state on a sessionless sign-up (and returning from it via
   "Back to sign in"), the redirect-on-session-present path, and the Forgot
   password flow (visible only in sign-in mode, sends a reset email, toasts
   an error on an empty email or a failed reset call).
+- `login-page.dom.test.tsx` — RTL/jsdom test asserting the page renders a
+  single top-level heading alongside the Google and email/password form.
 
 ## Connectivity
 

@@ -8,6 +8,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Login page brought to cross-kit parity: card container standardized to
+  the shared `ElevatedCard`, Google icon extracted into `google-mark.tsx`,
+  and wordmark/field/button sizing and copy aligned with the other kits'
+  login pages.
 - Browser-tab title now uses the cross-kit "Name | Tagline" Title Case
   format: "Paykit | Vendor Payments" (was "paykit: PayNow payments").
 - paykit supports both `paynow` and `pointer` (BYO QR/link) payment
