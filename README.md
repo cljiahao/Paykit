@@ -7,6 +7,10 @@ payment status for that vendor over paykit's HTTP API. paykit never
 touches funds — it renders the checkout the customer pays through in
 their own bank/payment app, and a human confirms receipt.
 
+In production, the Supabase auth cookie is scoped to `.merqo.io`
+(`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on
+one Merqo kit signs you in on the rest.
+
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
 signed in, a Free-tier vendor can file a real, one-click Pro-upgrade request
