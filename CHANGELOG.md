@@ -18,7 +18,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   supported by BSD xargs (macOS default) — broke every local commit
   touching a staged .ts/.tsx/.js/.mjs/.cjs file. Swapped for portable
   `tr '\n' '\0' | xargs -0`.
-
+- Landing and footer "Log in" links renamed to "Sign in" for label parity
+  across all Merqo Business kits.
 - Dashboard and landing navbar height, padding, and logo size now match
   qkit's spec (`px-5 py-3.5`/`py-4`, `text-3xl` logo).
 
