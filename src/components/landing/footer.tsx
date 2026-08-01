@@ -8,12 +8,12 @@ export function Footer() {
         <div>
           <Wordmark className="text-xl" />
           <p className="mt-1 text-xs text-muted-foreground">
-            The Merqo family&apos;s shared PayNow payment engine.
+            The Merqo family&apos;s shared vendor payment engine.
           </p>
         </div>
         <div className="flex items-center gap-5 text-sm text-muted-foreground">
           <Link href="/login" className="hover:text-foreground">
-            Log in
+            Sign in
           </Link>
           <span className="text-xs">© 2026 paykit · a Merqo kit</span>
         </div>
