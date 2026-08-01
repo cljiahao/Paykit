@@ -45,6 +45,21 @@ describe("DashboardNav", () => {
     expect(link).toHaveAttribute("data-size", "sm");
   });
 
+  it("exposes data-tour anchors for the onboarding tour", () => {
+    render(<DashboardNav {...baseProps} />);
+    expect(screen.getByRole("button", { name: /open menu/i })).toHaveAttribute(
+      "data-tour",
+      "nav-menu",
+    );
+    expect(
+      screen.getByRole("button", { name: /account menu/i }),
+    ).toHaveAttribute("data-tour", "nav-account");
+    expect(screen.getByRole("link", { name: "Payment setup" })).toHaveAttribute(
+      "data-tour",
+      "nav-config",
+    );
+  });
+
   it("account menu has Profile, Plan, Get help, Feedback, then Sign out, in order", async () => {
     const user = userEvent.setup();
     render(<DashboardNav {...baseProps} />);

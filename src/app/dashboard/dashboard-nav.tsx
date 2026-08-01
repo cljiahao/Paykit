@@ -47,6 +47,11 @@ function isActive(path: string, href: string): boolean {
   return href === "/dashboard" ? path === "/dashboard" : path.startsWith(href);
 }
 
+/** Stable anchor id for the onboarding tour, e.g. "/dashboard/config" -> "nav-config". */
+function tourAnchor(href: string): string {
+  return `nav-${href === "/dashboard" ? "dashboard" : href.split("/").pop()}`;
+}
+
 function initials(label: string): string {
   const first = label.trim().charAt(0);
   return first ? first.toUpperCase() : "•";
@@ -113,6 +118,7 @@ export function DashboardNav({
           <Button
             variant="ghost"
             size="icon"
+            data-tour="nav-menu"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((v) => !v)}
@@ -146,7 +152,9 @@ export function DashboardNav({
                     "bg-primary/10 text-primary hover:bg-primary/10",
                 )}
               >
-                <Link href={link.href}>{link.label}</Link>
+                <Link href={link.href} data-tour={tourAnchor(link.href)}>
+                  {link.label}
+                </Link>
               </Button>
             ))}
           </nav>
@@ -156,6 +164,7 @@ export function DashboardNav({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
+              data-tour="nav-account"
               aria-label="Account menu"
               className="flex items-center gap-2 rounded-lg py-1 pr-2 pl-1 text-left outline-none transition-colors hover:bg-secondary focus-visible:ring-[3px] focus-visible:ring-ring/50"
             >
