@@ -23,8 +23,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "paykit: PayNow payments",
-  description: "The Merqo family's shared PayNow payment engine.",
+  title: "Paykit | Vendor Payments",
+  description: "The Merqo family's shared vendor payment engine.",
 };
 
 export default function RootLayout({

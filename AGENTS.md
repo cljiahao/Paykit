@@ -10,7 +10,7 @@
 
 ## What paykit is
 
-The Merqo family's shared PayNow payment engine. A standalone kit; owns the
+The Merqo family's shared vendor payment engine. A standalone kit; owns the
 `paykit` schema in the shared Supabase project; any other kit requests a
 PayNow QR + tracks payment status over paykit's bearer-secret HTTP API
 (`/api/v1/*`). paykit never touches funds — it renders a QR the customer
