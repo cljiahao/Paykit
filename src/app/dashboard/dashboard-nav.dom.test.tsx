@@ -37,6 +37,14 @@ describe("DashboardNav", () => {
     );
   });
 
+  it("renders desktop nav links as the shared Button ghost/sm control", () => {
+    render(<DashboardNav {...baseProps} />);
+    const link = screen.getByRole("link", { name: "Dashboard" });
+    expect(link).toHaveAttribute("data-slot", "button");
+    expect(link).toHaveAttribute("data-variant", "ghost");
+    expect(link).toHaveAttribute("data-size", "sm");
+  });
+
   it("account menu has Profile, Plan, Get help, Feedback, then Sign out, in order", async () => {
     const user = userEvent.setup();
     render(<DashboardNav {...baseProps} />);
