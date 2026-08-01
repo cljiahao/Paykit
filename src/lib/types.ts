@@ -59,6 +59,11 @@ export type Feedback = {
   created_at: string;
 };
 
+export type VendorPrefs = {
+  vendor_id: string;
+  tour_seen_at: string | null;
+};
+
 export interface Database {
   paykit: {
     Tables: {
@@ -146,6 +151,17 @@ export interface Database {
         Update: {
           nps?: number;
           message?: string | null;
+        };
+        Relationships: [];
+      };
+      vendor_prefs: {
+        Row: VendorPrefs;
+        Insert: {
+          vendor_id: string;
+          tour_seen_at?: string | null;
+        };
+        Update: {
+          tour_seen_at?: string | null;
         };
         Relationships: [];
       };

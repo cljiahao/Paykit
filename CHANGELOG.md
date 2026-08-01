@@ -8,6 +8,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- First-visit dashboard onboarding tour (driver.js overlay + floating "?"
+  replay button), ported from qkit/stockkit. Seen-state tracked in the new
+  `vendor_prefs` table.
 - Shared-session SSO across `*.merqo.io` kits: `NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`
   scopes the Supabase auth cookie to `.merqo.io` in production, so signing
   in on one kit signs you in on the rest. A one-time cleanup in

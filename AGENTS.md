@@ -89,11 +89,16 @@ method-byo-design.md`. `payee_name`/`uen`/`mobile` apply only to
   transaction — no real money movement.
 - `kit_api_keys`: one hashed bearer secret per calling kit, service-role only
   (no RLS policy grants any access to `authenticated`/`anon`).
+- `vendor_prefs` (PK `vendor_id`): dashboard UI state, currently just
+  `tour_seen_at` (nullable — a missing row means "hasn't seen the
+  onboarding tour yet"). Deliberately separate from
+  `vendor_payment_config`, which stays payment-config-only per its own
+  column contract above.
 - RLS: a vendor reads/writes only their own `vendor_payment_config`; reads
   (not writes) only their own `transactions`; reads/inserts `refunds` only for
-  their own confirmed transactions while on Pro. The cross-kit API
-  (`/checkout`, `/claim`, `/confirm`) is service-role + bearer-secret,
-  server-only.
+  their own confirmed transactions while on Pro; reads/writes only their own
+  `vendor_prefs` row. The cross-kit API (`/checkout`, `/claim`, `/confirm`)
+  is service-role + bearer-secret, server-only.
 
 ## Rules (always)
 
