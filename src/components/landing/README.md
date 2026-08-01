@@ -21,7 +21,9 @@ file. Presentational only — no data fetching, no client state beyond the
   confirm).
 - `faq.tsx` — static Q&A list, including "does paykit hold my money?".
 - `cta.tsx` — bottom-of-page sign-up call to action.
-- `footer.tsx` — `Wordmark` + links.
+- `footer.tsx` — `Wordmark` + a "Sign in" link.
+- `back-to-top.tsx` — fixed-position scroll-to-top button (ported from qkit),
+  shown past a scroll threshold.
 - `wordmark.tsx` — `Wordmark`: the "Pay**kit**" mark, mint accent on "Pay"
   (distinct from qkit's ember / loopkit's gold) — visual mark only, prose
   stays lowercase "paykit" per
@@ -30,8 +32,8 @@ file. Presentational only — no data fetching, no client state beyond the
 ## Connectivity
 
 Assembled by `src/app/page.tsx` in the order listed above (nav → hero →
-benefits → how-it-works → faq → cta → footer). `wordmark.tsx` is also used
-by `dashboard-nav.tsx` outside this folder.
+benefits → how-it-works → faq → cta → footer → back-to-top). `wordmark.tsx`
+is also used by `dashboard-nav.tsx` outside this folder.
 
 ## Parent
 
