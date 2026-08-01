@@ -12,8 +12,9 @@ ignores their `#!/usr/bin/env bash` shebang and doesn't support
 ## Contents
 
 - `pre-commit.sh` — format/lint (`prettier`+`eslint --fix` on staged
-  `.ts/.tsx/.js/.mjs/.cjs`, piped through `xargs -d '\n'` so filenames with
-  spaces/quotes are handled correctly), `tsc --noEmit`, a frozen-lockfile
+  `.ts/.tsx/.js/.mjs/.cjs`, piped through `tr '\n' '\0' | xargs -0` so
+  filenames with spaces/quotes are handled correctly — portable across GNU
+  and BSD xargs, unlike `xargs -d '\n'`), `tsc --noEmit`, a frozen-lockfile
   install check when `package.json` is staged, a gitleaks secret-scan on
   staged files (if gitleaks is installed), then `readme-coupling.sh`.
 - `pre-push.sh` — runs `../../.claude/verify-harness.sh` (integrity check)
