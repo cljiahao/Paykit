@@ -1,6 +1,6 @@
 -- RLS cross-vendor isolation — pgTAP, run with `supabase test db`.
 begin;
-select plan(32);
+select plan(39);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 -- Vendor A: free plan, UEN config. Vendor B: pro plan, mobile config.
@@ -42,6 +42,7 @@ select ok((select relrowsecurity from pg_class where oid = 'paykit.transactions'
 select ok((select relrowsecurity from pg_class where oid = 'paykit.refunds'::regclass), 'RLS on refunds');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.kit_api_keys'::regclass), 'RLS on kit_api_keys');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.feedback'::regclass), 'RLS on feedback');
+select ok((select relrowsecurity from pg_class where oid = 'paykit.vendor_prefs'::regclass), 'RLS on vendor_prefs');
 
 -- ── Act as Vendor A ────────────────────────────────────────────────────────
 set local role authenticated;
@@ -124,6 +125,15 @@ select throws_ok(
   null,
   'A cannot insert a feedback row for B (vendor_id must equal auth.uid())');
 
+select lives_ok(
+  $$ insert into paykit.vendor_prefs (vendor_id, tour_seen_at) values
+     ('00000000-0000-0000-0000-00000000000a', now())
+     on conflict (vendor_id) do update set tour_seen_at = excluded.tour_seen_at $$,
+  'A can upsert its own vendor_prefs row (tour mark-seen)');
+select isnt_empty(
+  $$ select 1 from paykit.vendor_prefs where vendor_id = '00000000-0000-0000-0000-00000000000a' $$,
+  'A reads its own vendor_prefs row');
+
 -- ── Act as Vendor C (no config row yet) ──────────────────────────────────────
 -- Same self-escalation bug, INSERT path: the column-scoped INSERT grant
 -- (migration 0001, ~line 135) also excludes `plan`, so a first-time vendor
@@ -168,6 +178,12 @@ select throws_like(
   '%not authorized%',
   'B cannot query A''s tx_count_this_month');
 
+select lives_ok(
+  $$ insert into paykit.vendor_prefs (vendor_id, tour_seen_at) values
+     ('00000000-0000-0000-0000-00000000000b', now())
+     on conflict (vendor_id) do update set tour_seen_at = excluded.tour_seen_at $$,
+  'B can upsert its own vendor_prefs row');
+
 -- ── Back to A: cannot read B's refund ─────────────────────────────────────
 set local role authenticated;
 select set_config(
@@ -177,6 +193,13 @@ select set_config(
 select is_empty(
   $$ select 1 from paykit.refunds where transaction_id = '00000000-0000-0000-0000-0000000d0b02' $$,
   'A cannot read B''s refund');
+select is_empty(
+  $$ select 1 from paykit.vendor_prefs where vendor_id = '00000000-0000-0000-0000-00000000000b' $$,
+  'A cannot read B''s vendor_prefs row');
+with upd as (
+  update paykit.vendor_prefs set tour_seen_at = now()
+  where vendor_id = '00000000-0000-0000-0000-00000000000b' returning 1)
+select is((select count(*)::int from upd), 0, 'A cannot update B''s vendor_prefs row');
 
 -- ── Act as an anonymous caller (anon role) ──────────────────────────────────
 reset role;
@@ -199,6 +222,10 @@ select throws_ok(
   $$ select 1 from paykit.kit_api_keys limit 1 $$,
   null,
   'anon cannot SELECT kit_api_keys');
+select throws_ok(
+  $$ select 1 from paykit.vendor_prefs limit 1 $$,
+  null,
+  'anon cannot SELECT vendor_prefs');
 select throws_ok(
   $$ insert into paykit.feedback (vendor_id, nps)
      values ('00000000-0000-0000-0000-00000000000a', 9) $$,
