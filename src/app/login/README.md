@@ -12,7 +12,8 @@ route; mode is a client-side toggle on this one page.
   in `<Suspense>` (it reads `useSearchParams()` for `?error=oauth`).
   `LoginForm` handles:
   - Google OAuth via `supabase.auth.signInWithOAuth`, redirecting through
-    `/auth/callback`.
+    `/auth/callback`; `queryParams: { hl: "en" }` forces an English consent
+    screen regardless of the visitor's browser/account locale.
   - Email+password sign-in/sign-up via `supabase.auth.signInWithPassword`/
     `signUp`. A sign-up that returns no session (email confirmation on)
     shows a "Check your email" state instead of silently redirecting to a

@@ -76,6 +76,21 @@ describe("LoginPage", () => {
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
+  it("requests an English consent screen when signing in with Google", async () => {
+    const user = userEvent.setup();
+    const { default: LoginPage } = await import("./page");
+    render(<LoginPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: /continue with google/i }),
+    );
+
+    expect(signInWithOAuthMock).toHaveBeenCalledWith({
+      provider: "google",
+      options: expect.objectContaining({ queryParams: { hl: "en" } }),
+    });
+  });
+
   it("shows a check-your-email state instead of redirecting when signUp returns no session", async () => {
     signUpMock.mockResolvedValue({ data: { session: null }, error: null });
     const push = vi.fn();
