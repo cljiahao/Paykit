@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { getOrCreateVendorProfile } from "@/lib/merqo-vendor-profile";
 import { signOutAction } from "@/app/actions/auth";
+import { DashboardTour } from "@/components/dashboard-tour";
 import { DashboardNav } from "./dashboard-nav";
 
 export default async function DashboardLayout({
@@ -10,9 +11,14 @@ export default async function DashboardLayout({
   children: ReactNode;
 }) {
   const { supabase, user } = await getVendorSession();
-  const [config, profile] = await Promise.all([
+  const [config, profile, { data: prefs }] = await Promise.all([
     getVendorPlan(supabase, user.id),
     getOrCreateVendorProfile(supabase, user.id, null),
+    supabase
+      .from("vendor_prefs")
+      .select("tour_seen_at")
+      .eq("vendor_id", user.id)
+      .maybeSingle(),
   ]);
 
   // Profile icon lives on the auth user's metadata, same as qkit/loopkit —
@@ -31,6 +37,7 @@ export default async function DashboardLayout({
         />
       </header>
       <main>{children}</main>
+      <DashboardTour seen={!!prefs?.tour_seen_at} />
     </div>
   );
 }

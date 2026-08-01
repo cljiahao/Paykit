@@ -27,7 +27,7 @@ export default async function DashboardPage() {
         </p>
       )}
 
-      <div className="rounded-xl border p-4">
+      <div className="rounded-xl border p-4" data-tour="tx-count">
         <p className="text-sm font-medium">
           {count} transaction{count === 1 ? "" : "s"} this month
         </p>
