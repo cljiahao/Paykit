@@ -15,7 +15,8 @@ granted manually.
 
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`
-for what's shipped since the MVP. Folder-level `README.md`s (`src/lib/`,
+for what's shipped since the MVP, including the "Name | Tagline" Title Case
+browser-tab title convention shared across every Merqo kit. Folder-level `README.md`s (`src/lib/`,
 `src/components/`, and their subfolders) cover what each module does and
 how it's wired together. See
 `docs/superpowers/specs/2026-07-15-paykit-mvp-design.md` for the original

@@ -8,6 +8,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Browser-tab title now uses the cross-kit "Name | Tagline" Title Case
+  format: "Paykit | Vendor Payments" (was "paykit: PayNow payments").
+- paykit supports both `paynow` and `pointer` (BYO QR/link) payment
+  configs, so "PayNow payments" / "shared PayNow payment engine" undersold
+  it — reworded to "Vendor Payments" / "shared vendor payment engine"
+  (title, description, footer, AGENTS.md).
+- `.husky/lib/pre-commit.sh` used `xargs -d '\n'`, a GNU-only flag not
+  supported by BSD xargs (macOS default) — broke every local commit
+  touching a staged .ts/.tsx/.js/.mjs/.cjs file. Swapped for portable
+  `tr '\n' '\0' | xargs -0`.
+
 - Dashboard and landing navbar height, padding, and logo size now match
   qkit's spec (`px-5 py-3.5`/`py-4`, `text-3xl` logo).
 
