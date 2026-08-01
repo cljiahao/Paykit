@@ -82,9 +82,12 @@ function TierBadge({ tier }: { tier: Tier }) {
 }
 
 /**
- * Dashboard sticky-header row, per docs/business/2026-07-21-dashboard-nav-standard.md:
- * burger far-left (below sm), inline links sm+, account menu far-right at
- * every width. Get-help and Feedback both open a Sheet form.
+ * Dashboard sticky-header row, per the cross-kit standard:
+ * docs/superpowers/specs/2026-08-01-dashboard-nav-standard-design.md in the
+ * Merqo Business workspace root (outside this repo's own git tree, alongside
+ * the other cross-kit specs). Burger far-left (below sm), inline links sm+,
+ * account menu far-right at every width. Get-help and Feedback both open a
+ * Sheet form.
  */
 export function DashboardNav({
   signOut,
@@ -132,17 +135,19 @@ export function DashboardNav({
 
           <nav className="hidden items-center gap-1 sm:flex">
             {LINKS.map((link) => (
-              <Link
+              <Button
                 key={link.href}
-                href={link.href}
+                asChild
+                variant="ghost"
+                size="sm"
                 className={cn(
-                  "rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary",
+                  "rounded-lg",
                   isActive(path, link.href) &&
                     "bg-primary/10 text-primary hover:bg-primary/10",
                 )}
               >
-                {link.label}
-              </Link>
+                <Link href={link.href}>{link.label}</Link>
+              </Button>
             ))}
           </nav>
         </div>
