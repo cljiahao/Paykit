@@ -24,6 +24,8 @@ file. Presentational only — no data fetching, no client state beyond the
   exactly — `Wordmark`, tagline, copyright line, `Vendor sign in →` link.
   No bottom call-to-action band above it (removed to match qkit, which
   never had one).
+- `footer.test.tsx` — asserts the wordmark link, tagline, copyright line,
+  and sign-in link all render.
 - `back-to-top.tsx` — fixed-position scroll-to-top button (ported from qkit),
   shown past a scroll threshold.
 - `wordmark.tsx` — `Wordmark`: the "Pay**kit**" mark, mint accent on "Pay"
