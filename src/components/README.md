@@ -13,6 +13,21 @@ sits flat here.
   `Button asChild variant="ghost"` + `ArrowLeft` "leave this page" link,
   ported from qkit. Used in place of a plain underlined `<Link>` so the
   back-to-dashboard nav is a real hit target with hover/focus state.
+- `dashboard-tour.tsx` — `DashboardTour({ seen })`: owns the dashboard
+  onboarding tour — a floating "?" replay button plus a lazily-imported
+  `driver.js` overlay (loaded only when the tour actually runs). Auto-runs
+  once for a vendor who hasn't seen it (server-tracked, stamped via
+  `markTourSeen` as soon as the tour starts rather than when it finishes,
+  so a mid-tour refresh can't re-trigger it), and can be replayed from any
+  page (navigates back to `/dashboard` first if needed).
+- `dashboard-tour.dom.test.tsx` — RTL tests for the tour's auto-run,
+  mark-seen, and cross-page replay behavior.
+- `tour-steps.ts` — `tourSteps(isMobile)`: pure step config (element
+  selector + title + description) for the dashboard tour, kept free of any
+  DOM/React dependency so it's trivially unit-testable.
+- `tour-steps.test.ts` — unit tests asserting the mobile/desktop step lists.
+- `tour.css` — scoped styles for the `driver.js` popover (`.paykit-tour`
+  class) so the tour overlay matches the app's visual language.
 - `elevated-card.tsx` — `ElevatedCard({ as, className, children })`: the
   shared raised-card container (rounded, bordered, soft shadow) used by the
   login page, matching every other kit's login page.

@@ -9,7 +9,10 @@ their own bank/payment app, and a human confirms receipt.
 
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on
-one Merqo kit signs you in on the rest.
+one Merqo kit signs you in on the rest. The dashboard's onboarding tour
+(`src/components/dashboard-tour.tsx`) stamps its "seen" state as soon as
+it auto-runs rather than when it finishes, so a refresh mid-tour can't
+make it re-trigger on the next load.
 
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
