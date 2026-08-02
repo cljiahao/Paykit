@@ -3,20 +3,20 @@ import { Wordmark } from "./wordmark";
 
 export function Footer() {
   return (
-    <footer className="border-t">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+    <footer className="border-t border-border">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-6 text-sm text-muted-foreground sm:flex-row">
+        <Link
+          href="/"
+          aria-label="paykit home"
+          className="transition-opacity hover:opacity-80"
+        >
           <Wordmark className="text-xl" />
-          <p className="mt-1 text-xs text-muted-foreground">
-            The Merqo family&apos;s shared vendor payment engine.
-          </p>
-        </div>
-        <div className="flex items-center gap-5 text-sm text-muted-foreground">
-          <Link href="/login" className="hover:text-foreground">
-            Sign in
-          </Link>
-          <span className="text-xs">© 2026 paykit · a Merqo kit</span>
-        </div>
+        </Link>
+        <span>The Merqo family&apos;s shared vendor payment engine.</span>
+        <span className="text-xs">© 2026 paykit · a Merqo kit</span>
+        <Link href="/login" className="hover:text-foreground">
+          Vendor sign in →
+        </Link>
       </div>
     </footer>
   );
