@@ -20,8 +20,12 @@ file. Presentational only — no data fetching, no client state beyond the
 - `how-it-works.tsx` — 3-step explainer (connect method → share checkout →
   confirm).
 - `faq.tsx` — static Q&A list, including "does paykit hold my money?".
-- `cta.tsx` — bottom-of-page sign-up call to action.
-- `footer.tsx` — `Wordmark` + a "Sign in" link.
+- `footer.tsx` — single-row site footer matching qkit's landing footer
+  exactly — `Wordmark`, tagline, copyright line, `Vendor sign in →` link.
+  No bottom call-to-action band above it (removed to match qkit, which
+  never had one).
+- `footer.test.tsx` — asserts the wordmark link, tagline, copyright line,
+  and sign-in link all render.
 - `back-to-top.tsx` — fixed-position scroll-to-top button (ported from qkit),
   shown past a scroll threshold.
 - `wordmark.tsx` — `Wordmark`: the "Pay**kit**" mark, mint accent on "Pay"
@@ -32,7 +36,7 @@ file. Presentational only — no data fetching, no client state beyond the
 ## Connectivity
 
 Assembled by `src/app/page.tsx` in the order listed above (nav → hero →
-benefits → how-it-works → faq → cta → footer → back-to-top). `wordmark.tsx`
+benefits → how-it-works → faq → footer → back-to-top). `wordmark.tsx`
 is also used by `dashboard-nav.tsx` outside this folder.
 
 ## Parent
