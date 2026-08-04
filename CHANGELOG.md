@@ -26,6 +26,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- `/api/merqo/vendor-status` now paginates the Supabase admin-users
+  lookup via `listAllUsers` instead of the old `merqo-auth.ts#listAllAuthUsers`
+  (removed), which only ever read the first 1000 auth users — a vendor
+  past that ceiling silently resolved as inactive/no-plan to merqo's
+  lookup.
 - Dashboard onboarding tour now stamps `tour_seen_at` as soon as it
   auto-runs, not when it finishes — a refresh mid-tour no longer makes
   it re-run on every dashboard load.

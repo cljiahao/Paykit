@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
-import { bearerOk, listAllAuthUsers } from "@/lib/merqo-auth";
+import { bearerOk } from "@/lib/merqo-auth";
+import { listAllUsers } from "@/lib/list-all-users";
 import { resolveVendorStatus } from "@/lib/merqo-vendor-status";
 import type { VendorPlan } from "@/lib/types";
 
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
   const supabase = await createServiceClient();
 
   const [usersRes, configsRes] = await Promise.all([
-    listAllAuthUsers(supabase, "paykit vendor-status"),
+    listAllUsers(supabase),
     supabase.from("vendor_payment_config").select("vendor_id, plan"),
   ]);
   if (usersRes.error) {

@@ -20,7 +20,10 @@ signed in, a Free-tier vendor can file a real, one-click Pro-upgrade request
 from the dashboard's Plan page — no payment provider involved; Pro is
 granted manually, via a Merqo-team-only admin console (`/admin`, gated by
 an `admins` allow-list) with platform-wide stats and a per-vendor plan
-toggle. The landing footer matches qkit's exactly (single-row
+toggle. `/api/merqo/vendor-status` (merqo hub's own vendor-active/plan
+lookup) paginates the Supabase admin-users API properly, via the same
+`listAllUsers` helper the admin console uses — it no longer silently
+truncates at the first 1000 auth users. The landing footer matches qkit's exactly (single-row
 wordmark/tagline/copyright/sign-in link, no CTA band above it), and the
 landing page's `BackToTop` button matches the cross-kit landing-page
 parity pass.

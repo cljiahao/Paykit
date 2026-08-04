@@ -49,20 +49,20 @@ larger clusters; everything else sits flat here.
   is resolved to email via `listAllUsers()`, since `payee_name` is null for
   `kind='pointer'` config rows.
 - `list-all-users.ts` — `listAllUsers(supabase)`: paginates
-  `supabase.auth.admin.listUsers()` (1000/page, capped at 50 pages) so the
-  admin console's email lookup doesn't silently drop vendors past the first
-  1000 auth users. Ported from loopkit's identically-named helper; distinct
-  from `merqo-auth.ts`'s older, page-1-only `listAllAuthUsers`.
+  `supabase.auth.admin.listUsers()` (1000/page, capped at 50 pages) so a
+  lookup doesn't silently drop vendors past the first 1000 auth users. Ported
+  from loopkit's identically-named helper; also used by
+  `/api/merqo/vendor-status`, replacing that route's old page-1-only
+  `merqo-auth.ts#listAllAuthUsers` (removed).
 - `merqo-vendor-profile.ts` — generic-over-caller's-`Db`/`SchemaName` RPC
   wrapper for the shared `merqo.vendor_profile` table (stall name, social
   links) — get/upsert via `merqo`'s `SECURITY DEFINER` functions, never a
   direct cross-schema table query.
 - `merqo-auth.ts` — `bearerOk`/`provisionBearerOk` (constant-time bearer-secret
-  checks against `MERQO_METRICS_SECRET`/`MERQO_PROVISION_SECRET` respectively)
-  and `listAllAuthUsers`, for the `/api/merqo/*` routes merqo hub calls
-  directly — a separate auth mechanism from `kit-auth.ts`'s `verifyKitAuth`
-  (which is for peer-kit-to-kit calls like checkout verification, keyed by
-  `kit_api_keys`).
+  checks against `MERQO_METRICS_SECRET`/`MERQO_PROVISION_SECRET` respectively),
+  for the `/api/merqo/*` routes merqo hub calls directly — a separate auth
+  mechanism from `kit-auth.ts`'s `verifyKitAuth` (which is for peer-kit-to-kit
+  calls like checkout verification, keyed by `kit_api_keys`).
 - `merqo-support.ts` — same generic-RPC-wrapper pattern as
   `merqo-vendor-profile.ts`, for `merqo.submit_support_message` (the
   shared cross-kit Get-help inbox, `kit_slug: "paykit"`).
