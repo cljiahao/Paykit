@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export type TxStatus = "pending" | "claimed" | "confirmed";
 
 // Shape of merqo.vendor_profile.social_links (shared across every kit — see
@@ -62,6 +70,20 @@ export type Feedback = {
 export type VendorPrefs = {
   vendor_id: string;
   tour_seen_at: string | null;
+};
+
+export type Admin = {
+  user_id: string;
+  created_at: string;
+};
+
+export type AdminAudit = {
+  id: string;
+  admin_id: string;
+  action: string;
+  target_id: string | null;
+  detail: Json;
+  created_at: string;
 };
 
 export interface Database {
@@ -165,6 +187,32 @@ export interface Database {
         };
         Relationships: [];
       };
+      admins: {
+        Row: Admin;
+        Insert: {
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      admin_audit: {
+        Row: AdminAudit;
+        Insert: {
+          id?: string;
+          admin_id: string;
+          action: string;
+          target_id?: string | null;
+          detail?: Json;
+          created_at?: string;
+        };
+        Update: {
+          detail?: Json;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -173,6 +221,10 @@ export interface Database {
       tx_count_this_month: {
         Args: { p_vendor: string };
         Returns: number;
+      };
+      is_admin: {
+        Args: { p_uid: string };
+        Returns: boolean;
       };
     };
   };

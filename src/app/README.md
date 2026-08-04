@@ -8,6 +8,7 @@ for this project.
 ## Contents
 
 - `actions/` — server actions shared across routes: auth, feedback, Pro-upgrade requests, support messages.
+- `admin/` — Merqo-team internal admin console (`/admin`), gated by `requireAdmin()` — platform overview stats and a cross-vendor plan-management table.
 - `api/` — the cross-kit `v1` payment API (`checkout`, `vendors`) plus internal `merqo/*` provisioning routes.
 - `apple-icon.tsx` — `AppleIcon` route handler; renders `brandIcon(180)` as a 180×180 PNG for iOS home-screen touch icons.
 - `auth/` — Supabase auth callback route (OAuth code exchange).
@@ -21,7 +22,9 @@ for this project.
 ## Connectivity
 
 `login/` is the vendor auth entry point; `dashboard/` is the authenticated
-vendor area. `api/` is the cross-kit payment surface (bearer-secret
+vendor area. `admin/` is a separate, Merqo-team-only authenticated area
+(session-gated the same way as `dashboard/`, but additionally requiring an
+`admins` table row). `api/` is the cross-kit payment surface (bearer-secret
 authenticated) plus Merqo's admin-facing provisioning routes. `actions/`
 holds server actions shared across routes rather than colocated with one
 page. `layout.tsx` is the ancestor of every route below; `page.tsx` (the

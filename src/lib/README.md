@@ -40,6 +40,19 @@ larger clusters; everything else sits flat here.
   redirects to `/login` on no session) and `getVendorPlan()`. Deliberately
   **not** used by Sheet-embedded server actions (`feedback.ts`,
   `support.ts` in `src/app/actions/`) — see that folder's README for why.
+- `admin.ts` — `isAdmin(userId)` (presence of a row in `admins`, RLS-gated)
+  and `requireAdmin()`: the `/admin` route/Server-Action gate, 404ing signed-
+  out and non-admin callers alike so the route's existence is never revealed.
+- `admin-data.ts` — `platformTotals()`, `recentActivity(limit)`,
+  `listVendors()`: service-role, cross-vendor reads for the admin console
+  (RLS-exempt by design — the console spans every vendor). Vendor identity
+  is resolved to email via `listAllUsers()`, since `payee_name` is null for
+  `kind='pointer'` config rows.
+- `list-all-users.ts` — `listAllUsers(supabase)`: paginates
+  `supabase.auth.admin.listUsers()` (1000/page, capped at 50 pages) so the
+  admin console's email lookup doesn't silently drop vendors past the first
+  1000 auth users. Ported from loopkit's identically-named helper; distinct
+  from `merqo-auth.ts`'s older, page-1-only `listAllAuthUsers`.
 - `merqo-vendor-profile.ts` — generic-over-caller's-`Db`/`SchemaName` RPC
   wrapper for the shared `merqo.vendor_profile` table (stall name, social
   links) — get/upsert via `merqo`'s `SECURITY DEFINER` functions, never a
