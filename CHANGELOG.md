@@ -6,6 +6,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Merqo-team internal admin console (`/admin`), ported from loopkit's
+  admin-console pattern: an `admins` allow-list + `admin_audit` trail
+  (`0006_paykit_admin.sql`), an overview page with platform-wide stat
+  tiles and a recent cross-vendor activity feed, and a vendors page
+  listing every vendor with a plan toggle (`setVendorPlan`). Vendor
+  identity is resolved via a new `listAllUsers` helper (paginates the
+  Supabase admin API) since `vendor_payment_config.payee_name` is null
+  for `kind='pointer'` rows.
+
 ### Changed
 
 - Landing footer rebuilt to match qkit's exact single-row layout

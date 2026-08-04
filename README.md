@@ -18,7 +18,9 @@ Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
 signed in, a Free-tier vendor can file a real, one-click Pro-upgrade request
 from the dashboard's Plan page — no payment provider involved; Pro is
-granted manually. The landing footer matches qkit's exactly (single-row
+granted manually, via a Merqo-team-only admin console (`/admin`, gated by
+an `admins` allow-list) with platform-wide stats and a per-vendor plan
+toggle. The landing footer matches qkit's exactly (single-row
 wordmark/tagline/copyright/sign-in link, no CTA band above it), and the
 landing page's `BackToTop` button matches the cross-kit landing-page
 parity pass.

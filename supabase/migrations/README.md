@@ -1,0 +1,19 @@
+# migrations
+
+## Purpose
+
+SQL schema for the `paykit` schema in the shared Merqo Supabase project —
+tables, RLS policies, RPCs, and grants, applied in order.
+
+## Contents
+
+- `0001_paykit_core.sql` — `vendor_payment_config`, `transactions`, `refunds`, `kit_api_keys`, `tx_count_this_month()`, base RLS + grants.
+- `0002_feedback.sql` — vendor feedback (NPS) submission plumbing.
+- `0003_paykit_multi_method.sql` — adds the `pointer` payment-method kind (a vendor's own link/QR image) alongside `paynow`, with the kind-shape CHECK constraint.
+- `0004_vendor_feedback_backfill.sql` — backfills existing feedback rows into the cross-kit `merqo.vendor_feedback` convergence table.
+- `0005_paykit_vendor_prefs.sql` — `vendor_prefs` (currently just `tour_seen_at`, dashboard onboarding-tour state).
+- `0006_paykit_admin.sql` — `admins` (allow-list) + `is_admin(uid)` + `admin_audit`, backing the Merqo-team `/admin` console's gate and audit trail.
+
+## Parent
+
+See the repo root [README.md](../../README.md) for the full layout.
