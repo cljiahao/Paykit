@@ -7,7 +7,7 @@ import { Store, KeyRound, UserRound, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Section } from "@/components/section";
+import { Section } from "@merqo/ui";
 import { SocialLinksFields } from "@/components/social-links-fields";
 import { ImageUploader } from "@/components/image-uploader";
 import { createClient } from "@/lib/supabase/client";
