@@ -11,6 +11,10 @@ const eslintConfig = [
       "coverage/**",
       ".stryker-tmp/**",
       "reports/**",
+      // Nested git worktrees (.claude/worktrees/<name>/) are separate
+      // checkouts with their own node_modules/.next/etc — the globs above
+      // are root-anchored (gitignore semantics) and don't reach into them.
+      "**/.claude/worktrees/**",
     ],
   },
   {
