@@ -1,4 +1,4 @@
-import { InfoTooltip } from "@/components/info-tooltip";
+import { InfoTooltip } from "@merqo/ui";
 
 /**
  * Shared field-group shell for dashboard settings pages (profile, config,
@@ -42,9 +42,10 @@ export function Section({
               {title}
             </h2>
             {tooltip && (
-              <InfoTooltip label="More about this section">
-                {tooltip}
-              </InfoTooltip>
+              <InfoTooltip
+                content={tooltip}
+                ariaLabel="More about this section"
+              />
             )}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
