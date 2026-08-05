@@ -54,21 +54,27 @@ larger clusters; everything else sits flat here.
   from loopkit's identically-named helper; also used by
   `/api/merqo/vendor-status`, replacing that route's old page-1-only
   `merqo-auth.ts#listAllAuthUsers` (removed).
-- `merqo-vendor-profile.ts` — generic-over-caller's-`Db`/`SchemaName` RPC
-  wrapper for the shared `merqo.vendor_profile` table (stall name, social
-  links) — get/upsert via `merqo`'s `SECURITY DEFINER` functions, never a
-  direct cross-schema table query.
+- `merqo-rpc.ts` — `callMerqoRpc<FnName, Args, Returns>(supabase, fnName,
+args)`: the shared generic-over-caller's-`Db`/`SchemaName` cast +
+  `.schema("merqo").rpc(fnName, args)` call + thrown-`Error`-on-failure
+  body that `merqo-vendor-profile.ts`, `merqo-support.ts`, and
+  `merqo-vendor-feedback.ts` all delegate to, so that pattern is written
+  once instead of hand-copied per RPC.
+- `merqo-vendor-profile.ts` — `getOrCreateVendorProfile`/
+  `upsertVendorProfile`, each a thin `callMerqoRpc` call with its own Zod-
+  adjacent Args/Returns types, for the shared `merqo.vendor_profile` table
+  (stall name, social links) — get/upsert via `merqo`'s `SECURITY DEFINER`
+  functions, never a direct cross-schema table query.
 - `merqo-auth.ts` — `bearerOk`/`provisionBearerOk` (constant-time bearer-secret
   checks against `MERQO_METRICS_SECRET`/`MERQO_PROVISION_SECRET` respectively),
   for the `/api/merqo/*` routes merqo hub calls directly — a separate auth
   mechanism from `kit-auth.ts`'s `verifyKitAuth` (which is for peer-kit-to-kit
   calls like checkout verification, keyed by `kit_api_keys`).
-- `merqo-support.ts` — same generic-RPC-wrapper pattern as
-  `merqo-vendor-profile.ts`, for `merqo.submit_support_message` (the
-  shared cross-kit Get-help inbox, `kit_slug: "paykit"`).
-- `merqo-vendor-feedback.ts` — same generic-RPC-wrapper pattern as
-  `merqo-vendor-profile.ts`/`merqo-support.ts`, for
-  `merqo.submit_vendor_feedback` (the shared cross-kit NPS/feedback
+- `merqo-support.ts` — `submitSupportMessage`, a thin `callMerqoRpc` call
+  for `merqo.submit_support_message` (the shared cross-kit Get-help inbox,
+  `kit_slug: "paykit"`).
+- `merqo-vendor-feedback.ts` — `submitVendorFeedback`, a thin `callMerqoRpc`
+  call for `merqo.submit_vendor_feedback` (the shared cross-kit NPS/feedback
   channel, `p_kit_slug: "paykit"`).
 - `merqo-vendor-status.ts` — `resolveVendorStatus(email, authUsers,
 configs)`: pure two-step lookup (email → auth user → that user's

@@ -149,7 +149,11 @@ cert files (`.pem`/`.key`/`.p12`/`.pfx`/`.secret`), `credentials.json`/`.netrc`/
 and blocks `--no-verify`. App code, skills, specs, and `.github/workflows/`
 unrestricted.
 UserPromptSubmit: pattern-checks prompts for injection phrases; exit 2 blocks.
-PostToolUse: `tsc --noEmit --incremental` after every Edit/Write. Feedback-only.
+PostToolUse: `tsc --noEmit --incremental` after every Edit/Write, plus a
+comment-hygiene scan (`post-edit-comment-check.sh`) flagging change-narration
+comments (`was`/`added`/dated/ticket-ref-shaped openers, per
+`.claude/comment-hygiene-patterns.txt`) and oversized comment blocks on the
+edited file. Both feedback-only, never block.
 Stop: exits 0 when `stop_hook_active` (no re-entry loop); else runs the test
 suite, exit 2 feeds failures back, exit 0 on pass.
 SessionStart (startup|resume|compact): re-injects first 30 lines of this file.
@@ -165,7 +169,8 @@ even under bypass); it's a guardrail, not a sandbox.
 Git hooks (husky): pre-commit runs format/lint/typecheck, a
 `--frozen-lockfile` install gated on `package.json` changes
 (lockfile-in-sync — also re-checked in CI), gitleaks secret-scan on staged
-files, and a readme-coupling staleness warning; commit-msg enforces
+files, a readme-coupling staleness warning, and a comment-hygiene warning
+(same pattern list as the PostToolUse hook, both warn-only); commit-msg enforces
 Conventional Commits; pre-push runs the harness integrity check + quality
 gate. Hard-local; coverage/changed-line gates run in CI. Migrated
 2026-08-01 off lefthook, whose unsigned `lefthook.exe` Windows Smart App
@@ -176,8 +181,12 @@ changed-line coverage (`diff-cover` ≥80%), `build` (`next build` — the one
 job that catches Next.js client/server bundle-boundary errors `pnpm
 check`/`pnpm test` miss), existing `db` (pgTAP RLS) and `mutation`
 (Stryker, advisory) jobs, a lockfile-in-sync re-check, a changelog-touched
-check, a readme-freshness check, harness integrity, and (via
-`security.yml`) a full-history gitleaks scan + `pnpm audit` + CodeQL.
+check, a readme-freshness check, a comment-hygiene check (hard gate, scoped
+to added lines only, against the first 10 lines of
+`.claude/comment-hygiene-patterns.txt` — the narration-keyword patterns, not
+the lower-precision date/ticket-ref ones; `skip-comment-check` label
+bypasses), harness integrity, and (via `security.yml`) a full-history
+gitleaks scan + `pnpm audit` + CodeQL.
 RLS isolation: `supabase/tests/rls.test.sql` via `supabase test db`.
 Project skills (directory form, `<name>/SKILL.md`): `.claude/skills/` |
 Manifest: `.claude/harness.json`. Fully armed: every `.claude/harness.json`

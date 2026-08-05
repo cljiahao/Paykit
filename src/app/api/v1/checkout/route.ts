@@ -68,8 +68,38 @@ export async function POST(request: Request) {
     })
     .select("id, qr_payload")
     .single();
-  if (insertError || !inserted) {
+
+  // A retry of the same (kit_slug, order_ref) — e.g. a caller-side timeout —
+  // hits the unique constraint (0007_paykit_checkout_idempotency.sql) rather
+  // than creating a duplicate pending transaction; re-read and return the
+  // transaction the first call already created.
+  let tx = inserted;
+  if (insertError?.code === "23505") {
+    const { data: existing, error: existingError } = await supabase
+      .from("transactions")
+      .select("id, qr_payload")
+      .eq("kit_slug", auth.kitSlug)
+      .eq("order_ref", order_ref)
+      .single();
+    if (existingError || !existing) {
+      console.error(
+        "checkout: idempotent re-read failed",
+        existingError?.message,
+      );
+      return NextResponse.json(
+        { error: "Could not create checkout" },
+        { status: 503 },
+      );
+    }
+    tx = existing;
+  } else if (insertError || !inserted) {
     console.error("checkout: insert failed", insertError?.message);
+    return NextResponse.json(
+      { error: "Could not create checkout" },
+      { status: 503 },
+    );
+  }
+  if (!tx) {
     return NextResponse.json(
       { error: "Could not create checkout" },
       { status: 503 },
@@ -79,21 +109,21 @@ export async function POST(request: Request) {
   if (view.type === "qr") {
     return NextResponse.json({
       type: "qr",
-      transaction_id: inserted.id,
-      payload: inserted.qr_payload,
+      transaction_id: tx.id,
+      payload: tx.qr_payload,
     });
   }
   if (view.type === "link") {
     return NextResponse.json({
       type: "link",
-      transaction_id: inserted.id,
-      url: inserted.qr_payload,
+      transaction_id: tx.id,
+      url: tx.qr_payload,
       label: view.label,
     });
   }
   return NextResponse.json({
     type: "image",
-    transaction_id: inserted.id,
-    url: inserted.qr_payload,
+    transaction_id: tx.id,
+    url: tx.qr_payload,
   });
 }

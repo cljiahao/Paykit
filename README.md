@@ -12,7 +12,10 @@ In production, the Supabase auth cookie is scoped to `.merqo.io`
 one Merqo kit signs you in on the rest. The dashboard's onboarding tour
 (`src/components/dashboard-tour.tsx`) stamps its "seen" state as soon as
 it auto-runs rather than when it finishes, so a refresh mid-tour can't
-make it re-trigger on the next load.
+make it re-trigger on the next load. `POST /api/v1/checkout` is idempotent
+on `(kit_slug, order_ref)` — a retried call returns the existing
+transaction instead of creating a duplicate. See `CHANGELOG.md` for the
+latest changes.
 
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
