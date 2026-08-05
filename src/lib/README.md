@@ -90,8 +90,16 @@ configs)`: pure two-step lookup (email → auth user → that user's
   returns.
 - `env.ts` — `publicEnv`: required-env-var accessors that throw at import
   time if unset, instead of silently reading `undefined`.
-- `image-resize.ts` — client-side (Canvas, browser-only) resize + WebP
-  encode before upload; used by `ImageUploader`.
+- `image-resize.ts` — `resizeToWebp`: client-side (Canvas, browser-only)
+  resize + WebP encode before upload; passed as `@merqo/ui`'s
+  `ImageUploader`'s `resizeImage` prop.
+- `image-upload-adapter.ts` — `uploadPaykitImage`: paykit's `onUpload`
+  adapter for `@merqo/ui`'s `ImageUploader` (2026-08-05 `@merqo/ui`
+  migration) — takes the `{bucket, path, blob, contentType}` payload
+  `ImageUploader` builds internally, writes it via the browser Supabase
+  client's Storage API, and returns the public URL. Used at both call
+  sites: `dashboard/profile/profile-form.tsx` (avatar) and
+  `dashboard/config/payment-config-form.tsx` (BYO QR image).
 - `utils.ts` — `cn()` (clsx + tailwind-merge) and shared form label/error
   Tailwind class constants.
 
