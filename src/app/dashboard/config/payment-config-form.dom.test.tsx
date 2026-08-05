@@ -11,9 +11,13 @@ const { saveConfigActionMock } = vi.hoisted(() => ({
 vi.mock("./actions", () => ({
   saveConfigAction: saveConfigActionMock,
 }));
-vi.mock("@/components/image-uploader", () => ({
-  ImageUploader: () => <div data-testid="image-uploader" />,
-}));
+vi.mock("@merqo/ui", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@merqo/ui")>();
+  return {
+    ...actual,
+    ImageUploader: () => <div data-testid="image-uploader" />,
+  };
+});
 
 beforeEach(() => {
   saveConfigActionMock.mockReset();

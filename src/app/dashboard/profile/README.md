@@ -30,15 +30,17 @@ name/password). Built per the cross-kit
   email, avatar URL, and social links.
 - `profile-form.tsx` — `ProfileForm({ vendorId, stallName, displayName,
 email, avatarUrl, socialLinks })` client component with four
-  independently-saved sections inside `Section` blocks (`@/components/
-section`), laid out as two independent `flex flex-col gap-5` stacks side
-  by side on `md`+ — never a CSS grid, whose row height would track the
-  tallest cell in that row and desync the columns the moment "Social &
-  website" outgrew "Stall/shop name". Column 1: stall/shop name
-  (`profileNameSchema` → `updateStallName` server action), profile icon
-  (`ImageUploader` → `supabase.auth.updateUser({ data: { avatar_url } })`),
-  change password (`passwordChangeSchema` → `supabase.auth.updateUser({
-password })`). Column 2: display name (`displayNameSchema` →
+  independently-saved sections inside `Section` blocks (`@merqo/ui`), laid
+  out via `@merqo/ui`'s `TwoColumnSections` — two independent `flex
+flex-col gap-5` stacks side by side on `md`+, never a CSS grid, whose row
+  height would track the tallest cell in that row and desync the columns
+  the moment "Social & website" outgrew "Stall/shop name". Column 1:
+  stall/shop name (`profileNameSchema` → `updateStallName` server action),
+  profile icon (`@merqo/ui`'s `ImageUploader`, wired through
+  `@/lib/image-upload-adapter`'s `uploadPaykitImage` →
+  `supabase.auth.updateUser({ data: { avatar_url } })`), change password
+  (`passwordChangeSchema` → `supabase.auth.updateUser({ password })`).
+  Column 2: display name (`displayNameSchema` →
   `supabase.auth.updateUser({ data: { display_name } })`) above social
   links (`SocialLinksFields` + `socialLinksSchema` → `updateSocialLinks`
   server action); email is shown read-only.
@@ -59,6 +61,7 @@ which calls the server actions `updateStallName`/`updateSocialLinks` in
 `actions.ts` for stall name/social links and the browser Supabase client
 (`@/lib/supabase/client`) directly for avatar/display-name/password, all
 validated against schemas in `@/lib/schemas`. The profile-icon upload goes
-through `@/components/image-uploader`, which writes to the shared
-`vendor-images` Storage bucket (project-wide, not paykit-local — see
+through `@merqo/ui`'s `ImageUploader`, wired via
+`@/lib/image-upload-adapter`'s `uploadPaykitImage`, which writes to the
+shared `vendor-images` Storage bucket (project-wide, not paykit-local — see
 `docs/DEPLOY.md`).

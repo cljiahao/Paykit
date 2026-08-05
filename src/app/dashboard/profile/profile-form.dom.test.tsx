@@ -27,9 +27,13 @@ vi.mock("@/lib/supabase/client", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: refreshMock }),
 }));
-vi.mock("@/components/image-uploader", () => ({
-  ImageUploader: () => <div data-testid="image-uploader" />,
-}));
+vi.mock("@merqo/ui", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@merqo/ui")>();
+  return {
+    ...actual,
+    ImageUploader: () => <div data-testid="image-uploader" />,
+  };
+});
 
 const DEFAULT_PROPS = {
   vendorId: "v1",

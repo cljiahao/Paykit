@@ -28,14 +28,35 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-border bg-background/85 px-5 py-3.5 backdrop-blur-md print:hidden">
+      {/*
+        @merqo/ui's DashboardNav renders its own <header> (sticky/border/
+        padding already baked in) — this used to be paykit's own <header>
+        wrapper before DashboardNav composed the shared component, but two
+        <header> landmarks nested inside each other double the border/
+        padding and are invalid semantics. A plain <div> keeps the one thing
+        that <header> wasn't already covering (print:hidden) without adding
+        a second landmark.
+
+        `contents` is load-bearing, not decorative: the inner <header> is
+        `position: sticky`, which is constrained to its containing block. A
+        plain wrapper div's box IS that containing block, and it's exactly
+        the header's own height, so the header would never have room to
+        stick — it'd scroll away like a static element. `display: contents`
+        removes the wrapper's own box from layout, so <header> becomes a
+        direct child of this component's own `min-h-screen` container
+        instead — the same containing block it had pre-migration, when
+        paykit's own <header> was that child directly. `print:hidden` still
+        wins under `@media print` since `display: none` on an ancestor
+        hides descendants regardless of their own `display` value.
+      */}
+      <div className="contents print:hidden">
         <DashboardNav
           signOut={signOutAction}
           vendorName={profile.stall_name || (user.email ?? "Account")}
           avatarUrl={avatarUrl}
           plan={config?.plan ?? "free"}
         />
-      </header>
+      </div>
       <main>{children}</main>
       <DashboardTour seen={!!prefs?.tour_seen_at} />
     </div>

@@ -12,31 +12,41 @@ revenue stats, manage their Pro plan, and edit their account profile.
   `getVendorSession()` (redirects to `/login` if signed out) and
   `getVendorPlan()`/`getOrCreateVendorProfile()` in parallel, reads the
   vendor's profile icon off `user.user_metadata.avatar_url`, and renders
-  the sticky header (`DashboardNav`) around `{children}`. The header itself
-  (`px-5 py-3.5`, `border-border`, `bg-background/85`, `backdrop-blur-md`,
-  `text-3xl` logo) matches qkit's dashboard-header sizing exactly.
+  `dashboard-nav.tsx` around `{children}` plus `DashboardTour`. The nav is
+  wrapped in `<div className="contents print:hidden">`, not a plain `<div>`
+  — `@merqo/ui`'s `DashboardNav` renders its own sticky `<header>`
+  internally now (2026-08-05 `@merqo/ui` migration), and a plain wrapper
+  div would become the sticky header's containing block at exactly its own
+  height, breaking `position: sticky`. `display: contents` removes the
+  wrapper's own box from layout so `<header>` stays a direct child of the
+  `min-h-screen` container, same as pre-migration.
+- `layout.dom.test.tsx` — regression guard for the above: asserts the
+  wrapper's `className` contains `"contents"` and that exactly one
+  `<header>` element exists in the composed `layout.tsx` tree (a
+  per-component `DashboardNav` test alone wouldn't catch a wrapper-`<div>`
+  regression at the layout composition level).
 - `dashboard-nav.tsx` — `DashboardNav({ signOut, vendorName, avatarUrl,
-plan })` client component, per `docs/business/2026-07-21-dashboard-nav-
-standard.md`: mobile burger (a shadcn `Button variant="ghost" size="icon"`,
-  not a raw `<button>`) + inline `Dashboard`/`Payment setup`/
-  `Transactions`/`Stats` links (`LINKS`, active-route highlighting via
-  `isActive`/`usePathname`) on the left; an account-menu avatar (real
-  photo via `AvatarImage` when `avatarUrl` is set, initials fallback
-  otherwise, mint-colored wordmark, vendor name + `ChevronDown` both
-  revealed at the same `md:inline` breakpoint) on the right, opening a
-  dropdown whose label shows the vendor name next to a `TierBadge` pill
-  (free/pro, ported from qkit's 3-tier badge and flattened to paykit's
-  2-tier set) to Profile, Plan, Get help (a `Sheet` drawer rendering
-  `SupportForm` — files into the shared cross-kit `merqo.support_messages`
-  inbox as of 2026-07-23, replacing the earlier `mailto:` interim pattern;
-  see `merqo/docs/superpowers/specs/2026-07-23-cross-kit-support-messages-
-design.md`), Feedback (a `Sheet` drawer rendering `FeedbackForm`), and
-  Sign out (a real `<form action={signOut}>` submit).
+plan })` client component: composes `@merqo/ui`'s `DashboardNav`/
+  `AccountMenu` for the sticky header row (burger + inline links + account
+  dropdown) instead of hand-rolling it. Owns only paykit-specific bits: the
+  wordmark, `LINKS` (`Dashboard`/`Payment setup`/`Transactions`/`Stats`,
+  active-route highlighting via `isActive`/`usePathname`), the 2-tier
+  (free/pro) `TierBadge` (ported from qkit's 3-tier badge, flattened), and
+  thin throw-adapting wrappers around `submitFeedbackAction`/
+  `submitSupportMessageAction` (both return a `{success, error}` result;
+  `@merqo/ui`'s `onSubmit` contract needs a promise that rejects on
+  failure so its own inline error UI can surface it) for the Feedback/Get
+  help `Sheet` drawers `@merqo/ui`'s `AccountMenu` now owns. `vendor.name`/
+  `subtitle` both carry the real `vendorName` (with an `"Account"`/`"Your
+account"` fallback only for the edge case of an empty string) — never a
+  static placeholder, since `subtitle` is the only line the dropdown header
+  renders next to the trigger.
 - `dashboard-nav.dom.test.tsx` — RTL/jsdom tests: the inline links render
-  with correct hrefs, the account-menu item order (Profile, Plan, Get
-  help, Feedback, then Sign out), that Sign out is a genuine form submit
-  reaching the `signOut` action, and that Get help opens the `SupportForm`
-  Sheet rather than navigating away.
+  with correct hrefs, the account-menu item order, that Sign out is a
+  genuine form submit reaching the `signOut` action, that Get help opens a
+  Sheet mapping its message to `submitSupportMessageAction`'s `body` field,
+  and that a failed feedback/support submit surfaces an inline error
+  rather than failing silently.
 - `page.tsx` — `DashboardPage()` (server): shows a running monthly
   transaction count and an empty-state prompt to `/dashboard/config` when
   no payment method is set up yet; the Pro nudge (`shouldNudgePro`) appears

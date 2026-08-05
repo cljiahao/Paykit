@@ -1,13 +1,16 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Image from "next/image";
 import QRCode from "react-qr-code";
 import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ImageUploader } from "@/components/image-uploader";
+import { ImageUploader } from "@merqo/ui";
+import { uploadPaykitImage } from "@/lib/image-upload-adapter";
+import { resizeToWebp } from "@/lib/image-resize";
 import { buildPayNowPayload } from "@/lib/payments/paynow";
 import { saveConfigAction, type SaveConfigState } from "./actions";
 import type { PaymentConfigKind, VendorPaymentConfig } from "@/lib/types";
@@ -249,6 +252,10 @@ export function PaymentConfigForm({
                 pathPrefix={vendorId}
                 value={qrImageUrl}
                 onChange={setQrImageUrl}
+                onUpload={uploadPaykitImage}
+                resizeImage={resizeToWebp}
+                imageComponent={Image}
+                variant="thumb"
               />
               <input
                 type="hidden"

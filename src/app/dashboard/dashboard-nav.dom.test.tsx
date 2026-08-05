@@ -2,17 +2,30 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ActionResult } from "@/lib/action-result";
 import { DashboardNav } from "./dashboard-nav";
 
+const mocks = vi.hoisted(() => ({
+  submitFeedbackAction: vi.fn(async (): Promise<ActionResult> => ({
+    success: true,
+  })),
+  submitSupportMessageAction: vi.fn(async (): Promise<ActionResult> => ({
+    success: true,
+  })),
+}));
+
 vi.mock("next/navigation", () => ({ usePathname: () => "/dashboard" }));
-vi.mock("@/components/support-form", () => ({
-  SupportForm: () => <div data-testid="support-form" />,
+vi.mock("@/app/actions/feedback", () => ({
+  submitFeedbackAction: mocks.submitFeedbackAction,
+}));
+vi.mock("@/app/actions/support", () => ({
+  submitSupportMessageAction: mocks.submitSupportMessageAction,
 }));
 
 describe("DashboardNav", () => {
   const baseProps = {
     signOut: vi.fn(async () => {}),
-    vendorName: "vendor@example.com",
+    vendorName: "Kopitiam Cart",
     avatarUrl: null,
     plan: "free" as const,
   };
@@ -37,20 +50,11 @@ describe("DashboardNav", () => {
     );
   });
 
-  it("renders desktop nav links as the shared Button ghost/sm control", () => {
-    render(<DashboardNav {...baseProps} />);
-    const link = screen.getByRole("link", { name: "Dashboard" });
-    expect(link).toHaveAttribute("data-slot", "button");
-    expect(link).toHaveAttribute("data-variant", "ghost");
-    expect(link).toHaveAttribute("data-size", "sm");
-  });
-
   it("exposes data-tour anchors for the onboarding tour", () => {
     render(<DashboardNav {...baseProps} />);
-    expect(screen.getByRole("button", { name: /open menu/i })).toHaveAttribute(
-      "data-tour",
-      "nav-menu",
-    );
+    expect(
+      screen.getByRole("button", { name: /mobile navigation menu/i }),
+    ).toHaveAttribute("data-tour", "nav-menu");
     expect(
       screen.getByRole("button", { name: /account menu/i }),
     ).toHaveAttribute("data-tour", "nav-account");
@@ -67,30 +71,53 @@ describe("DashboardNav", () => {
     const menuItems = screen.getAllByRole("menuitem");
     expect(menuItems.map((item) => item.textContent)).toEqual([
       "Profile",
-      "Plan",
+      "Plan · free",
       "Get help",
       "Feedback",
       "Sign out",
     ]);
-    expect(screen.getByRole("menuitem", { name: "Plan" })).toHaveAttribute(
+    expect(screen.getByRole("menuitem", { name: /^Plan/ })).toHaveAttribute(
       "href",
       "/dashboard/plan",
     );
   });
 
-  it("sign-out is a real form submit that calls the signOut action", async () => {
-    const { container } = render(<DashboardNav {...baseProps} />);
-    const form = container.querySelector("form");
-    expect(form).not.toBeNull();
-
+  it("calls the signOut action when Sign out is selected", async () => {
     const user = userEvent.setup();
+    render(<DashboardNav {...baseProps} />);
     await user.click(screen.getByRole("button", { name: /account menu/i }));
     await user.click(screen.getByRole("menuitem", { name: "Sign out" }));
-
     await waitFor(() => expect(baseProps.signOut).toHaveBeenCalled());
   });
 
-  it("Get help opens a Sheet with the support form, not a mailto link", async () => {
+  it("shows the vendor's real name as the account subtitle, not a generic label", async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav {...baseProps} />);
+    expect(screen.getAllByText("Kopitiam Cart").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Vendor account")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /account menu/i }));
+    expect(screen.getAllByText("Kopitiam Cart").length).toBeGreaterThan(1);
+  });
+
+  it("renders the tier badge for the current plan", async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav {...baseProps} plan="pro" />);
+    await user.click(screen.getByRole("button", { name: /account menu/i }));
+    expect(screen.getByText("Pro")).toBeInTheDocument();
+  });
+
+  it("marks the active nav link via aria-current", () => {
+    render(<DashboardNav {...baseProps} />);
+    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(
+      screen.getByRole("link", { name: "Payment setup" }),
+    ).not.toHaveAttribute("aria-current");
+  });
+
+  it("Get help opens a form Sheet (not a mailto link) and maps its message to submitSupportMessage's body field", async () => {
     const user = userEvent.setup();
     render(<DashboardNav {...baseProps} />);
     await user.click(screen.getByRole("button", { name: /account menu/i }));
@@ -99,6 +126,71 @@ describe("DashboardNav", () => {
     expect(getHelp.tagName).not.toBe("A");
 
     await user.click(getHelp);
-    expect(screen.getByTestId("support-form")).toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: /payment/i }));
+    await user.type(
+      screen.getByLabelText("Message"),
+      "My QR code isn't scanning",
+    );
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() =>
+      expect(mocks.submitSupportMessageAction).toHaveBeenCalledWith({
+        category: "payment",
+        body: "My QR code isn't scanning",
+      }),
+    );
+  });
+
+  it("a failed Get-help submit surfaces an inline error, not a silent failure", async () => {
+    mocks.submitSupportMessageAction.mockResolvedValueOnce({
+      success: false,
+      error: "Could not send your message",
+    });
+    const user = userEvent.setup();
+    render(<DashboardNav {...baseProps} />);
+    await user.click(screen.getByRole("button", { name: /account menu/i }));
+    await user.click(screen.getByRole("menuitem", { name: "Get help" }));
+    await user.click(screen.getByRole("radio", { name: /payment/i }));
+    await user.type(screen.getByLabelText("Message"), "Help");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(
+      await screen.findByText("Could not send your message"),
+    ).toBeInTheDocument();
+  });
+
+  it("opening Feedback and submitting calls submitFeedback with the picked NPS score", async () => {
+    const user = userEvent.setup();
+    render(<DashboardNav {...baseProps} />);
+    await user.click(screen.getByRole("button", { name: /account menu/i }));
+    await user.click(screen.getByRole("menuitem", { name: "Feedback" }));
+
+    await user.click(screen.getByRole("radio", { name: "9" }));
+    await user.type(screen.getByLabelText("Message"), "Works great");
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    await waitFor(() =>
+      expect(mocks.submitFeedbackAction).toHaveBeenCalledWith({
+        nps: 9,
+        message: "Works great",
+      }),
+    );
+  });
+
+  it("a failed feedback submit surfaces an inline error, not a silent failure", async () => {
+    mocks.submitFeedbackAction.mockResolvedValueOnce({
+      success: false,
+      error: "Could not send feedback",
+    });
+    const user = userEvent.setup();
+    render(<DashboardNav {...baseProps} />);
+    await user.click(screen.getByRole("button", { name: /account menu/i }));
+    await user.click(screen.getByRole("menuitem", { name: "Feedback" }));
+    await user.click(screen.getByRole("radio", { name: "5" }));
+    await user.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(
+      await screen.findByText("Could not send feedback"),
+    ).toBeInTheDocument();
   });
 });
