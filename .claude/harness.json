@@ -8,11 +8,11 @@
   "richReadme": true,
   "seeded_files": {
     "AGENTS.md": {
-      "origin_hash": "628245c2c58625d71f908cad238fa83f9834424d9da77b28a95a67e350397ddf",
+      "origin_hash": "85e3df18b1732ce4b88226e83f21705545c39769dce21992ec8f2260b9d1e871",
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
-      "origin_hash": "20759cb45d53b8b098202a49ae633ad515abe8d0673ad7796080ae78c6f84e94",
+      "origin_hash": "37fa9a211283bc5ea7db15eda2c832deafee3551d83099587aeae87c1b50f889",
       "path": ".claude/settings.json"
     },
     ".claude/hooks/block-no-verify.sh": {
@@ -26,6 +26,18 @@
     ".claude/hooks/user-prompt-guard.cjs": {
       "origin_hash": "d1c376ffcbaba440838b52da3114b4671038042958126c4a316b4ef7de4056f6",
       "path": ".claude/hooks/user-prompt-guard.cjs"
+    },
+    ".claude/hooks/post-edit-comment-check.sh": {
+      "origin_hash": "f7e5f610135ea114b401b6ca22ce01af3a64729eb753645f21460810ff749fee",
+      "path": ".claude/hooks/post-edit-comment-check.sh"
+    },
+    ".claude/comment-hygiene-patterns.txt": {
+      "origin_hash": "61e448dd1b798c211ec37f4efc9667275a0eaea0ba3be2217d4d187d15cbf078",
+      "path": ".claude/comment-hygiene-patterns.txt"
+    },
+    ".husky/lib/comment-hygiene.sh": {
+      "origin_hash": "08def5407a669dfacd8b056271a8d05b22e670c45a6bed16526ef06d4ddf3d19",
+      "path": ".husky/lib/comment-hygiene.sh"
     },
     ".claude/hooks/post-edit-typecheck.sh": {
       "origin_hash": "f17a4f6cb67b023f1058acb542b43ccf294de612e5d15352776ffbb50366b509",
@@ -80,7 +92,7 @@
       "path": ".husky/lib/commit-msg-check.sh"
     },
     ".husky/lib/pre-commit.sh": {
-      "origin_hash": "634dd183e4725f5e62f2504ddf920cf6e9f3960f76081b8edff0d5e05d8ac875",
+      "origin_hash": "5f76b3061adf482c71501b7944e4620cd47962ca5f27e69d78b358659026f5b2",
       "path": ".husky/lib/pre-commit.sh"
     },
     ".husky/lib/pre-push.sh": {
@@ -92,7 +104,7 @@
       "path": ".gitleaks.toml"
     },
     ".github/workflows/ci.yml": {
-      "origin_hash": "0685beba1508a0d416d00df842ce2ee37e33abe5fd19ea2950560aa65c3257b6",
+      "origin_hash": "309c76fa7f293b8f01ba53c42a93389130f37615b6a92806155c3840d02987ad",
       "path": ".github/workflows/ci.yml"
     },
     ".claude/verify-harness.sh": {
