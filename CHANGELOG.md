@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Dashboard account chrome (nav, account menu, Feedback/Get-help sheets,
+  profile-icon/QR-image uploader, onboarding tour, tooltip, and settings
+  field-group shell) migrated onto the shared `@merqo/ui` v0.8.1 package
+  — the same component library qkit adopted first. Local
+  `FeedbackForm`/`SupportForm`/`InfoTooltip`/`Section`/`ImageUploader`/
+  `tour.css` are deleted; `dashboard-nav.tsx`/`dashboard-tour.tsx`/
+  `use-async-action.ts` are now thin paykit-specific wrappers around the
+  shared components. No behavior, copy, schema, or payment-processing
+  logic changed — UI-layer chrome only.
+
 ### Added
 
 - `POST /api/v1/checkout` is now idempotent on `(kit_slug, order_ref)`: a
