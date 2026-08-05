@@ -8,6 +8,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `POST /api/v1/checkout` is now idempotent on `(kit_slug, order_ref)`: a
+  retried call (e.g. after a caller-side timeout) returns the transaction
+  the first call already created instead of erroring or creating a
+  duplicate pending transaction (`0007_paykit_checkout_idempotency.sql`
+  adds the unique constraint the route catches the violation on).
+- Unit tests for `vendor-session.ts` (`getVendorSession`/`getVendorPlan`),
+  the shared dashboard auth guard used by every `/dashboard` page and
+  server action — previously covered only indirectly through whatever
+  dashboard action tests happened to mock through it.
+- A comment-hygiene enforcement layer alongside the existing static ESLint
+  gate (`no-inline-comments`, `sonarjs/no-commented-code`): a feedback-only
+  `PostToolUse` hook (`post-edit-comment-check.sh`), a warn-only pre-commit
+  nudge (`comment-hygiene.sh`), and a CI job scoped to added lines — all
+  reading the same `.claude/comment-hygiene-patterns.txt`.
 - Merqo-team internal admin console (`/admin`), ported from loopkit's
   admin-console pattern: an `admins` allow-list + `admin_audit` trail
   (`0006_paykit_admin.sql`), an overview page with platform-wide stat
@@ -19,6 +33,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- `merqo-support.ts`, `merqo-vendor-feedback.ts`, and
+  `merqo-vendor-profile.ts` now delegate their `.schema("merqo").rpc(...)`
+  call to a new shared `callMerqoRpc` helper (`src/lib/merqo-rpc.ts`)
+  instead of each hand-writing the same generic-over-caller's-client cast;
+  public function signatures unchanged.
 - Landing footer rebuilt to match qkit's exact single-row layout
   (wordmark, tagline, copyright, sign-in link as flex siblings), and the
   bottom call-to-action band above it removed — qkit's landing page never
@@ -26,6 +45,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- `.claude/settings.json`'s `Edit` permissions-deny list now also covers
+  `.env.*.local` (it already covered the other `.env` variants), matching
+  the `Read` deny list.
 - `/api/merqo/vendor-status` now paginates the Supabase admin-users
   lookup via `listAllUsers` instead of the old `merqo-auth.ts#listAllAuthUsers`
   (removed), which only ever read the first 1000 auth users — a vendor
