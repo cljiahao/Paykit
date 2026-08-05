@@ -13,6 +13,7 @@ tables, RLS policies, RPCs, and grants, applied in order.
 - `0004_vendor_feedback_backfill.sql` — backfills existing feedback rows into the cross-kit `merqo.vendor_feedback` convergence table.
 - `0005_paykit_vendor_prefs.sql` — `vendor_prefs` (currently just `tour_seen_at`, dashboard onboarding-tour state).
 - `0006_paykit_admin.sql` — `admins` (allow-list) + `is_admin(uid)` + `admin_audit`, backing the Merqo-team `/admin` console's gate and audit trail.
+- `0007_paykit_checkout_idempotency.sql` — unique constraint on `transactions (kit_slug, order_ref)`, so a retried `POST /api/v1/checkout` call can't create a duplicate pending transaction.
 
 ## Parent
 

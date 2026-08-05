@@ -5,11 +5,13 @@ const {
   verifyKitAuthMock,
   configMaybeSingle,
   insertSingle,
+  existingSingle,
   createServiceClientMock,
 } = vi.hoisted(() => ({
   verifyKitAuthMock: vi.fn(),
   configMaybeSingle: vi.fn(),
   insertSingle: vi.fn(),
+  existingSingle: vi.fn(),
   createServiceClientMock: vi.fn(),
 }));
 
@@ -29,6 +31,9 @@ function fakeSupabase() {
       if (table === "transactions") {
         return {
           insert: () => ({ select: () => ({ single: insertSingle }) }),
+          select: () => ({
+            eq: () => ({ eq: () => ({ single: existingSingle }) }),
+          }),
         };
       }
       throw new Error(`unexpected table ${table}`);
@@ -58,6 +63,7 @@ beforeEach(() => {
     data: { id: "tx1", qr_payload: "0002...6304ABCD", type: "qr" },
     error: null,
   });
+  existingSingle.mockReset().mockResolvedValue({ data: null, error: null });
 });
 
 function req(body: unknown, authorization = "Bearer qkit:secret") {
@@ -218,6 +224,61 @@ describe("POST /api/v1/checkout", () => {
         vendor_id: "11111111-1111-1111-1111-111111111111",
         amount_cents: 450,
         order_ref: "A-001",
+      }),
+    );
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).not.toMatch(/connection reset/);
+  });
+
+  it("returns the same transaction on a retried call with the same (kit_slug, order_ref), without a second insert", async () => {
+    const first = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-901",
+      }),
+    );
+    expect(first.status).toBe(200);
+    const firstBody = await first.json();
+
+    // The retry hits the transactions_kit_slug_order_ref_key unique
+    // constraint (0007_paykit_checkout_idempotency.sql) instead of creating
+    // a duplicate row.
+    insertSingle.mockResolvedValue({
+      data: null,
+      error: { code: "23505", message: "duplicate key value" },
+    });
+    existingSingle.mockResolvedValue({
+      data: { id: "tx1", qr_payload: "0002...6304ABCD" },
+      error: null,
+    });
+
+    const retry = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-901",
+      }),
+    );
+    expect(retry.status).toBe(200);
+    expect(await retry.json()).toEqual(firstBody);
+  });
+
+  it("503s when the idempotent re-read fails after a unique-violation", async () => {
+    insertSingle.mockResolvedValue({
+      data: null,
+      error: { code: "23505", message: "duplicate key value" },
+    });
+    existingSingle.mockResolvedValue({
+      data: null,
+      error: { message: "connection reset" },
+    });
+    const res = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-901",
       }),
     );
     expect(res.status).toBe(503);
