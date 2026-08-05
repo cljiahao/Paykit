@@ -19,7 +19,7 @@ secret scan, dependency audit).
   the PR diff; skippable via `skip-changelog`); `readme-freshness` (PR-only
   — if a folder's files changed, that folder's `README.md` must also be in
   the PR diff; skippable via `skip-readme-check`); `comment-hygiene`
-  (PR-only — hard-fails on change-narration comments in *added* lines only,
+  (PR-only — hard-fails on change-narration comments in _added_ lines only,
   via the keyword patterns in `.claude/comment-hygiene-patterns.txt`;
   skippable via `skip-comment-check`).
 - `security.yml` — gitleaks secret scan + `pnpm audit`, triggered on push to
