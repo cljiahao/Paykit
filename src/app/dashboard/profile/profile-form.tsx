@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Store, KeyRound, UserRound, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Section } from "@merqo/ui";
+import { ImageUploader, Section } from "@merqo/ui";
 import { SocialLinksFields } from "@/components/social-links-fields";
-import { ImageUploader } from "@/components/image-uploader";
+import { uploadPaykitImage } from "@/lib/image-upload-adapter";
+import { resizeToWebp } from "@/lib/image-resize";
 import { createClient } from "@/lib/supabase/client";
 import { useAsyncAction } from "@/hooks/use-async-action";
 import {
@@ -219,6 +221,10 @@ export function ProfileForm({
               pathPrefix={vendorId}
               value={avatar}
               onChange={saveAvatar}
+              onUpload={uploadPaykitImage}
+              resizeImage={resizeToWebp}
+              imageComponent={Image}
+              variant="thumb"
             />
             <p className="text-xs text-muted-foreground">
               Square images look best. Remove it any time to fall back to your
