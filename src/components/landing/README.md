@@ -8,10 +8,12 @@ file. Presentational only — no data fetching, no client state beyond the
 
 ## Contents
 
-- `nav.tsx` — sticky top nav: `Wordmark` + an `#faq` anchor link (sm+,
-  same-page hash jump to `faq.tsx`'s section) + sign-in/dashboard link.
-  Header padding/logo size (`px-5 py-4`, `text-3xl`) matches qkit's landing
-  nav exactly.
+- `nav.tsx` — sticky top nav, built on `@merqo/ui`'s shared `LandingNav`
+  shell (sticky/border/backdrop-blur header, `max-w-6xl` row): `Wordmark`
+  as the `wordmark` prop, an `#faq` anchor link (sm+, same-page hash jump
+  to `faq.tsx`'s section) + sign-in/dashboard link as the `end` prop.
+  Header padding/logo size (`text-3xl` wordmark) matches qkit's landing
+  nav exactly, since both consume the same shared shell.
 - `hero.tsx` — headline, stat row, CTA, and the decorative `CheckoutCard`.
 - `checkout-card.tsx` — stylized non-functional "live checkout" artifact for
   the hero (not a real scannable QR — a stand-in with a status pill using

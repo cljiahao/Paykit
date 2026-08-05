@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Bumped `@merqo/ui` to v0.9.0. `DashboardNav`'s header now has an inner
+  `max-w-7xl` width container (was full-bleed, misaligned against
+  dashboard content) — automatic for paykit since `dashboard-nav.tsx`
+  already delegates to the shared component. The landing nav
+  (`src/components/landing/nav.tsx`) now uses the new shared `LandingNav`
+  shell instead of hand-rolling its own sticky/border/backdrop-blur
+  header; the wordmark and right-side links/CTAs are unchanged.
 - Dashboard account chrome (nav, account menu, Feedback/Get-help sheets,
   profile-icon/QR-image uploader, onboarding tour, tooltip, and settings
   field-group shell) migrated onto the shared `@merqo/ui` v0.8.1 package
