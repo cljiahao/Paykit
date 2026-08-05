@@ -15,11 +15,11 @@ it auto-runs rather than when it finishes, so a refresh mid-tour can't
 make it re-trigger on the next load. `POST /api/v1/checkout` is idempotent
 on `(kit_slug, order_ref)` — a retried call returns the existing
 transaction instead of creating a duplicate. The dashboard nav, account
-menu, profile-page layout, image upload, and onboarding tour now delegate
-to the shared `@merqo/ui` package (kit-family consistency; paykit keeps
-its own wordmark, nav links, tier badge, and feedback/support wiring as
-thin adapters over the shared components). See `CHANGELOG.md` for the
-latest changes.
+menu, profile-page layout, image upload, onboarding tour, and landing nav
+now delegate to the shared `@merqo/ui` package (kit-family consistency;
+paykit keeps its own wordmark, nav links, tier badge, and feedback/support
+wiring as thin adapters over the shared components). See `CHANGELOG.md`
+for the latest changes.
 
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
