@@ -16,10 +16,14 @@ PayNow QR + tracks payment status over paykit's bearer-secret HTTP API
 (`/api/v1/*`). paykit never touches funds — it renders a QR the customer
 scans in their own bank app and tracks a status a human confirms. merqo
 calls paykit's admin-facing `/api/merqo/vendor-provision` and
-`/api/merqo/vendor-status` routes (shipped 2026-07-28), but no _checkout_
-kit calls the `/api/v1/*` payment API yet; qkit's own local payment code
-(`booths.payment`, `claimPayment`/`confirmPayment`) is untouched and stays
-that way until a later, separate cutover spec.
+`/api/merqo/vendor-status` routes (shipped 2026-07-28). The qkit→paykit
+checkout cutover started 2026-08-11: qkit was minted a `kit_api_keys`
+bearer secret and paykit now exposes `POST /api/v1/vendors/{vendor_id}/config`
+so qkit can write a vendor's `vendor_payment_config` server-to-server (for
+a "quick add PayNow details" UI inside qkit's own dashboard, instead of
+redirecting to paykit's). qkit's checkout flow itself (`booths.payment`,
+`claimPayment`/`confirmPayment`) has not yet been switched to call
+`POST /api/v1/checkout` — that part of the cutover is still in progress.
 
 ## Stack
 
@@ -47,7 +51,7 @@ No `test:e2e` — this kit's testing surface (per its design spec) is Unit
 ```
 src/app/                          — app router (dashboard, login, API routes)
 src/app/api/v1/checkout/          — POST /api/v1/checkout, GET/POST /api/v1/checkout/{id}[/claim|/confirm]
-src/app/api/v1/vendors/           — GET /api/v1/vendors/{vendor_id}/config
+src/app/api/v1/vendors/           — GET/POST /api/v1/vendors/{vendor_id}/config
 src/app/dashboard/                — vendor dashboard (config, transactions, stats)
 src/proxy.ts                      — Supabase session refresh + /dashboard guard (Next 16)
 src/lib/supabase/                 — browser / server / service clients + mw helper (schema=paykit)
@@ -209,7 +213,10 @@ entry carries a real sha256 as of the 2026-08-01 husky migration's
   `docs/superpowers/specs/2026-06-28-qkit-payments-seam-design.md`.
 - Design: `docs/superpowers/specs/2026-07-15-paykit-mvp-design.md`. Plan of
   record: `docs/superpowers/plans/2026-07-15-paykit-mvp.md`.
-- Cutting qkit (or any other kit) over to actually call paykit is a separate,
-  later spec — not started here.
+- Cutting qkit (or any other kit) over to actually call paykit started
+  2026-08-11 with `POST /api/v1/vendors/{vendor_id}/config` (kit-auth
+  config write, for qkit's own "quick add PayNow details" dashboard UI).
+  qkit's checkout flow itself has not yet been switched over to
+  `POST /api/v1/checkout`.
 
 <!-- [[post-harness]] — reserved for trace capture and meta-harness integration -->
