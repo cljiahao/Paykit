@@ -28,8 +28,11 @@ export async function verifyKitAuth(
   if (error || !data) {
     console.error("verifyKitAuth: row lookup failed", {
       kitSlug,
-      error: error?.message ?? null,
       found: Boolean(data),
+      errorMessage: error?.message ?? null,
+      errorCode: error?.code ?? null,
+      errorDetails: error?.details ?? null,
+      errorHint: error?.hint ?? null,
     });
     return null;
   }

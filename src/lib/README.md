@@ -37,7 +37,8 @@ larger clusters; everything else sits flat here.
 - `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
   for calling kits, checked on every `/api/v1/*` route before any DB access.
   Logs which check failed (row lookup vs hash compare) on a 401 — never the
-  secret — a temporary diagnostic aid, to be reverted once resolved.
+  secret — a temporary diagnostic aid, to be reverted once resolved. A
+  row-lookup failure logs the full `PostgrestError` (code/details/hint).
 - `vendor-session.ts` — `getVendorSession()` (dashboard auth guard,
   redirects to `/login` on no session) and `getVendorPlan()`. Deliberately
   **not** used by Sheet-embedded server actions (`feedback.ts`,

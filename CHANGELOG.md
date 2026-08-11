@@ -10,7 +10,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - `verifyKitAuth` logs which check failed (row lookup vs hash compare) on a
   401, never the secret itself — temporary diagnostic aid for the
-  qkit-cutover rollout, to be reverted once resolved.
+  qkit-cutover rollout, to be reverted once resolved. Row-lookup failures
+  now log the full `PostgrestError` (code/details/hint), not just the
+  message.
 
 ### Added
 
