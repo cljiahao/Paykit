@@ -16,7 +16,12 @@ In production, the Supabase auth cookie is scoped to `.merqo.io`
 one Merqo kit signs you in on the rest. The dashboard's onboarding tour
 (`src/components/dashboard-tour.tsx`) stamps its "seen" state as soon as
 it auto-runs rather than when it finishes, so a refresh mid-tour can't
-make it re-trigger on the next load. `POST /api/v1/checkout` is idempotent
+make it re-trigger on the next load — and since that client-fired stamp
+is fire-and-forget and can be aborted by a hard navigation (`@merqo/ui`'s
+`DashboardNav` renders nav links as plain `<a>` tags, and the tour's own
+steps spotlight one), `/dashboard`'s own server render
+(`src/app/dashboard/page.tsx`) also stamps it synchronously, durably, as
+part of the request. `POST /api/v1/checkout` is idempotent
 on `(kit_slug, order_ref)` — a retried call returns the existing
 transaction instead of creating a duplicate. `pnpm-workspace.yaml`'s
 `overrides` pins several transitive dependencies (`postcss`, `undici`,

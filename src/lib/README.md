@@ -39,6 +39,14 @@ larger clusters; everything else sits flat here.
   Logs which check failed (row lookup vs hash compare) on a 401 — never the
   secret — a temporary diagnostic aid, to be reverted once resolved. A
   row-lookup failure logs the full `PostgrestError` (code/details/hint).
+- `tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: upserts
+  `vendor_prefs.tour_seen_at = now()`. A plain (non-`"use server"`) module
+  so `src/app/dashboard/page.tsx` can call it directly during its own
+  server render — the durable half of the onboarding-tour "stamp on
+  start" fix, since the client-fired path
+  (`src/app/dashboard/tour-actions.ts`'s `markTourSeen`, which also
+  delegates here) is fire-and-forget and can be aborted by a hard
+  navigation before it lands.
 - `vendor-session.ts` — `getVendorSession()` (dashboard auth guard,
   redirects to `/login` on no session) and `getVendorPlan()`. Deliberately
   **not** used by Sheet-embedded server actions (`feedback.ts`,
