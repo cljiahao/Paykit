@@ -36,9 +36,6 @@ larger clusters; everything else sits flat here.
   unit-testable without rendering that async server component.
 - `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
   for calling kits, checked on every `/api/v1/*` route before any DB access.
-  Logs which check failed (row lookup vs hash compare) on a 401 — never the
-  secret — a temporary diagnostic aid, to be reverted once resolved. A
-  row-lookup failure logs the full `PostgrestError` (code/details/hint).
 - `tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: upserts
   `vendor_prefs.tour_seen_at = now()`. A plain (non-`"use server"`) module
   so `src/app/dashboard/page.tsx` can call it directly during its own

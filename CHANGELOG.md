@@ -23,14 +23,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   refactored to share the upsert (`stampTourSeen`) with `page.tsx` instead
   of duplicating it.
 
-### Changed
-
-- `verifyKitAuth` logs which check failed (row lookup vs hash compare) on a
-  401, never the secret itself — temporary diagnostic aid for the
-  qkit-cutover rollout, to be reverted once resolved. Row-lookup failures
-  now log the full `PostgrestError` (code/details/hint), not just the
-  message.
-
 ### Added
 
 - `POST /api/v1/vendors/{vendor_id}/config` — kit-auth (bearer-secret,

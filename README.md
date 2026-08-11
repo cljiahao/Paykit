@@ -34,11 +34,6 @@ paykit keeps its own wordmark, nav links, tier badge, and feedback/support
 wiring as thin adapters over the shared components). See `CHANGELOG.md`
 for the latest changes.
 
-`verifyKitAuth` (`src/lib/kit-auth.ts`) currently logs which check failed
-(row lookup vs hash compare, including the full `PostgrestError` on a
-lookup failure) on a 401, never the secret — a temporary
-diagnostic aid for the qkit-cutover rollout, to be reverted once resolved.
-
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
 signed in, a Free-tier vendor can file a real, one-click Pro-upgrade request
