@@ -25,30 +25,11 @@ export async function verifyKitAuth(
     .select("secret_hash")
     .eq("kit_slug", kitSlug)
     .maybeSingle();
-  if (error || !data) {
-    console.error("verifyKitAuth: row lookup failed", {
-      kitSlug,
-      found: Boolean(data),
-      errorMessage: error?.message ?? null,
-      errorCode: error?.code ?? null,
-      errorDetails: error?.details ?? null,
-      errorHint: error?.hint ?? null,
-    });
-    return null;
-  }
+  if (error || !data) return null;
 
   const provided = Buffer.from(hashApiKey(secret));
   const expected = Buffer.from(data.secret_hash);
   const ok =
     provided.length === expected.length && timingSafeEqual(provided, expected);
-  if (!ok) {
-    console.error("verifyKitAuth: hash mismatch", {
-      kitSlug,
-      providedLen: provided.length,
-      expectedLen: expected.length,
-      providedHashPrefix: hashApiKey(secret).slice(0, 8),
-      expectedHashPrefix: data.secret_hash.slice(0, 8),
-    });
-  }
   return ok ? { kitSlug } : null;
 }
