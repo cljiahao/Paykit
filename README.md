@@ -5,7 +5,11 @@ method once here — a generated PayNow QR, or their own BYO payment
 link/QR image — and any Merqo kit can then request a checkout + track
 payment status for that vendor over paykit's HTTP API. paykit never
 touches funds — it renders the checkout the customer pays through in
-their own bank/payment app, and a human confirms receipt.
+their own bank/payment app, and a human confirms receipt. A calling kit
+without its own vendor-session UI can also write the config directly via
+`POST /api/v1/vendors/{vendor_id}/config` (bearer-secret authenticated,
+same schema the dashboard's own config form uses) — see
+`src/app/api/v1/vendors/[vendor_id]/config/README.md`.
 
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on
