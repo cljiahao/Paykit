@@ -33,6 +33,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `use-async-action.ts` are now thin paykit-specific wrappers around the
   shared components. No behavior, copy, schema, or payment-processing
   logic changed — UI-layer chrome only.
+- Each of the six `/dashboard` page.tsx files (`page.tsx`,
+  `config/page.tsx`, `plan/page.tsx`, `profile/page.tsx`,
+  `stats/page.tsx`, `transactions/page.tsx`) now has a `page.dom.test.tsx`
+  alongside it, following the "await the async server component, render
+  its returned JSX with RTL" pattern `dashboard/layout.dom.test.tsx`
+  established: session/plan/transaction lookups mocked, real branching
+  (empty state, Free/Pro gating, nudge thresholds) asserted. These pages
+  previously had no direct test coverage at all.
 
 ### Added
 

@@ -16,8 +16,7 @@ manually once a vendor's upgrade request comes in.
   `UpgradeCta`. Kept deliberately thin — the feature list, count-copy
   pluralization, and nudge/upgrade visibility are pure logic in
   `plan-view.ts`, not inline JSX branching, so they're unit-testable without
-  rendering this async server component (no precedent in this repo for
-  directly rendering a server-component page). Content sits in a plain
+  rendering this async server component. Content sits in a plain
   `mx-auto max-w-2xl` div (not `<main>` — the parent `dashboard/layout.tsx`
   owns that landmark and the page-family's canonical `max-w-7xl` outer
   width); the plan card + feature list read better narrower than the full
@@ -29,6 +28,10 @@ manually once a vendor's upgrade request comes in.
 - `upgrade-cta.dom.test.tsx` — jsdom tests: renders idle with no action
   call, files the request and toasts success, toasts the action's error
   message on failure.
+- `page.dom.test.tsx` — awaits `PlanPage()` directly and renders the result
+  (same pattern as `dashboard/layout.dom.test.tsx`): Free vs. Pro plan
+  copy/feature list, the nudge-threshold branch, and that the upgrade CTA
+  only shows for Free vendors.
 
 ## Connectivity
 

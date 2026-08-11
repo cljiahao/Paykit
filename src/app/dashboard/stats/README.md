@@ -17,6 +17,12 @@ a vendor. Pro only — Free vendors see an upsell instead of the chart.
   reads better narrower than the full dashboard width.
 - `revenue-chart.tsx` — `RevenueChart({ data })`: client component, a
   `recharts` `BarChart` (dollars by day) inside a `ResponsiveContainer`.
+- `page.dom.test.tsx` — awaits `StatsPage()` directly and renders the
+  result (same pattern as `dashboard/layout.dom.test.tsx`): the Free/no-
+  config upsell branch, and the Pro branch's `listTransactions` →
+  `aggregateRevenueByDay` wiring into the chart's data prop.
+  `RevenueChart` is stubbed since `ResponsiveContainer` needs real layout
+  to size itself, which jsdom doesn't provide.
 
 ## Connectivity
 

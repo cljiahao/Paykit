@@ -63,6 +63,9 @@ design.md`. Renders a plain `<div className="mx-auto max-w-2xl space-y-6">`
   (not `<main>` — the layout's `<main>` already owns that landmark), sized
   for its two small info cards rather than stretching to the layout's full
   `max-w-7xl`.
+- `page.dom.test.tsx` — same "await the async server component, render the
+  result with RTL" pattern as `layout.dom.test.tsx`: the empty-state
+  prompt, the transaction count, and the Free/Pro nudge-threshold branches.
 - `config/` — payment method setup (PayNow QR, or a vendor's own BYO
   payment link/QR image; own README).
 - `transactions/` — transaction history + refund dialog (Pro only; own

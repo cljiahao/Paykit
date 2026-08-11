@@ -27,6 +27,11 @@ ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
   `confirmed`-only, and Pro-only enforcement is the `refunds_insert_own`
   RLS policy, not this action — it only validates shape/UX.
 - `actions.test.ts` — unit coverage for `issueRefundAction`.
+- `page.dom.test.tsx` — awaits `TransactionsPage()` directly and renders
+  the result (same pattern as `dashboard/layout.dom.test.tsx`), with
+  `TransactionTable` rendered for real: the empty state, and that the
+  Refund column only shows for a Pro vendor (including no-config-yet
+  defaulting to Free).
 
 ## Connectivity
 

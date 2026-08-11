@@ -19,6 +19,10 @@ own BYO payment link/QR image, and saves it as their `vendor_payment_config`.
   `variant="thumb"`).
 - `payment-config-form.dom.test.tsx` — RTL/jsdom coverage of both `kind`
   branches and the save flow.
+- `page.dom.test.tsx` — awaits `ConfigPage()` directly and renders the
+  result (same pattern as `dashboard/layout.dom.test.tsx`), with
+  `PaymentConfigForm` stubbed so the test stays focused on `page.tsx`'s own
+  job: fetching the vendor + config and passing them through as props.
 - `actions.ts` — `saveConfigAction`: validates + persists the form via the
   vendor-scoped RLS client.
 - `actions.test.ts` — unit coverage for both config kinds and validation

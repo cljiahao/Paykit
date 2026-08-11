@@ -56,6 +56,11 @@ flex-col gap-5` stacks side by side on `md`+, never a CSS grid, whose row
   emptied stall name, updates the display name via the browser auth client,
   rejects a mismatched password confirmation, saves social links through
   the server action.
+- `page.dom.test.tsx` — awaits `ProfilePage()` directly and renders the
+  result (same pattern as `dashboard/layout.dom.test.tsx`), with
+  `ProfileForm` stubbed so the test stays focused on `page.tsx`'s own job:
+  fetching the profile and defensively reading `display_name`/`avatar_url`
+  off `user_metadata`.
 
 ## Connectivity
 
