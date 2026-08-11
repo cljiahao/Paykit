@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- `verifyKitAuth` logs which check failed (row lookup vs hash compare) on a
+  401, never the secret itself — temporary diagnostic aid for the
+  qkit-cutover rollout, to be reverted once resolved.
+
 ### Added
 
 - `POST /api/v1/vendors/{vendor_id}/config` — kit-auth (bearer-secret,
