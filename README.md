@@ -14,7 +14,11 @@ one Merqo kit signs you in on the rest. The dashboard's onboarding tour
 it auto-runs rather than when it finishes, so a refresh mid-tour can't
 make it re-trigger on the next load. `POST /api/v1/checkout` is idempotent
 on `(kit_slug, order_ref)` — a retried call returns the existing
-transaction instead of creating a duplicate. The dashboard nav, account
+transaction instead of creating a duplicate. `pnpm-workspace.yaml`'s
+`overrides` pins several transitive dependencies (`postcss`, `undici`,
+`vite`, `qs`, `sharp`, `nanoid`) past known-vulnerable versions Next.js
+itself still bundles; re-check `pnpm audit --prod --audit-level=high`
+after any `next` upgrade in case it's safe to drop one. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
 now delegate to the shared `@merqo/ui` package (kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
