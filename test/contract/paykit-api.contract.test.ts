@@ -35,6 +35,16 @@ describe("paykit /api/v1 contract", () => {
     expect(parsed.success, JSON.stringify(parsed.error?.format())).toBe(true);
   });
 
+  it("POST /api/v1/vendors/{vendor_id}/config response satisfies vendorConfigResponseSchema", () => {
+    // Same success-response shape as the GET route above — a kit-auth write
+    // reports back the config it just saved using the same wire contract a
+    // kit uses to read it.
+    const parsed = vendorConfigResponseSchema.safeParse(
+      loadSample("vendor-config.sample.json"),
+    );
+    expect(parsed.success, JSON.stringify(parsed.error?.format())).toBe(true);
+  });
+
   it("vendor-config sample never carries a secret field", () => {
     const sample = loadSample("vendor-config.sample.json");
     expect(Object.keys(sample).sort()).toEqual(["display_name", "has_config"]);

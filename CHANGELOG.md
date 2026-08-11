@@ -6,6 +6,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- `POST /api/v1/vendors/{vendor_id}/config` — kit-auth (bearer-secret,
+  `verifyKitAuth`) service-role upsert of a vendor's
+  `vendor_payment_config` on behalf of a calling kit, reusing
+  `vendorPaymentConfigInputSchema` (paynow|pointer) for validation and
+  returning the same `{ has_config, display_name }` shape as the existing
+  `GET` route. First piece of the qkit→paykit checkout cutover: qkit was
+  minted a `kit_api_keys` bearer secret so it can build a lightweight
+  "quick add PayNow details" UI inside its own dashboard instead of
+  redirecting to paykit's dashboard.
+
 ### Changed
 
 - Bumped `@merqo/ui` to v0.9.0. `DashboardNav`'s header now has an inner
