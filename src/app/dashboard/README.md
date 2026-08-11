@@ -52,7 +52,26 @@ account"` fallback only for the edge case of an empty string) — never a
   no payment method is set up yet; the Pro nudge (`shouldNudgePro`) appears
   once a Free-tier vendor crosses real usage — never a hard cap, see
   `docs/superpowers/specs/2026-07-22-paykit-freemium-nudge-redesign-
-design.md`.
+design.md`. Also reads `vendor_prefs.tour_seen_at` and, if unset, calls
+  `@/lib/tour-prefs`'s `stampTourSeen` directly, synchronously, as part of
+  this request — the durable half of the onboarding-tour "stamp on start"
+  fix; see `src/lib/README.md` and `tour-actions.ts` below for why the
+  client-fired path alone isn't reliable.
+- `page.dom.test.tsx` — asserts `stampTourSeen` is called when
+  `tour_seen_at` is null/missing and never called once it's already set.
+- `tour-actions.ts` — `markTourSeen()`, a `"use server"` action wiring
+  `@/lib/tour-prefs`'s `stampTourSeen` to `dashboard-tour.tsx`'s
+  client-fired `onFirstSeen`. That client path is fire-and-forget and can
+  be aborted by a hard navigation before it lands — `@merqo/ui`'s
+  `DashboardNav` renders nav links as plain `<a>` tags, and the tour's own
+  second step spotlights the real "Payment setup" nav link, inviting
+  exactly that click mid-tour — so `page.tsx`'s own synchronous call
+  (which imports `stampTourSeen` straight from `@/lib/tour-prefs`, not
+  through this Server Action, to avoid crossing a client/server
+  serialization boundary) is what actually makes the "stamp on start" fix
+  (#23) durable.
+- `tour-actions.test.ts` — unit tests for `markTourSeen`'s upsert
+  payload, its no-op when signed out, and its log-not-throw on failure.
 - `config/` — payment method setup (PayNow QR, or a vendor's own BYO
   payment link/QR image; no README of its own yet).
 - `transactions/` — transaction history + refund dialog (Pro only).

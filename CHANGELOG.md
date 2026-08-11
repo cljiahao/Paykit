@@ -6,6 +6,23 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Dashboard onboarding tour re-triggered on every visit to `/dashboard`
+  despite #23's "stamp on start, not finish" fix. Root cause: that fix's
+  mark-seen write is fire-and-forget from the client
+  (`dashboard-tour.tsx`'s `onFirstSeen`), and the tour's own second step
+  spotlights the real "Payment setup" nav link — which `@merqo/ui`'s
+  `DashboardNav` renders as a plain `<a>` tag, not `next/link` — so
+  clicking it (as the tour invites) triggers a hard page navigation that
+  can abort the write before it lands, leaving `tour_seen_at` unset.
+  `src/app/dashboard/page.tsx` now also stamps `tour_seen_at`
+  synchronously during its own server render whenever it's unset — a
+  write that lands before the response is even sent, immune to any
+  client-side navigation race. `tour-actions.ts`'s `markTourSeen` is
+  refactored to share the upsert (`stampTourSeen`) with `page.tsx` instead
+  of duplicating it.
+
 ### Added
 
 - `POST /api/v1/vendors/{vendor_id}/config` — kit-auth (bearer-secret,

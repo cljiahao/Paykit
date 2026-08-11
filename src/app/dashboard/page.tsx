@@ -2,12 +2,31 @@ import Link from "next/link";
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
 import { shouldNudgePro } from "@/lib/usage";
+import { stampTourSeen } from "@/lib/tour-prefs";
 
 export default async function DashboardPage() {
   const { supabase, user } = await getVendorSession();
 
-  const config = await getVendorPlan(supabase, user.id);
-  const count = await txCountThisMonth(user.id);
+  const [config, count, { data: prefs }] = await Promise.all([
+    getVendorPlan(supabase, user.id),
+    txCountThisMonth(user.id),
+    supabase
+      .from("vendor_prefs")
+      .select("tour_seen_at")
+      .eq("vendor_id", user.id)
+      .maybeSingle(),
+  ]);
+  // Durable "start" stamp, in addition to dashboard-tour.tsx's client-fired
+  // one: this route (not layout.tsx, which wraps every /dashboard/* page)
+  // is specifically the tour's home route, so stamping here — synchronously,
+  // as part of this request — lands before the response is even sent, no
+  // matter what happens client-side afterwards. See tour-actions.ts's
+  // stampTourSeen/markTourSeen comments for the hard-navigation race this
+  // closes.
+  if (!prefs?.tour_seen_at) {
+    await stampTourSeen(supabase, user.id);
+  }
+
   const plan = config?.plan ?? "free";
 
   return (

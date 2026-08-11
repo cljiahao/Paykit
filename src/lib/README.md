@@ -36,6 +36,14 @@ larger clusters; everything else sits flat here.
   unit-testable without rendering that async server component.
 - `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
   for calling kits, checked on every `/api/v1/*` route before any DB access.
+- `tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: upserts
+  `vendor_prefs.tour_seen_at = now()`. A plain (non-`"use server"`) module
+  so `src/app/dashboard/page.tsx` can call it directly during its own
+  server render — the durable half of the onboarding-tour "stamp on
+  start" fix, since the client-fired path
+  (`src/app/dashboard/tour-actions.ts`'s `markTourSeen`, which also
+  delegates here) is fire-and-forget and can be aborted by a hard
+  navigation before it lands.
 - `vendor-session.ts` — `getVendorSession()` (dashboard auth guard,
   redirects to `/login` on no session) and `getVendorPlan()`. Deliberately
   **not** used by Sheet-embedded server actions (`feedback.ts`,
