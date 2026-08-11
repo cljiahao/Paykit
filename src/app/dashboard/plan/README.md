@@ -17,7 +17,11 @@ manually once a vendor's upgrade request comes in.
   pluralization, and nudge/upgrade visibility are pure logic in
   `plan-view.ts`, not inline JSX branching, so they're unit-testable without
   rendering this async server component (no precedent in this repo for
-  directly rendering a server-component page).
+  directly rendering a server-component page). Content sits in a plain
+  `mx-auto max-w-2xl` div (not `<main>` — the parent `dashboard/layout.tsx`
+  owns that landmark and the page-family's canonical `max-w-7xl` outer
+  width); the plan card + feature list read better narrower than the full
+  dashboard width.
 - `upgrade-cta.tsx` — `UpgradeCta`: client component, "Ask us to upgrade to
   Pro" button. Calls `requestProUpgradeAction()` (`@/app/actions/plan`) in a
   transition and toasts success/failure — mirrors qkit's `UpgradeCta`

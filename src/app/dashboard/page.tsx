@@ -11,7 +11,7 @@ export default async function DashboardPage() {
   const plan = config?.plan ?? "free";
 
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
       {!config && (
@@ -44,6 +44,6 @@ export default async function DashboardPage() {
           </p>
         )}
       </div>
-    </main>
+    </div>
   );
 }

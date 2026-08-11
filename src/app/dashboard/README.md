@@ -19,7 +19,14 @@ revenue stats, manage their Pro plan, and edit their account profile.
   div would become the sticky header's containing block at exactly its own
   height, breaking `position: sticky`. `display: contents` removes the
   wrapper's own box from layout so `<header>` stays a direct child of the
-  `min-h-screen` container, same as pre-migration.
+  `min-h-screen` container, same as pre-migration. `<main>` is the single
+  layout-level content-width container (`mx-auto w-full max-w-7xl p-6`,
+  matching qkit's canonical dashboard width) — every route under
+  `/dashboard` renders into it, and no page below sets its own outer
+  width anymore. A page needing a narrower reading width (a form, a short
+  card stack) wraps its own content in an inner `mx-auto max-w-*` div
+  instead, so the _outer_ boundary — the edge `DashboardNav`'s own
+  `max-w-7xl` inner row aligns to — stays consistent across every route.
 - `layout.dom.test.tsx` — regression guard for the above: asserts the
   wrapper's `className` contains `"contents"` and that exactly one
   `<header>` element exists in the composed `layout.tsx` tree (a
@@ -52,11 +59,15 @@ account"` fallback only for the edge case of an empty string) — never a
   no payment method is set up yet; the Pro nudge (`shouldNudgePro`) appears
   once a Free-tier vendor crosses real usage — never a hard cap, see
   `docs/superpowers/specs/2026-07-22-paykit-freemium-nudge-redesign-
-design.md`.
+design.md`. Renders a plain `<div className="mx-auto max-w-2xl space-y-6">`
+  (not `<main>` — the layout's `<main>` already owns that landmark), sized
+  for its two small info cards rather than stretching to the layout's full
+  `max-w-7xl`.
 - `config/` — payment method setup (PayNow QR, or a vendor's own BYO
-  payment link/QR image; no README of its own yet).
-- `transactions/` — transaction history + refund dialog (Pro only).
-- `stats/` — revenue-by-day chart, Pro only.
+  payment link/QR image; own README).
+- `transactions/` — transaction history + refund dialog (Pro only; own
+  README).
+- `stats/` — revenue-by-day chart, Pro only (own README).
 - `plan/` — current tier, usage, and the Pro upsell (`UpgradeCta` — a
   button that files a Pro-upgrade request via `requestProUpgradeAction`
   and shows toast feedback; own README).
