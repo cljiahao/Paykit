@@ -18,7 +18,12 @@ pointer for a vendor's transaction. Bearer-secret authenticated
 - `route.test.ts` — covers a fresh checkout, the idempotent-retry path
   (same `(kit_slug, order_ref)` returns the same transaction, no duplicate
   row), and the 503 case where the idempotent re-read itself fails.
-- `[id]/` — sub-routes for claiming/confirming a specific transaction.
+- `[id]/` — sub-routes for claiming/unclaiming/confirming a specific
+  transaction. `claim` moves `pending`→`claimed` (customer tapped "I've
+  paid"); `unclaim` reverts `claimed`→`pending` (undoes an accidental tap) —
+  it is always a no-op on an already-`confirmed` transaction, so a real
+  payment can never be un-confirmed; `confirm` moves to `confirmed`
+  (vendor confirmed receipt).
 
 ## Parent
 
