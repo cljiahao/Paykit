@@ -13,6 +13,7 @@ for this project.
 - `apple-icon.tsx` — `AppleIcon` route handler; renders `brandIcon(180)` as a 180×180 PNG for iOS home-screen touch icons.
 - `auth/` — Supabase auth callback route (OAuth code exchange).
 - `dashboard/` — authenticated vendor area (payment config, transactions, stats, profile, plan).
+- `error.tsx` — root-level error boundary (`"use client"`) for every route not covered by a more specific one (landing, login, auth, admin — `dashboard/` has its own `error.tsx`). Branded like `login/page.tsx` (`ElevatedCard` + `Wordmark`), with a "Try again" (`reset()`) and a "Back to home" (`next/link`) action. Logs the caught error to the console.
 - `globals.css` — Tailwind v4 entry point: theme tokens, base layer, and custom utility classes; `@source` includes `node_modules/@merqo/ui/dist` so its components' Tailwind classes get compiled here too.
 - `icon.tsx` — `Icon` route handler; renders `brandIcon(32)` as a 32×32 PNG favicon.
 - `layout.tsx` — `RootLayout`. Loads `Space_Grotesk`/`Inter`/`JetBrains_Mono` via `next/font/google`, sets `metadata`, wraps children in `TooltipProvider` + `Toaster`.

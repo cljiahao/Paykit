@@ -11,11 +11,12 @@ and `src/app/`; nothing here is paykit-specific.
 ## Contents
 
 `avatar`, `badge`, `button`, `dialog`, `dropdown-menu`, `input`, `label`,
-`radio-group`, `sheet`, `table`, `textarea`, `toggle`, `toggle-group`,
-`tooltip` — one file per primitive, named to match. `sheet` backs the
-Feedback/Get-help drawers off the account menu; `radio-group` backs the
-payment-config kind picker; `toggle-group` backs the support-form category
-picker; `dropdown-menu` backs the account menu itself.
+`radio-group`, `sheet`, `skeleton`, `table`, `textarea`, `toggle`,
+`toggle-group`, `tooltip` — one file per primitive, named to match. `sheet`
+backs the Feedback/Get-help drawers off the account menu; `radio-group`
+backs the payment-config kind picker; `toggle-group` backs the
+support-form category picker; `dropdown-menu` backs the account menu
+itself; `skeleton` backs the dashboard's `loading.tsx` fallback.
 
 ## Connectivity
 

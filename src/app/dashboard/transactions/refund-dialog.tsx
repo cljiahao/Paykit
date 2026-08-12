@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +15,29 @@ import { Label } from "@/components/ui/label";
 import { issueRefundAction, type RefundState } from "./actions";
 
 export function RefundDialog({ transactionId }: { transactionId: string }) {
+  const [open, setOpen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  // A successful refund closes the dialog and clears the form — leaving it
+  // open with the same amount/reason still filled in and the submit button
+  // re-enabled invites an accidental duplicate refund. Handled inline in
+  // this action wrapper (not a useEffect keyed on the result) so the
+  // follow-up state updates happen as part of the submit itself, not a
+  // separate render pass.
   const [state, formAction, pending] = useActionState<RefundState, FormData>(
-    issueRefundAction,
+    async (prevState, formData) => {
+      const result = await issueRefundAction(prevState, formData);
+      if (result.status === "ok") {
+        toast.success("Refund recorded.");
+        formRef.current?.reset();
+        setOpen(false);
+      }
+      return result;
+    },
     { status: "idle" },
   );
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           Refund
@@ -30,7 +47,7 @@ export function RefundDialog({ transactionId }: { transactionId: string }) {
         <DialogHeader>
           <DialogTitle>Issue a refund</DialogTitle>
         </DialogHeader>
-        <form action={formAction} className="space-y-4">
+        <form ref={formRef} action={formAction} className="space-y-4">
           <input type="hidden" name="transaction_id" value={transactionId} />
           <div className="space-y-2">
             <Label htmlFor="refunded_amount_cents">Amount (cents)</Label>
@@ -49,11 +66,6 @@ export function RefundDialog({ transactionId }: { transactionId: string }) {
           {state.status === "error" && (
             <p role="alert" className="text-sm font-medium text-destructive">
               {state.message}
-            </p>
-          )}
-          {state.status === "ok" && (
-            <p className="text-sm font-medium text-emerald-600">
-              Refund recorded.
             </p>
           )}
           <Button type="submit" disabled={pending}>
