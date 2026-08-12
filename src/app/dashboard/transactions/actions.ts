@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getVendorSession } from "@/lib/vendor-session";
 import { issueRefundInputSchema } from "@/lib/schemas";
 
@@ -42,5 +43,6 @@ export async function issueRefundAction(
         "Could not record refund — check the transaction is confirmed and you're on Pro.",
     };
   }
+  revalidatePath("/dashboard/transactions");
   return { status: "ok" };
 }

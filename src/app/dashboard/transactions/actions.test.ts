@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { revalidatePath } from "next/cache";
 
 const { getUserMock, insertMock, createServerClientMock } = vi.hoisted(() => ({
   getUserMock: vi.fn(),
@@ -10,6 +11,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerClient: createServerClientMock,
 }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 beforeEach(() => {
   getUserMock.mockReset().mockResolvedValue({ data: { user: { id: "v1" } } });
@@ -18,6 +20,7 @@ beforeEach(() => {
     auth: { getUser: getUserMock },
     from: () => ({ insert: insertMock }),
   });
+  vi.mocked(revalidatePath).mockReset();
 });
 
 function formData(fields: Record<string, string>) {
@@ -46,9 +49,10 @@ describe("issueRefundAction", () => {
       reason: "damaged",
       created_by: "v1",
     });
+    expect(revalidatePath).toHaveBeenCalledWith("/dashboard/transactions");
   });
 
-  it("rejects a non-positive amount without inserting", async () => {
+  it("rejects a non-positive amount without inserting or revalidating", async () => {
     const { issueRefundAction } = await import("./actions");
     const result = await issueRefundAction(
       { status: "idle" },
@@ -60,6 +64,7 @@ describe("issueRefundAction", () => {
     );
     expect(result.status).toBe("error");
     expect(insertMock).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("surfaces a friendly error when the DB rejects the insert (e.g. RLS: not Pro / not confirmed)", async () => {
@@ -77,6 +82,7 @@ describe("issueRefundAction", () => {
     );
     expect(result.status).toBe("error");
     expect(insertMock).toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("rejects a malformed (non-UUID) transaction id via the Zod schema without touching the DB", async () => {
