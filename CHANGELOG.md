@@ -8,6 +8,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- `issueRefundAction` never revalidated the transactions page after
+  inserting a refund, so the table kept showing the pre-refund state until
+  a manual reload despite the toast confirming success. The refund dialog
+  also stayed open with the submitted values still populated, inviting an
+  accidental duplicate submit. Added `revalidatePath` and made the dialog
+  close/reset on success.
+- No `loading.tsx` or `error.tsx` existed anywhere in the app — navigation
+  showed a blank screen until data resolved, and an unhandled throw fell
+  through to Next's default unstyled error page. Added branded boundaries
+  at the dashboard segment and root level.
+- The revenue chart had no accessible name for screen readers. Added
+  `role="img"`/`aria-label` and an sr-only data table.
 - `GET /api/v1/vendors/{vendor_id}/config` now returns the full editable
   `vendor_payment_config` row (`kind`, `payee_name`, `uen`, `mobile`,
   `label`, `url`, `qr_image_url`) alongside the existing `has_config`/
