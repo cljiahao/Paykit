@@ -1,4 +1,11 @@
 {
   "has_config": true,
-  "display_name": "Kopitiam Cart"
+  "display_name": "Kopitiam Cart",
+  "kind": "paynow",
+  "payee_name": "Kopitiam Cart",
+  "uen": "53312345A",
+  "mobile": null,
+  "label": null,
+  "url": null,
+  "qr_image_url": null
 }

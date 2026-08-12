@@ -20,7 +20,7 @@ export async function GET(
   const supabase = await createServiceClient();
   const { data, error } = await supabase
     .from("vendor_payment_config")
-    .select("kind, payee_name, label")
+    .select("kind, payee_name, uen, mobile, label, url, qr_image_url")
     .eq("vendor_id", vendor_id)
     .maybeSingle();
   if (error) {
@@ -40,6 +40,13 @@ export async function GET(
   return NextResponse.json({
     has_config: Boolean(data),
     display_name,
+    kind: data?.kind ?? null,
+    payee_name: data?.payee_name ?? null,
+    uen: data?.uen ?? null,
+    mobile: data?.mobile ?? null,
+    label: data?.label ?? null,
+    url: data?.url ?? null,
+    qr_image_url: data?.qr_image_url ?? null,
   });
 }
 

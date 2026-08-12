@@ -49,34 +49,71 @@ function ctx(vendor_id: string = VENDOR_ID) {
 }
 
 describe("GET /api/v1/vendors/[vendor_id]/config", () => {
-  it("reports has_config true + display_name from payee_name for a paynow config", async () => {
+  it("returns the full editable config for a paynow config", async () => {
     maybeSingleMock.mockResolvedValue({
-      data: { kind: "paynow", payee_name: "Kopitiam Cart", label: null },
+      data: {
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "53312345A",
+        mobile: null,
+        label: null,
+        url: null,
+        qr_image_url: null,
+      },
       error: null,
     });
     const res = await GET(getReq(), ctx());
     expect(await res.json()).toEqual({
       has_config: true,
       display_name: "Kopitiam Cart",
+      kind: "paynow",
+      payee_name: "Kopitiam Cart",
+      uen: "53312345A",
+      mobile: null,
+      label: null,
+      url: null,
+      qr_image_url: null,
     });
   });
-  it("reports display_name from label for a pointer config", async () => {
+  it("returns the full editable config for a pointer config", async () => {
     maybeSingleMock.mockResolvedValue({
-      data: { kind: "pointer", payee_name: null, label: "Pay with PayLah" },
+      data: {
+        kind: "pointer",
+        payee_name: null,
+        uen: null,
+        mobile: null,
+        label: "Pay with PayLah",
+        url: "https://pay.example/kopitiam",
+        qr_image_url: null,
+      },
       error: null,
     });
     const res = await GET(getReq(), ctx());
     expect(await res.json()).toEqual({
       has_config: true,
       display_name: "Pay with PayLah",
+      kind: "pointer",
+      payee_name: null,
+      uen: null,
+      mobile: null,
+      label: "Pay with PayLah",
+      url: "https://pay.example/kopitiam",
+      qr_image_url: null,
     });
   });
-  it("reports has_config false when unconfigured", async () => {
+  it("reports has_config false and all-null fields when unconfigured", async () => {
     maybeSingleMock.mockResolvedValue({ data: null, error: null });
     const res = await GET(getReq(), ctx());
     expect(await res.json()).toEqual({
       has_config: false,
       display_name: null,
+      kind: null,
+      payee_name: null,
+      uen: null,
+      mobile: null,
+      label: null,
+      url: null,
+      qr_image_url: null,
     });
   });
   it("401s when unauthorized", async () => {
