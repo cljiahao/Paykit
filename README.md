@@ -25,9 +25,11 @@ part of the request. `POST /api/v1/checkout` is idempotent
 on `(kit_slug, order_ref)` — a retried call returns the existing
 transaction instead of creating a duplicate. `pnpm-workspace.yaml`'s
 `overrides` pins several transitive dependencies (`postcss`, `undici`,
-`vite`, `qs`, `sharp`, `nanoid`) past known-vulnerable versions Next.js
-itself still bundles; re-check `pnpm audit --prod --audit-level=high`
-after any `next` upgrade in case it's safe to drop one. The dashboard nav, account
+`vite`, `qs`, `sharp`, `nanoid`, `fast-uri`, `js-yaml`, `brace-expansion`)
+past known-vulnerable versions Next.js itself and dev tooling still
+bundle; `pnpm audit --prod --audit-level=high` is CI's hard gate — bump
+the relevant floor here when a new advisory lands, and re-check after any
+`next` upgrade in case it's safe to drop one. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
 now delegate to the shared `@merqo/ui` package (v0.10.1, `package.json`;
 kit-family consistency;
