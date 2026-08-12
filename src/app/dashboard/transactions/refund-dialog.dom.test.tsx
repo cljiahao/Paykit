@@ -32,7 +32,7 @@ describe("RefundDialog", () => {
     render(<RefundDialog transactionId="tx1" />);
 
     await user.click(screen.getByRole("button", { name: /refund/i }));
-    await user.type(screen.getByLabelText("Amount (cents)"), "450");
+    await user.type(screen.getByLabelText("Amount"), "4.50");
     await user.click(screen.getByRole("button", { name: /record refund/i }));
 
     await waitFor(() =>
@@ -46,7 +46,7 @@ describe("RefundDialog", () => {
 
     // Reopening shows a blank form, not the previously submitted amount.
     await user.click(screen.getByRole("button", { name: /refund/i }));
-    expect(screen.getByLabelText("Amount (cents)")).toHaveValue(null);
+    expect(screen.getByLabelText("Amount")).toHaveValue(null);
   });
 
   it("keeps the dialog open and shows the error on failure", async () => {
@@ -58,7 +58,7 @@ describe("RefundDialog", () => {
     render(<RefundDialog transactionId="tx1" />);
 
     await user.click(screen.getByRole("button", { name: /refund/i }));
-    await user.type(screen.getByLabelText("Amount (cents)"), "450");
+    await user.type(screen.getByLabelText("Amount"), "4.50");
     await user.click(screen.getByRole("button", { name: /record refund/i }));
 
     await waitFor(() =>

@@ -37,8 +37,7 @@ const TIER_BADGE: Record<Tier, { label: string; className: string }> = {
   },
   pro: {
     label: "Pro",
-    className:
-      "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:bg-emerald-400/15 dark:text-emerald-400 dark:ring-emerald-400/30",
+    className: "bg-mint/15 text-mint ring-mint/30",
   },
 };
 

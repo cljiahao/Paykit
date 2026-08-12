@@ -43,8 +43,13 @@ function FaqItem({ q, a }: FaqEntry) {
 export function Faq() {
   return (
     <section id="faq" className="mx-auto max-w-3xl px-5 py-16">
-      <h2 className="mb-10 text-center text-3xl font-semibold">Questions</h2>
-      <div className="space-y-3">
+      <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+        FAQ
+      </p>
+      <h2 className="mt-3 text-balance font-display text-3xl font-bold tracking-tight sm:text-4xl">
+        Questions
+      </h2>
+      <div className="mt-10 space-y-3">
         {FAQ.map((item) => (
           <FaqItem key={item.q} {...item} />
         ))}

@@ -32,13 +32,13 @@ function formData(fields: Record<string, string>) {
 const VALID_TX_ID = "11111111-1111-1111-1111-111111111111";
 
 describe("issueRefundAction", () => {
-  it("inserts a refund row for a valid amount", async () => {
+  it("inserts a refund row for a valid dollar amount, converted to cents", async () => {
     const { issueRefundAction } = await import("./actions");
     const result = await issueRefundAction(
       { status: "idle" },
       formData({
         transaction_id: VALID_TX_ID,
-        refunded_amount_cents: "450",
+        refunded_amount: "4.50",
         reason: "damaged",
       }),
     );
@@ -58,7 +58,7 @@ describe("issueRefundAction", () => {
       { status: "idle" },
       formData({
         transaction_id: VALID_TX_ID,
-        refunded_amount_cents: "0",
+        refunded_amount: "0",
         reason: "",
       }),
     );
@@ -76,7 +76,7 @@ describe("issueRefundAction", () => {
       { status: "idle" },
       formData({
         transaction_id: VALID_TX_ID,
-        refunded_amount_cents: "450",
+        refunded_amount: "4.50",
         reason: "",
       }),
     );
@@ -91,7 +91,7 @@ describe("issueRefundAction", () => {
       { status: "idle" },
       formData({
         transaction_id: "not-a-uuid",
-        refunded_amount_cents: "450",
+        refunded_amount: "4.50",
         reason: "",
       }),
     );
@@ -105,7 +105,21 @@ describe("issueRefundAction", () => {
       { status: "idle" },
       formData({
         transaction_id: VALID_TX_ID,
-        refunded_amount_cents: "99999999999",
+        refunded_amount: "99999999999",
+        reason: "",
+      }),
+    );
+    expect(result.status).toBe("error");
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a non-numeric dollar amount without inserting", async () => {
+    const { issueRefundAction } = await import("./actions");
+    const result = await issueRefundAction(
+      { status: "idle" },
+      formData({
+        transaction_id: VALID_TX_ID,
+        refunded_amount: "not-a-number",
         reason: "",
       }),
     );

@@ -57,7 +57,7 @@ export function Hero({ authed = false }: { authed?: boolean }) {
             {STATS.map((s) => (
               <div key={s.label}>
                 <dt className="sr-only">{s.label}</dt>
-                <dd className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
+                <dd className="font-display text-2xl font-semibold tracking-tight text-mint sm:text-3xl">
                   {s.value}
                 </dd>
                 <dd className="mt-1 text-xs leading-tight text-muted-foreground">

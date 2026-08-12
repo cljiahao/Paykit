@@ -52,6 +52,9 @@ export default async function PlanPage() {
               {PRO_PRICE}.
             </p>
             <UpgradeCta />
+            <p className="mt-2 text-xs text-muted-foreground">
+              We usually action this within one business day.
+            </p>
           </div>
         )}
       </div>

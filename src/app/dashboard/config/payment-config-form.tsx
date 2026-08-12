@@ -277,7 +277,7 @@ export function PaymentConfigForm({
         </p>
       )}
       {state.status === "ok" && (
-        <p className="text-sm font-medium text-emerald-600">Saved.</p>
+        <p className="text-sm font-medium text-mint">Saved.</p>
       )}
 
       <Button type="submit" disabled={pending}>
