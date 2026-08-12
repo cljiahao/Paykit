@@ -52,6 +52,18 @@ account"` fallback only for the edge case of an empty string) — never a
   client-side transition instead of a full page reload; `DashboardNav`
   forwards it down to the `AccountMenu` it composes internally, so this
   one call site covers both — paykit has no standalone `AccountMenu` usage.
+- `loading.tsx` — route-segment loading fallback for every `/dashboard/*`
+  page. `layout.tsx` (the header/nav) resolves outside the Suspense
+  boundary `loading.tsx` creates, so this only stands in for the page
+  content inside `<main>` — a title-line + card-block `Skeleton`
+  (`@/components/ui/skeleton`) shape matching `page.tsx`/`transactions/
+page.tsx`/`stats/page.tsx`'s title-plus-cards structure, not a generic
+  spinner.
+- `error.tsx` — error boundary (`"use client"`) for every `/dashboard/*`
+  page's render/data errors (never its own `layout.tsx`'s — error
+  boundaries don't catch errors from their own segment's layout). Branded
+  like `login/page.tsx` (`ElevatedCard` + `Wordmark`), with a "Try again"
+  button calling `reset()`.
 - `dashboard-nav.dom.test.tsx` — RTL/jsdom tests: the inline links render
   with correct hrefs, the account-menu item order, that Sign out is a
   genuine form submit reaching the `signOut` action, that Get help opens a

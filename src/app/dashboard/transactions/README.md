@@ -20,12 +20,25 @@ ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
   transactions yet." message.
 - `refund-dialog.tsx` — Pro-only dialog: calls `issueRefundAction` to file a
   refund against a `confirmed` transaction (bookkeeping only — no real
-  money movement, see `AGENTS.md`'s data model).
-- `refund-dialog.dom.test.tsx` — jsdom tests for the refund flow.
+  money movement, see `AGENTS.md`'s data model). The `useActionState`
+  action passed in is a local wrapper around `issueRefundAction` (not the
+  server action directly): on `status: "ok"` it toasts, resets the form
+  (`formRef`), and closes the dialog (`setOpen(false)`) inline, as part of
+  the submit itself — not a `useEffect` keyed on the result, which
+  `eslint-plugin-react-hooks`'s `set-state-in-effect` rule flags. Without
+  this, a successful refund left the dialog open with the same
+  amount/reason still filled in and the submit button re-enabled, inviting
+  an accidental duplicate refund.
+- `refund-dialog.dom.test.tsx` — jsdom tests for the refund flow: opening
+  and wiring the transaction id, that a successful submit toasts, clears,
+  and closes the dialog (reopening shows a blank form), and that a failed
+  submit keeps the dialog open with the inline error.
 - `actions.ts` — `issueRefundAction`: validates the refund form with
-  `issueRefundInputSchema`, then inserts into `refunds`. Ownership,
-  `confirmed`-only, and Pro-only enforcement is the `refunds_insert_own`
-  RLS policy, not this action — it only validates shape/UX.
+  `issueRefundInputSchema`, then inserts into `refunds` and calls
+  `revalidatePath("/dashboard/transactions")` so the transactions table
+  reflects the refund without a manual reload. Ownership, `confirmed`-only,
+  and Pro-only enforcement is the `refunds_insert_own` RLS policy, not this
+  action — it only validates shape/UX.
 - `actions.test.ts` — unit coverage for `issueRefundAction`.
 - `page.dom.test.tsx` — awaits `TransactionsPage()` directly and renders
   the result (same pattern as `dashboard/layout.dom.test.tsx`), with

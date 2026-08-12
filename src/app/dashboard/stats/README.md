@@ -17,6 +17,11 @@ a vendor. Pro only — Free vendors see an upsell instead of the chart.
   reads better narrower than the full dashboard width.
 - `revenue-chart.tsx` — `RevenueChart({ data })`: client component, a
   `recharts` `BarChart` (dollars by day) inside a `ResponsiveContainer`.
+  Recharts renders to an inline SVG with no text alternative of its own, so
+  the wrapping `div` carries `role="img"` + a summarizing `aria-label`
+  (total SGD revenue, day count, date range), plus an `sr-only` `<table>`
+  of the underlying per-day data for screen readers that want the actual
+  numbers, not just the summary.
 - `page.dom.test.tsx` — awaits `StatsPage()` directly and renders the
   result (same pattern as `dashboard/layout.dom.test.tsx`): the Free/no-
   config upsell branch, and the Pro branch's `listTransactions` →
