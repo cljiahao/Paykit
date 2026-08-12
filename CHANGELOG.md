@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- `GET /api/v1/vendors/{vendor_id}/config` now returns the full editable
+  `vendor_payment_config` row (`kind`, `payee_name`, `uen`, `mobile`,
+  `label`, `url`, `qr_image_url`) alongside the existing `has_config`/
+  `display_name` summary fields, instead of the summary alone. Closes the
+  gap where a calling kit's own "quick add PayNow details" edit form (e.g.
+  qkit's) had every text field start blank when a vendor re-opened payment
+  settings, since the kit had no way to read back what was already saved.
 - Dashboard onboarding tour re-triggered on every visit to `/dashboard`
   despite #23's "stamp on start, not finish" fix. Root cause: that fix's
   mark-seen write is fire-and-forget from the client
@@ -29,8 +36,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `verifyKitAuth`) service-role upsert of a vendor's
   `vendor_payment_config` on behalf of a calling kit, reusing
   `vendorPaymentConfigInputSchema` (paynow|pointer) for validation and
-  returning the same `{ has_config, display_name }` shape as the existing
-  `GET` route. First piece of the qkit→paykit checkout cutover: qkit was
+  returning the same summary shape as the existing `GET` route (`has_config`/
+  `display_name`, plus the full config fields as of the fix above). First
+  piece of the qkit→paykit checkout cutover: qkit was
   minted a `kit_api_keys` bearer secret so it can build a lightweight
   "quick add PayNow details" UI inside its own dashboard instead of
   redirecting to paykit's dashboard.
