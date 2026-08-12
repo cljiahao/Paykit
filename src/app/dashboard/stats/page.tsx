@@ -10,13 +10,13 @@ export default async function StatsPage() {
 
   if (config?.plan !== "pro") {
     return (
-      <main className="mx-auto max-w-lg p-6">
+      <div className="mx-auto max-w-lg">
         <h1 className="text-2xl font-semibold tracking-tight">Stats</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Revenue stats are a Pro feature — upgrade to see aggregated revenue
           across every kit that uses paykit for you.
         </p>
-      </main>
+      </div>
     );
   }
 
@@ -24,7 +24,7 @@ export default async function StatsPage() {
   const data = aggregateRevenueByDay(transactions);
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-semibold tracking-tight">Stats</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Confirmed revenue by day, aggregated across every kit.
@@ -32,6 +32,6 @@ export default async function StatsPage() {
       <div className="mt-6">
         <RevenueChart data={data} />
       </div>
-    </main>
+    </div>
   );
 }

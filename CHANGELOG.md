@@ -53,13 +53,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
-- Bumped `@merqo/ui` to v0.9.0. `DashboardNav`'s header now has an inner
-  `max-w-7xl` width container (was full-bleed, misaligned against
-  dashboard content) — automatic for paykit since `dashboard-nav.tsx`
-  already delegates to the shared component. The landing nav
-  (`src/components/landing/nav.tsx`) now uses the new shared `LandingNav`
-  shell instead of hand-rolling its own sticky/border/backdrop-blur
-  header; the wordmark and right-side links/CTAs are unchanged.
+- Bumped `@merqo/ui` to v0.9.0: `DashboardNav`'s inner row is now capped at
+  `max-w-7xl`/centered (matches the content area it sits above — no code
+  change needed here). `src/components/landing/nav.tsx` now composes the
+  new `LandingNav` shell (sticky header, `max-w-6xl` row) instead of
+  hand-rolling it; visual output is unchanged aside from the shared
+  shell's own `end`-row gap (`gap-2 sm:gap-4`, replacing a fixed `gap-3`).
+- Dashboard content width is now consistent across every `/dashboard`
+  route: `src/app/dashboard/layout.tsx`'s `<main>` is the single
+  layout-level `mx-auto w-full max-w-7xl` container (matching qkit's
+  canonical dashboard width), replacing six pages that each set their own,
+  different width (`max-w-lg` through `max-w-4xl`) with no shared outer
+  boundary. Pages needing a narrower reading width (config's form,
+  profile's two-column form, plan's card stack, stats' upsell/chart,
+  transactions' table) keep an inner `mx-auto max-w-*` div, so content
+  still reads at a sensible width — only the _outer_ edge, the one
+  `DashboardNav` aligns to, is now consistent.
 - Dashboard account chrome (nav, account menu, Feedback/Get-help sheets,
   profile-icon/QR-image uploader, onboarding tour, tooltip, and settings
   field-group shell) migrated onto the shared `@merqo/ui` v0.8.1 package
@@ -69,6 +78,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `use-async-action.ts` are now thin paykit-specific wrappers around the
   shared components. No behavior, copy, schema, or payment-processing
   logic changed — UI-layer chrome only.
+- Each of the six `/dashboard` page.tsx files (`page.tsx`,
+  `config/page.tsx`, `plan/page.tsx`, `profile/page.tsx`,
+  `stats/page.tsx`, `transactions/page.tsx`) now has a `page.dom.test.tsx`
+  alongside it, following the "await the async server component, render
+  its returned JSX with RTL" pattern `dashboard/layout.dom.test.tsx`
+  established: session/plan/transaction lookups mocked, real branching
+  (empty state, Free/Pro gating, nudge thresholds) asserted. These pages
+  previously had no direct test coverage at all.
 
 ### Added
 

@@ -57,7 +57,7 @@ export default async function DashboardLayout({
           plan={config?.plan ?? "free"}
         />
       </div>
-      <main>{children}</main>
+      <main className="mx-auto w-full max-w-7xl p-6">{children}</main>
       <DashboardTour seen={!!prefs?.tour_seen_at} />
     </div>
   );
