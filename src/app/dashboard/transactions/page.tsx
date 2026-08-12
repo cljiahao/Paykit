@@ -9,7 +9,7 @@ export default async function TransactionsPage() {
   const transactions = await listTransactions(user.id);
 
   return (
-    <main className="mx-auto max-w-4xl p-6">
+    <div className="mx-auto max-w-4xl">
       <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Every checkout paykit has run for you, across every kit.
@@ -20,6 +20,6 @@ export default async function TransactionsPage() {
           isPro={config?.plan === "pro"}
         />
       </div>
-    </main>
+    </div>
   );
 }

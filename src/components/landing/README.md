@@ -8,12 +8,17 @@ file. Presentational only — no data fetching, no client state beyond the
 
 ## Contents
 
-- `nav.tsx` — sticky top nav, built on `@merqo/ui`'s shared `LandingNav`
-  shell (sticky/border/backdrop-blur header, `max-w-6xl` row): `Wordmark`
-  as the `wordmark` prop, an `#faq` anchor link (sm+, same-page hash jump
-  to `faq.tsx`'s section) + sign-in/dashboard link as the `end` prop.
-  Header padding/logo size (`text-3xl` wordmark) matches qkit's landing
-  nav exactly, since both consume the same shared shell.
+- `nav.tsx` — sticky top nav: `Wordmark` + an `#faq` anchor link (sm+,
+  same-page hash jump to `faq.tsx`'s section) + sign-in/dashboard link.
+  Composes `@merqo/ui`'s `LandingNav` shell (v0.9.0) for the sticky
+  header/`max-w-6xl` row instead of hand-rolling it — this file now owns
+  only the `wordmark` slot (the `Wordmark` link + sr-only text) and the
+  `end` slot (FAQ button + sign-in/dashboard links), both passed straight
+  through as `ReactNode` props. Visual output is unchanged from the
+  pre-migration markup, aside from the shared shell's own `end`-row gap
+  (`gap-2 sm:gap-4`, replacing a fixed `gap-3`) — a byproduct of adopting
+  the shared component's contract, same as qkit's landing nav will pick up
+  once it migrates.
 - `hero.tsx` — headline, stat row, CTA, and the decorative `CheckoutCard`.
 - `checkout-card.tsx` — stylized non-functional "live checkout" artifact for
   the hero (not a real scannable QR — a stand-in with a status pill using

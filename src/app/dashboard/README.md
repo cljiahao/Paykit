@@ -19,7 +19,14 @@ revenue stats, manage their Pro plan, and edit their account profile.
   div would become the sticky header's containing block at exactly its own
   height, breaking `position: sticky`. `display: contents` removes the
   wrapper's own box from layout so `<header>` stays a direct child of the
-  `min-h-screen` container, same as pre-migration.
+  `min-h-screen` container, same as pre-migration. `<main>` is the single
+  layout-level content-width container (`mx-auto w-full max-w-7xl p-6`,
+  matching qkit's canonical dashboard width) — every route under
+  `/dashboard` renders into it, and no page below sets its own outer
+  width anymore. A page needing a narrower reading width (a form, a short
+  card stack) wraps its own content in an inner `mx-auto max-w-*` div
+  instead, so the _outer_ boundary — the edge `DashboardNav`'s own
+  `max-w-7xl` inner row aligns to — stays consistent across every route.
 - `layout.dom.test.tsx` — regression guard for the above: asserts the
   wrapper's `className` contains `"contents"` and that exactly one
   `<header>` element exists in the composed `layout.tsx` tree (a
@@ -60,9 +67,15 @@ design.md`. Also reads `vendor_prefs.tour_seen_at` and, if unset, calls
   `@/lib/tour-prefs`'s `stampTourSeen` directly, synchronously, as part of
   this request — the durable half of the onboarding-tour "stamp on start"
   fix; see `src/lib/README.md` and `tour-actions.ts` below for why the
-  client-fired path alone isn't reliable.
-- `page.dom.test.tsx` — asserts `stampTourSeen` is called when
-  `tour_seen_at` is null/missing and never called once it's already set.
+  client-fired path alone isn't reliable. Renders a plain `<div
+className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
+  `<main>` already owns that landmark), sized for its two small info cards
+  rather than stretching to the layout's full `max-w-7xl`.
+- `page.dom.test.tsx` — same "await the async server component, render the
+  result with RTL" pattern as `layout.dom.test.tsx`: the empty-state
+  prompt, the transaction count, the Free/Pro nudge-threshold branches, and
+  that `stampTourSeen` is called when `tour_seen_at` is null/missing and
+  never called once it's already set.
 - `tour-actions.ts` — `markTourSeen()`, a `"use server"` action wiring
   `@/lib/tour-prefs`'s `stampTourSeen` to `dashboard-tour.tsx`'s
   client-fired `onFirstSeen`. That client path is fire-and-forget and can
@@ -79,9 +92,10 @@ design.md`. Also reads `vendor_prefs.tour_seen_at` and, if unset, calls
 - `tour-actions.test.ts` — unit tests for `markTourSeen`'s upsert
   payload, its no-op when signed out, and its log-not-throw on failure.
 - `config/` — payment method setup (PayNow QR, or a vendor's own BYO
-  payment link/QR image; no README of its own yet).
-- `transactions/` — transaction history + refund dialog (Pro only).
-- `stats/` — revenue-by-day chart, Pro only.
+  payment link/QR image; own README).
+- `transactions/` — transaction history + refund dialog (Pro only; own
+  README).
+- `stats/` — revenue-by-day chart, Pro only (own README).
 - `plan/` — current tier, usage, and the Pro upsell (`UpgradeCta` — a
   button that files a Pro-upgrade request via `requestProUpgradeAction`
   and shows toast feedback; own README).

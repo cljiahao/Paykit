@@ -1,18 +1,25 @@
 // @vitest-environment jsdom
 //
-// DashboardPage is a plain async Server Component (no RSC-specific
-// machinery), so it can be awaited directly and its returned element tree
-// rendered via RTL, same as layout.dom.test.tsx does for DashboardLayout.
-// This file's job: prove the durable tour-seen stamp (see page.tsx's own
-// comment, and tour-actions.ts's stampTourSeen/markTourSeen) fires exactly
-// when it should — once, only while unseen — and never when already seen.
+// DashboardPage is an async Server Component, same pattern as
+// layout.dom.test.tsx: await it directly and render the returned element
+// tree with RTL. Covers the empty-state prompt, the transaction count, the
+// Pro nudge threshold (`shouldNudgePro`) branches, and the durable
+// tour-seen stamp (see page.tsx's own comment, and tour-actions.ts's
+// stampTourSeen/markTourSeen) firing exactly when it should.
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import DashboardPage from "./page";
 
-const mocks = vi.hoisted(() => ({
-  maybeSingle: vi.fn(),
-  stampTourSeen: vi.fn(async () => {}),
+const {
+  getVendorPlanMock,
+  txCountThisMonthMock,
+  maybeSingleMock,
+  stampTourSeenMock,
+} = vi.hoisted(() => ({
+  getVendorPlanMock: vi.fn(),
+  txCountThisMonthMock: vi.fn(),
+  maybeSingleMock: vi.fn(),
+  stampTourSeenMock: vi.fn(async () => {}),
 }));
 
 vi.mock("@/lib/vendor-session", () => ({
@@ -21,53 +28,114 @@ vi.mock("@/lib/vendor-session", () => ({
       from: () => ({
         select: () => ({
           eq: () => ({
-            maybeSingle: mocks.maybeSingle,
+            maybeSingle: maybeSingleMock,
           }),
         }),
       }),
     },
     user: { id: "v1" },
   })),
-  getVendorPlan: vi.fn(async () => ({ plan: "free" })),
+  getVendorPlan: getVendorPlanMock,
 }));
 vi.mock("@/lib/transactions", () => ({
-  txCountThisMonth: vi.fn(async () => 0),
+  txCountThisMonth: txCountThisMonthMock,
 }));
 vi.mock("@/lib/tour-prefs", () => ({
-  stampTourSeen: mocks.stampTourSeen,
+  stampTourSeen: stampTourSeenMock,
 }));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  maybeSingleMock.mockResolvedValue({
+    data: { tour_seen_at: "2026-01-01T00:00:00Z" },
+  });
+  getVendorPlanMock.mockResolvedValue({ plan: "free" });
+  txCountThisMonthMock.mockResolvedValue(0);
 });
 
 describe("DashboardPage", () => {
-  it("stamps tour_seen_at durably when the vendor hasn't seen the tour yet", async () => {
-    mocks.maybeSingle.mockResolvedValue({ data: { tour_seen_at: null } });
+  it("shows the setup prompt when the vendor has no payment config yet", async () => {
+    getVendorPlanMock.mockResolvedValue(null);
+    txCountThisMonthMock.mockResolvedValue(5);
 
     const jsx = await DashboardPage();
     render(jsx);
 
-    expect(mocks.stampTourSeen).toHaveBeenCalledWith(expect.anything(), "v1");
+    expect(
+      screen.getByText(/haven.t set up payments yet/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Set it up" })).toHaveAttribute(
+      "href",
+      "/dashboard/config",
+    );
+    expect(screen.getByText("5 transactions this month")).toBeInTheDocument();
+  });
+
+  it("hides the setup prompt once a config exists, and hides the nudge below threshold", async () => {
+    getVendorPlanMock.mockResolvedValue({ plan: "free" });
+    txCountThisMonthMock.mockResolvedValue(10);
+
+    const jsx = await DashboardPage();
+    render(jsx);
+
+    expect(
+      screen.queryByText(/haven.t set up payments yet/i),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("10 transactions this month")).toBeInTheDocument();
+    expect(screen.queryByText(/doing real volume/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the Pro nudge once a Free vendor crosses the usage threshold", async () => {
+    getVendorPlanMock.mockResolvedValue({ plan: "free" });
+    txCountThisMonthMock.mockResolvedValue(50);
+
+    const jsx = await DashboardPage();
+    render(jsx);
+
+    expect(screen.getByText(/doing real volume/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Pro" })).toHaveAttribute(
+      "href",
+      "/dashboard/plan",
+    );
+  });
+
+  it("never shows the nudge for a Pro vendor, even above threshold", async () => {
+    getVendorPlanMock.mockResolvedValue({ plan: "pro" });
+    txCountThisMonthMock.mockResolvedValue(999);
+
+    const jsx = await DashboardPage();
+    render(jsx);
+
+    expect(screen.getByText("999 transactions this month")).toBeInTheDocument();
+    expect(screen.queryByText(/doing real volume/i)).not.toBeInTheDocument();
+  });
+
+  it("stamps tour_seen_at durably when the vendor hasn't seen the tour yet", async () => {
+    maybeSingleMock.mockResolvedValue({ data: { tour_seen_at: null } });
+
+    const jsx = await DashboardPage();
+    render(jsx);
+
+    expect(stampTourSeenMock).toHaveBeenCalledWith(expect.anything(), "v1");
   });
 
   it("stamps tour_seen_at when no vendor_prefs row exists yet", async () => {
-    mocks.maybeSingle.mockResolvedValue({ data: null });
+    maybeSingleMock.mockResolvedValue({ data: null });
 
     const jsx = await DashboardPage();
     render(jsx);
 
-    expect(mocks.stampTourSeen).toHaveBeenCalledWith(expect.anything(), "v1");
+    expect(stampTourSeenMock).toHaveBeenCalledWith(expect.anything(), "v1");
   });
 
   it("does not re-stamp once the tour has already been seen", async () => {
-    mocks.maybeSingle.mockResolvedValue({
+    maybeSingleMock.mockResolvedValue({
       data: { tour_seen_at: "2026-01-01T00:00:00Z" },
     });
 
     const jsx = await DashboardPage();
     render(jsx);
 
-    expect(mocks.stampTourSeen).not.toHaveBeenCalled();
+    expect(stampTourSeenMock).not.toHaveBeenCalled();
   });
 });

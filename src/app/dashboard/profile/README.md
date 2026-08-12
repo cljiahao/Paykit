@@ -27,7 +27,11 @@ name/password). Built per the cross-kit
   `user.user_metadata`, renders `BackButton` (`@/components/back-button`,
   replacing an earlier plain underlined `<Link>`) back to `/dashboard`, and
   renders `ProfileForm` with the vendor's id, stall name, display name,
-  email, avatar URL, and social links.
+  email, avatar URL, and social links. Content sits in a plain
+  `mx-auto max-w-2xl md:max-w-4xl` div (not `<main>` — the parent
+  `dashboard/layout.tsx` owns that landmark and the page-family's canonical
+  `max-w-7xl` outer width); the two-column form reads better narrower than
+  the full dashboard width.
 - `profile-form.tsx` — `ProfileForm({ vendorId, stallName, displayName,
 email, avatarUrl, socialLinks })` client component with four
   independently-saved sections inside `Section` blocks (`@merqo/ui`), laid
@@ -52,6 +56,11 @@ flex-col gap-5` stacks side by side on `md`+, never a CSS grid, whose row
   emptied stall name, updates the display name via the browser auth client,
   rejects a mismatched password confirmation, saves social links through
   the server action.
+- `page.dom.test.tsx` — awaits `ProfilePage()` directly and renders the
+  result (same pattern as `dashboard/layout.dom.test.tsx`), with
+  `ProfileForm` stubbed so the test stays focused on `page.tsx`'s own job:
+  fetching the profile and defensively reading `display_name`/`avatar_url`
+  off `user_metadata`.
 
 ## Connectivity
 

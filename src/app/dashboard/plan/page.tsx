@@ -14,7 +14,7 @@ export default async function PlanPage() {
   const view = resolvePlanView(plan, count);
 
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <BackButton href="/dashboard" label="Dashboard" />
       </div>
@@ -55,6 +55,6 @@ export default async function PlanPage() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

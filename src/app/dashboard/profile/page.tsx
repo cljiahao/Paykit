@@ -21,7 +21,7 @@ export default async function ProfilePage() {
   const avatarUrl = typeof rawAvatar === "string" ? rawAvatar : null;
 
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-6 md:max-w-4xl">
+    <div className="mx-auto max-w-2xl space-y-6 md:max-w-4xl">
       <div>
         <BackButton href="/dashboard" label="Dashboard" />
       </div>
@@ -45,6 +45,6 @@ export default async function ProfilePage() {
         avatarUrl={avatarUrl}
         socialLinks={profile.social_links}
       />
-    </main>
+    </div>
   );
 }
