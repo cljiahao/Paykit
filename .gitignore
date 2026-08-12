@@ -9,3 +9,11 @@ coverage/
 next-env.d.ts
 .DS_Store
 /.superpowers
+
+# impeccable skill local scratch
+PRODUCT.md
+.impeccable/
+
+# git worktrees (local scratch)
+.worktrees/
+.claude/worktrees/
