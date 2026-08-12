@@ -29,7 +29,8 @@ transaction instead of creating a duplicate. `pnpm-workspace.yaml`'s
 itself still bundles; re-check `pnpm audit --prod --audit-level=high`
 after any `next` upgrade in case it's safe to drop one. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (kit-family consistency;
+now delegate to the shared `@merqo/ui` package (v0.10.1, `package.json`;
+kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
 wiring as thin adapters over the shared components). See `CHANGELOG.md`
 for the latest changes.
