@@ -1,0 +1,166 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { POST } from "./route";
+
+const {
+  verifyKitAuthMock,
+  readMaybeSingle,
+  updateSingle,
+  createServiceClientMock,
+} = vi.hoisted(() => ({
+  verifyKitAuthMock: vi.fn(),
+  readMaybeSingle: vi.fn(),
+  updateSingle: vi.fn(),
+  createServiceClientMock: vi.fn(),
+}));
+
+vi.mock("@/lib/kit-auth", () => ({ verifyKitAuth: verifyKitAuthMock }));
+vi.mock("@/lib/supabase/server", () => ({
+  createServiceClient: createServiceClientMock,
+}));
+
+const TX_ID = "22222222-2222-2222-2222-222222222222";
+
+const ROW = {
+  id: TX_ID,
+  status: "claimed",
+  amount_cents: 450,
+  order_ref: "A-001",
+  kit_slug: "qkit",
+  claimed_at: "2026-07-15T00:01:00Z",
+  confirmed_at: null,
+  created_at: "2026-07-15T00:00:00Z",
+};
+
+function fakeSupabase() {
+  return {
+    from: () => ({
+      select: () => ({ eq: () => ({ maybeSingle: readMaybeSingle }) }),
+      update: () => ({
+        eq: () => ({
+          eq: () => ({ select: () => ({ single: updateSingle }) }),
+        }),
+      }),
+    }),
+  };
+}
+
+beforeEach(() => {
+  verifyKitAuthMock.mockReset().mockResolvedValue({ kitSlug: "qkit" });
+  createServiceClientMock.mockReset().mockResolvedValue(fakeSupabase());
+  readMaybeSingle.mockReset().mockResolvedValue({ data: ROW, error: null });
+  updateSingle.mockReset().mockResolvedValue({
+    data: { ...ROW, status: "pending", claimed_at: null },
+    error: null,
+  });
+});
+
+function req() {
+  return new Request(`http://localhost/api/v1/checkout/${TX_ID}/unclaim`, {
+    method: "POST",
+    headers: { authorization: "Bearer qkit:secret" },
+  });
+}
+function ctx(id: string = TX_ID) {
+  return { params: Promise.resolve({ id }) };
+}
+
+describe("POST /api/v1/checkout/[id]/unclaim", () => {
+  it("unclaims a claimed transaction back to pending", async () => {
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.status).toBe("pending");
+    expect(json.claimed_at).toBeNull();
+  });
+
+  it("is idempotent on an already-pending transaction (no update call)", async () => {
+    readMaybeSingle.mockResolvedValue({
+      data: { ...ROW, status: "pending", claimed_at: null },
+      error: null,
+    });
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.status).toBe("pending");
+    expect(updateSingle).not.toHaveBeenCalled();
+  });
+
+  it("never reverts a confirmed transaction (no-op, still confirmed)", async () => {
+    readMaybeSingle.mockResolvedValue({
+      data: {
+        ...ROW,
+        status: "confirmed",
+        confirmed_at: "2026-07-15T00:02:00Z",
+      },
+      error: null,
+    });
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.status).toBe("confirmed");
+    expect(updateSingle).not.toHaveBeenCalled();
+  });
+
+  it("401s when unauthorized", async () => {
+    verifyKitAuthMock.mockResolvedValue(null);
+    expect((await POST(req(), ctx())).status).toBe(401);
+  });
+
+  it("404s for an unknown transaction", async () => {
+    readMaybeSingle.mockResolvedValue({ data: null, error: null });
+    expect((await POST(req(), ctx())).status).toBe(404);
+  });
+
+  it("400s for a malformed (non-uuid) id, without querying the DB", async () => {
+    const res = await POST(req(), ctx("not-a-uuid"));
+    expect(res.status).toBe(400);
+    expect(readMaybeSingle).not.toHaveBeenCalled();
+  });
+
+  it("503s when the initial DB read fails", async () => {
+    readMaybeSingle.mockResolvedValue({
+      data: null,
+      error: { message: "connection reset" },
+    });
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).not.toMatch(/connection reset/);
+  });
+
+  it("lost the race (already confirmed by a concurrent request): recheck returns the current state, not a 4xx/5xx", async () => {
+    readMaybeSingle
+      .mockReset()
+      .mockResolvedValueOnce({ data: ROW, error: null }) // initial read: claimed
+      .mockResolvedValueOnce({
+        data: {
+          ...ROW,
+          status: "confirmed",
+          confirmed_at: "2026-07-15T00:02:00Z",
+        },
+        error: null,
+      }); // recheck: someone else already confirmed it
+    updateSingle.mockResolvedValue({
+      data: null,
+      error: { message: "no rows matched the conditional update" },
+    });
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.status).toBe("confirmed");
+    expect(readMaybeSingle).toHaveBeenCalledTimes(2);
+  });
+
+  it("row was deleted between the read and the conditional update: recheck 404s", async () => {
+    readMaybeSingle
+      .mockReset()
+      .mockResolvedValueOnce({ data: ROW, error: null }) // initial read: claimed
+      .mockResolvedValueOnce({ data: null, error: null }); // recheck: gone
+    updateSingle.mockResolvedValue({
+      data: null,
+      error: { message: "no rows matched the conditional update" },
+    });
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(404);
+  });
+});

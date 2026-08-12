@@ -20,3 +20,12 @@ export function confirmTransition(current: TxStatus): {
     return { status: "confirmed", changed: true };
   return { status: "confirmed", changed: false };
 }
+
+/** Customer undoes an accidental "I've paid" tap. Idempotent: only reverts a `claimed` transaction back to `pending`; a `confirmed` transaction is always a no-op — this is what makes it impossible to un-confirm a real payment. */
+export function unclaimTransition(current: TxStatus): {
+  status: TxStatus;
+  changed: boolean;
+} {
+  if (current === "claimed") return { status: "pending", changed: true };
+  return { status: current, changed: false };
+}

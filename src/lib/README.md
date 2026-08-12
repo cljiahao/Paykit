@@ -19,9 +19,11 @@ larger clusters; everything else sits flat here.
 - `api-schemas.ts` — Zod contracts for the `/api/v1/*` HTTP surface
   (request bodies, discriminated response shapes) plus the shared
   `uuidSchema` path-param validator.
-- `tx-state.ts` — pure `claimTransition`/`confirmTransition`: the
-  pending→claimed→confirmed state machine, idempotent by design (already-
-  claimed/confirmed is a no-op success, never reverts a confirmed payment).
+- `tx-state.ts` — pure `claimTransition`/`unclaimTransition`/
+  `confirmTransition`: the pending→claimed→confirmed state machine, plus
+  the claimed→pending undo. All three are idempotent by design (a no-op
+  success on states they don't apply to); `unclaimTransition` only ever
+  reverts `claimed`, so a `confirmed` payment can never be un-confirmed.
 - `transactions.ts` — `listTransactions(vendorId)`: reads a vendor's
   transactions via the session-scoped Supabase client (RLS-filtered).
 - `revenue-report.ts` — `aggregateRevenueByDay`: pure aggregation of
