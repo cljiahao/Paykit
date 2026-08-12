@@ -42,6 +42,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   minted a `kit_api_keys` bearer secret so it can build a lightweight
   "quick add PayNow details" UI inside its own dashboard instead of
   redirecting to paykit's dashboard.
+- `POST /api/v1/checkout/{id}/unclaim` — reverts a `claimed` transaction
+  back to `pending` (undoes an accidental "I've paid" tap). Idempotent and
+  provably safe: a `confirmed` transaction is never reverted — the
+  `.eq("status", "claimed")` update guard means the DB simply matches
+  nothing and the endpoint echoes the unchanged `confirmed` status back,
+  same idempotent-no-error convention `claim`/`confirm` already use.
+  Restores a capability qkit lost when it cut over from its own local
+  `unclaimPayment` to paykit's HTTP API.
 
 ### Changed
 
