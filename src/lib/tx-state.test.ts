@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { claimTransition, confirmTransition } from "./tx-state";
+import {
+  claimTransition,
+  confirmTransition,
+  unclaimTransition,
+} from "./tx-state";
 
 describe("claimTransition", () => {
   it("pending -> claimed (changed)", () => {
@@ -37,6 +41,27 @@ describe("confirmTransition", () => {
   });
   it("confirmed -> confirmed (idempotent, unchanged)", () => {
     expect(confirmTransition("confirmed")).toEqual({
+      status: "confirmed",
+      changed: false,
+    });
+  });
+});
+
+describe("unclaimTransition", () => {
+  it("claimed -> pending (changed)", () => {
+    expect(unclaimTransition("claimed")).toEqual({
+      status: "pending",
+      changed: true,
+    });
+  });
+  it("pending -> pending (idempotent, unchanged)", () => {
+    expect(unclaimTransition("pending")).toEqual({
+      status: "pending",
+      changed: false,
+    });
+  });
+  it("confirmed -> confirmed (idempotent, unchanged — cannot un-confirm)", () => {
+    expect(unclaimTransition("confirmed")).toEqual({
       status: "confirmed",
       changed: false,
     });
