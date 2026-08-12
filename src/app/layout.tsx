@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
+// Display: family-wide shared face (see docs/business/2026-08-13-typography-family-standard.md).
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-fraunces",
   display: "swap",
+  axes: ["SOFT", "WONK", "opsz"],
 });
 
 const inter = Inter({
@@ -36,7 +38,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body>
         <TooltipProvider>
