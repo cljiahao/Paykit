@@ -19,9 +19,11 @@ larger clusters; everything else sits flat here.
 - `api-schemas.ts` — Zod contracts for the `/api/v1/*` HTTP surface
   (request bodies, discriminated response shapes) plus the shared
   `uuidSchema` path-param validator.
-- `tx-state.ts` — pure `claimTransition`/`confirmTransition`: the
-  pending→claimed→confirmed state machine, idempotent by design (already-
-  claimed/confirmed is a no-op success, never reverts a confirmed payment).
+- `tx-state.ts` — pure `claimTransition`/`unclaimTransition`/
+  `confirmTransition`: the pending→claimed→confirmed state machine, plus
+  the claimed→pending undo. All three are idempotent by design (a no-op
+  success on states they don't apply to); `unclaimTransition` only ever
+  reverts `claimed`, so a `confirmed` payment can never be un-confirmed.
 - `transactions.ts` — `listTransactions(vendorId)`: reads a vendor's
   transactions via the session-scoped Supabase client (RLS-filtered).
 - `revenue-report.ts` — `aggregateRevenueByDay`: pure aggregation of
@@ -36,6 +38,14 @@ larger clusters; everything else sits flat here.
   unit-testable without rendering that async server component.
 - `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
   for calling kits, checked on every `/api/v1/*` route before any DB access.
+- `tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: upserts
+  `vendor_prefs.tour_seen_at = now()`. A plain (non-`"use server"`) module
+  so `src/app/dashboard/page.tsx` can call it directly during its own
+  server render — the durable half of the onboarding-tour "stamp on
+  start" fix, since the client-fired path
+  (`src/app/dashboard/tour-actions.ts`'s `markTourSeen`, which also
+  delegates here) is fire-and-forget and can be aborted by a hard
+  navigation before it lands.
 - `vendor-session.ts` — `getVendorSession()` (dashboard auth guard,
   redirects to `/login` on no session) and `getVendorPlan()`. Deliberately
   **not** used by Sheet-embedded server actions (`feedback.ts`,

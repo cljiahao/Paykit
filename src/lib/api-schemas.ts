@@ -49,6 +49,16 @@ export type TransactionStatusResponse = z.infer<
 export const vendorConfigResponseSchema = z.object({
   has_config: z.boolean(),
   display_name: z.string().nullable(),
+  // Full editable config, so a calling kit can pre-fill its own edit form
+  // on re-open. GET always sets these; POST's response only ever carries
+  // has_config/display_name, so they're optional here to cover both.
+  kind: z.enum(["paynow", "pointer"]).nullable().optional(),
+  payee_name: z.string().nullable().optional(),
+  uen: z.string().nullable().optional(),
+  mobile: z.string().nullable().optional(),
+  label: z.string().nullable().optional(),
+  url: z.string().nullable().optional(),
+  qr_image_url: z.string().nullable().optional(),
 });
 export type VendorConfigResponse = z.infer<typeof vendorConfigResponseSchema>;
 

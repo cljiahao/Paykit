@@ -35,8 +35,30 @@ describe("paykit /api/v1 contract", () => {
     expect(parsed.success, JSON.stringify(parsed.error?.format())).toBe(true);
   });
 
-  it("vendor-config sample never carries a secret field", () => {
+  it("POST /api/v1/vendors/{vendor_id}/config response satisfies vendorConfigResponseSchema", () => {
+    // POST's actual response only ever carries has_config/display_name, a
+    // narrower shape than GET's — but the same wire contract still covers
+    // it, since the full-config fields are optional in the schema.
+    const parsed = vendorConfigResponseSchema.safeParse(
+      loadSample("vendor-config.sample.json"),
+    );
+    expect(parsed.success, JSON.stringify(parsed.error?.format())).toBe(true);
+  });
+
+  it("vendor-config sample matches GET's full editable-config wire shape", () => {
     const sample = loadSample("vendor-config.sample.json");
-    expect(Object.keys(sample).sort()).toEqual(["display_name", "has_config"]);
+    expect(Object.keys(sample).sort()).toEqual(
+      [
+        "display_name",
+        "has_config",
+        "kind",
+        "label",
+        "mobile",
+        "payee_name",
+        "qr_image_url",
+        "uen",
+        "url",
+      ].sort(),
+    );
   });
 });

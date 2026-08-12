@@ -6,6 +6,51 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- `GET /api/v1/vendors/{vendor_id}/config` now returns the full editable
+  `vendor_payment_config` row (`kind`, `payee_name`, `uen`, `mobile`,
+  `label`, `url`, `qr_image_url`) alongside the existing `has_config`/
+  `display_name` summary fields, instead of the summary alone. Closes the
+  gap where a calling kit's own "quick add PayNow details" edit form (e.g.
+  qkit's) had every text field start blank when a vendor re-opened payment
+  settings, since the kit had no way to read back what was already saved.
+- Dashboard onboarding tour re-triggered on every visit to `/dashboard`
+  despite #23's "stamp on start, not finish" fix. Root cause: that fix's
+  mark-seen write is fire-and-forget from the client
+  (`dashboard-tour.tsx`'s `onFirstSeen`), and the tour's own second step
+  spotlights the real "Payment setup" nav link — which `@merqo/ui`'s
+  `DashboardNav` renders as a plain `<a>` tag, not `next/link` — so
+  clicking it (as the tour invites) triggers a hard page navigation that
+  can abort the write before it lands, leaving `tour_seen_at` unset.
+  `src/app/dashboard/page.tsx` now also stamps `tour_seen_at`
+  synchronously during its own server render whenever it's unset — a
+  write that lands before the response is even sent, immune to any
+  client-side navigation race. `tour-actions.ts`'s `markTourSeen` is
+  refactored to share the upsert (`stampTourSeen`) with `page.tsx` instead
+  of duplicating it.
+
+### Added
+
+- `POST /api/v1/vendors/{vendor_id}/config` — kit-auth (bearer-secret,
+  `verifyKitAuth`) service-role upsert of a vendor's
+  `vendor_payment_config` on behalf of a calling kit, reusing
+  `vendorPaymentConfigInputSchema` (paynow|pointer) for validation and
+  returning the same summary shape as the existing `GET` route (`has_config`/
+  `display_name`, plus the full config fields as of the fix above). First
+  piece of the qkit→paykit checkout cutover: qkit was
+  minted a `kit_api_keys` bearer secret so it can build a lightweight
+  "quick add PayNow details" UI inside its own dashboard instead of
+  redirecting to paykit's dashboard.
+- `POST /api/v1/checkout/{id}/unclaim` — reverts a `claimed` transaction
+  back to `pending` (undoes an accidental "I've paid" tap). Idempotent and
+  provably safe: a `confirmed` transaction is never reverted — the
+  `.eq("status", "claimed")` update guard means the DB simply matches
+  nothing and the endpoint echoes the unchanged `confirmed` status back,
+  same idempotent-no-error convention `claim`/`confirm` already use.
+  Restores a capability qkit lost when it cut over from its own local
+  `unclaimPayment` to paykit's HTTP API.
+
 ### Changed
 
 - Bumped `@merqo/ui` to v0.9.0: `DashboardNav`'s inner row is now capped at
