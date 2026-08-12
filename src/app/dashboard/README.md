@@ -47,7 +47,11 @@ plan })` client component: composes `@merqo/ui`'s `DashboardNav`/
   `subtitle` both carry the real `vendorName` (with an `"Account"`/`"Your
 account"` fallback only for the edge case of an empty string) — never a
   static placeholder, since `subtitle` is the only line the dropdown header
-  renders next to the trigger.
+  renders next to the trigger. Passes `LinkComponent={Link}` (`next/link`)
+  to `@merqo/ui`'s `DashboardNav` (v0.10.0+) so internal nav links do a
+  client-side transition instead of a full page reload; `DashboardNav`
+  forwards it down to the `AccountMenu` it composes internally, so this
+  one call site covers both — paykit has no standalone `AccountMenu` usage.
 - `dashboard-nav.dom.test.tsx` — RTL/jsdom tests: the inline links render
   with correct hrefs, the account-menu item order, that Sign out is a
   genuine form submit reaching the `signOut` action, that Get help opens a
@@ -75,14 +79,16 @@ className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
 - `tour-actions.ts` — `markTourSeen()`, a `"use server"` action wiring
   `@/lib/tour-prefs`'s `stampTourSeen` to `dashboard-tour.tsx`'s
   client-fired `onFirstSeen`. That client path is fire-and-forget and can
-  be aborted by a hard navigation before it lands — `@merqo/ui`'s
-  `DashboardNav` renders nav links as plain `<a>` tags, and the tour's own
-  second step spotlights the real "Payment setup" nav link, inviting
-  exactly that click mid-tour — so `page.tsx`'s own synchronous call
-  (which imports `stampTourSeen` straight from `@/lib/tour-prefs`, not
-  through this Server Action, to avoid crossing a client/server
-  serialization boundary) is what actually makes the "stamp on start" fix
-  (#23) durable.
+  still be aborted by a hard navigation before it lands if one ever
+  reaches the tour again — the root cause (`@merqo/ui`'s `DashboardNav`
+  rendering nav links as plain `<a>` tags, and the tour's own second step
+  spotlighting the real "Payment setup" nav link, inviting exactly that
+  click mid-tour) is now fixed via the `LinkComponent={Link}` wiring in
+  `dashboard-nav.tsx` above (`@merqo/ui` v0.10.0), but `page.tsx`'s own
+  synchronous call (which imports `stampTourSeen` straight from
+  `@/lib/tour-prefs`, not through this Server Action, to avoid crossing a
+  client/server serialization boundary) stays as defense-in-depth for the
+  "stamp on start" fix (#23).
 - `tour-actions.test.ts` — unit tests for `markTourSeen`'s upsert
   payload, its no-op when signed out, and its log-not-throw on failure.
 - `config/` — payment method setup (PayNow QR, or a vendor's own BYO

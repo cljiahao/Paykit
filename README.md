@@ -17,11 +17,14 @@ one Merqo kit signs you in on the rest. The dashboard's onboarding tour
 (`src/components/dashboard-tour.tsx`) stamps its "seen" state as soon as
 it auto-runs rather than when it finishes, so a refresh mid-tour can't
 make it re-trigger on the next load — and since that client-fired stamp
-is fire-and-forget and can be aborted by a hard navigation (`@merqo/ui`'s
-`DashboardNav` renders nav links as plain `<a>` tags, and the tour's own
-steps spotlight one), `/dashboard`'s own server render
+is fire-and-forget and could be aborted by a hard navigation (the tour's
+own steps spotlight a nav link), `/dashboard`'s own server render
 (`src/app/dashboard/page.tsx`) also stamps it synchronously, durably, as
-part of the request. `POST /api/v1/checkout` is idempotent
+part of the request, as defense-in-depth. `@merqo/ui`'s `DashboardNav`
+(v0.10.0+) is now wired with `LinkComponent={Link}`
+(`src/app/dashboard/dashboard-nav.tsx`), so its nav links do a
+client-side transition rather than a full page reload in the first
+place. `POST /api/v1/checkout` is idempotent
 on `(kit_slug, order_ref)` — a retried call returns the existing
 transaction instead of creating a duplicate. `pnpm-workspace.yaml`'s
 `overrides` pins several transitive dependencies (`postcss`, `undici`,

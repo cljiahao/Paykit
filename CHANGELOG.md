@@ -53,6 +53,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Bumped `@merqo/ui` to v0.10.0 and wired its new optional `LinkComponent`
+  prop with `next/link`'s `Link` at the `DashboardNav` call site
+  (`src/app/dashboard/dashboard-nav.tsx`). `DashboardNav`/`AccountMenu`
+  previously hardcoded plain `<a>` tags for internal nav links, forcing a
+  full page reload on every click — the root cause PR #36 worked around
+  with a server-side stamp. `DashboardNav` forwards `LinkComponent` down
+  to the `AccountMenu` it composes internally, so passing it once here
+  covers both; paykit has no standalone `AccountMenu` usage elsewhere.
 - Bumped `@merqo/ui` to v0.9.0: `DashboardNav`'s inner row is now capped at
   `max-w-7xl`/centered (matches the content area it sits above — no code
   change needed here). `src/components/landing/nav.tsx` now composes the
