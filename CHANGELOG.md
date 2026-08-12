@@ -8,6 +8,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Refund amount was entered in raw cents ("450" for $4.50) while
+  every other money value in the app displays as SGD dollars — real
+  error risk on an action that writes a refund ledger row. The
+  refund dialog now takes a dollar amount and converts to cents
+  before submit.
 - `issueRefundAction` never revalidated the transactions page after
   inserting a refund, so the table kept showing the pre-refund state until
   a manual reload despite the toast confirming success. The refund dialog
@@ -65,6 +70,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Design pass from a completed frontend-design/impeccable critique:
+  claimed transactions now have a distinct visual state instead of
+  looking identical to pending ones; dashboard home gained a
+  payment-method summary card and a proper Pro-nudge card; the Pro
+  badge and config-saved confirmation now use the brand mint token
+  instead of stock Tailwind emerald; the revenue chart's bars use
+  the mint accent and gained a total/count/average summary row;
+  added the family's documented ink closing-CTA band (previously
+  defined but unused) to the landing page; and a few smaller
+  copy/consistency fixes (FAQ heading pattern, upgrade-CTA SLA note,
+  softened "via qkit" checkout badge copy).
 - Bumped `@merqo/ui` to v0.10.0 and wired its new optional `LinkComponent`
   prop with `next/link`'s `Link` at the `DashboardNav` call site
   (`src/app/dashboard/dashboard-nav.tsx`). `DashboardNav`/`AccountMenu`
