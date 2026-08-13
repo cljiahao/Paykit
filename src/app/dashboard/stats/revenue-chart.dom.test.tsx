@@ -7,7 +7,7 @@
 // rather than the SVG bars themselves.
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { RevenueChart } from "./revenue-chart";
+import { RevenueChart, ChartTooltip } from "./revenue-chart";
 import type { DailyRevenue } from "@/lib/revenue-report";
 
 describe("RevenueChart", () => {
@@ -81,5 +81,34 @@ describe("RevenueChart", () => {
     expect(screen.getByText("Transactions")).toBeInTheDocument();
     expect(screen.getByText("0")).toBeInTheDocument();
     expect(screen.getAllByText("$0.00")).toHaveLength(2);
+  });
+});
+
+describe("ChartTooltip", () => {
+  const day: DailyRevenue = { date: "2026-07-15", cents: 500, count: 1 };
+
+  it("renders nothing when inactive", () => {
+    const { container } = render(
+      <ChartTooltip active={false} payload={[{ payload: day }]} />,
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("renders nothing when active with no payload", () => {
+    const { container } = render(<ChartTooltip active payload={[]} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("renders the date, amount, and singular transaction count when active", () => {
+    render(<ChartTooltip active payload={[{ payload: day }]} />);
+    expect(screen.getByText("2026-07-15")).toBeInTheDocument();
+    expect(screen.getByText("$5.00 · 1 transaction")).toBeInTheDocument();
+  });
+
+  it("pluralizes transaction count for more than one", () => {
+    render(
+      <ChartTooltip active payload={[{ payload: { ...day, count: 2 } }]} />,
+    );
+    expect(screen.getByText("$5.00 · 2 transactions")).toBeInTheDocument();
   });
 });

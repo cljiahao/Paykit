@@ -9,7 +9,10 @@ their own bank/payment app, and a human confirms receipt. A calling kit
 without its own vendor-session UI can also write the config directly via
 `POST /api/v1/vendors/{vendor_id}/config` (bearer-secret authenticated,
 same schema the dashboard's own config form uses) — see
-`src/app/api/v1/vendors/[vendor_id]/config/README.md`.
+`src/app/api/v1/vendors/[vendor_id]/config/README.md`. Display font is
+Fraunces (`src/app/layout.tsx`), the shared family face every Merqo kit
+now uses — see `docs/business/2026-08-13-typography-family-standard.md`
+in the workspace root for why.
 
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on

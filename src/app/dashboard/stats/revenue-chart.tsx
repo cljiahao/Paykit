@@ -31,8 +31,10 @@ function summarize(data: DailyRevenue[]): string {
 }
 
 /** Custom tooltip content — recharts' default tooltip doesn't pick up the
- * app's card styling or SGD currency formatting. */
-function ChartTooltip({
+ * app's card styling or SGD currency formatting. Exported for direct unit
+ * testing (recharts only renders it on a real hover interaction, which
+ * jsdom can't reliably drive against a zero-size chart). */
+export function ChartTooltip({
   active,
   payload,
 }: {
