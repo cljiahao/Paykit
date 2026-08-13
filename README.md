@@ -37,7 +37,7 @@ bundle; `pnpm audit --prod --audit-level=high` is CI's hard gate — bump
 the relevant floor here when a new advisory lands, and re-check after any
 `next` upgrade in case it's safe to drop one. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.10.1, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.11.1, `package.json`;
 kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
 wiring as thin adapters over the shared components). Every `/dashboard`
