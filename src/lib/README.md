@@ -27,7 +27,8 @@ larger clusters; everything else sits flat here.
 - `transactions.ts` — `listTransactions(vendorId)`: reads a vendor's
   transactions via the session-scoped Supabase client (RLS-filtered).
 - `revenue-report.ts` — `aggregateRevenueByDay`: pure aggregation of
-  confirmed transactions into per-day totals for the Stats page's chart.
+  confirmed transactions into per-day totals + counts (`DailyRevenue`:
+  `{date, cents, count}`) for the Stats page's chart and its stat-tile row.
 - `usage.ts` — `shouldNudgePro`/`PRO_NUDGE_THRESHOLD`: friction-based
   Free→Pro nudge (not a hard cap — Free tier has no transaction-volume
   cap, see root `AGENTS.md`).

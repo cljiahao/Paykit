@@ -1,8 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { getUserMock, upsertMock, createServerClientMock } = vi.hoisted(() => ({
+const {
+  getUserMock,
+  maybeSingleMock,
+  insertMock,
+  updateMock,
+  createServerClientMock,
+} = vi.hoisted(() => ({
   getUserMock: vi.fn(),
-  upsertMock: vi.fn(),
+  maybeSingleMock: vi.fn(),
+  insertMock: vi.fn(),
+  updateMock: vi.fn(),
   createServerClientMock: vi.fn(),
 }));
 
@@ -13,10 +21,22 @@ vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 
 beforeEach(() => {
   getUserMock.mockReset().mockResolvedValue({ data: { user: { id: "v1" } } });
-  upsertMock.mockReset().mockResolvedValue({ error: null });
+  // No existing row by default — saveConfigAction takes the insert path. Not
+  // `.upsert()`: PostgREST's ON CONFLICT DO UPDATE path needs table-level
+  // UPDATE privilege regardless of column grants (see actions.ts), so this
+  // mock exercises the same explicit select-then-insert-or-update shape.
+  maybeSingleMock.mockReset().mockResolvedValue({ data: null });
+  insertMock.mockReset().mockResolvedValue({ error: null });
+  updateMock.mockReset().mockReturnValue({
+    eq: vi.fn().mockResolvedValue({ error: null }),
+  });
   createServerClientMock.mockReset().mockResolvedValue({
     auth: { getUser: getUserMock },
-    from: () => ({ upsert: upsertMock }),
+    from: () => ({
+      select: () => ({ eq: () => ({ maybeSingle: maybeSingleMock }) }),
+      insert: insertMock,
+      update: updateMock,
+    }),
   });
 });
 
@@ -39,7 +59,7 @@ describe("saveConfigAction", () => {
       }),
     );
     expect(result.status).toBe("ok");
-    expect(upsertMock).toHaveBeenCalledWith(
+    expect(insertMock).toHaveBeenCalledWith(
       expect.objectContaining({
         vendor_id: "v1",
         kind: "paynow",
@@ -50,7 +70,37 @@ describe("saveConfigAction", () => {
         url: null,
         qr_image_url: null,
       }),
-      { onConflict: "vendor_id" },
+    );
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it("updates an existing config instead of inserting", async () => {
+    maybeSingleMock.mockResolvedValue({ data: { vendor_id: "v1" } });
+    const { saveConfigAction } = await import("./actions");
+    const result = await saveConfigAction(
+      { status: "idle" },
+      formData({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "53312345A",
+        mobile: "",
+      }),
+    );
+    expect(result.status).toBe("ok");
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(updateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: "paynow",
+        uen: "53312345A",
+        mobile: null,
+        payee_name: "Kopitiam Cart",
+        label: null,
+        url: null,
+        qr_image_url: null,
+      }),
+    );
+    expect(updateMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ vendor_id: expect.anything() }),
     );
   });
 
@@ -66,7 +116,8 @@ describe("saveConfigAction", () => {
       }),
     );
     expect(result.status).toBe("error");
-    expect(upsertMock).not.toHaveBeenCalled();
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(updateMock).not.toHaveBeenCalled();
   });
 
   it("saves a valid pointer config with a link, nulling paynow fields", async () => {
@@ -81,7 +132,7 @@ describe("saveConfigAction", () => {
       }),
     );
     expect(result.status).toBe("ok");
-    expect(upsertMock).toHaveBeenCalledWith(
+    expect(insertMock).toHaveBeenCalledWith(
       expect.objectContaining({
         vendor_id: "v1",
         kind: "pointer",
@@ -92,7 +143,6 @@ describe("saveConfigAction", () => {
         uen: null,
         mobile: null,
       }),
-      { onConflict: "vendor_id" },
     );
   });
 
@@ -103,6 +153,7 @@ describe("saveConfigAction", () => {
       formData({ kind: "pointer", label: "Pay", url: "", qr_image_url: "" }),
     );
     expect(result.status).toBe("error");
-    expect(upsertMock).not.toHaveBeenCalled();
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(updateMock).not.toHaveBeenCalled();
   });
 });

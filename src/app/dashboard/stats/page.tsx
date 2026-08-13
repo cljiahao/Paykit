@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { listTransactions } from "@/lib/transactions";
 import { aggregateRevenueByDay } from "@/lib/revenue-report";
@@ -13,8 +14,11 @@ export default async function StatsPage() {
       <div className="mx-auto max-w-lg">
         <h1 className="text-2xl font-semibold tracking-tight">Stats</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Revenue stats are a Pro feature — upgrade to see aggregated revenue
-          across every kit that uses paykit for you.
+          Revenue stats are a Pro feature —{" "}
+          <Link href="/dashboard/plan" className="underline underline-offset-4">
+            upgrade
+          </Link>{" "}
+          to see aggregated revenue across every kit that uses paykit for you.
         </p>
       </div>
     );

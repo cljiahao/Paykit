@@ -3,6 +3,7 @@ import { Hero } from "@/components/landing/hero";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Benefits } from "@/components/landing/benefits";
 import { Faq } from "@/components/landing/faq";
+import { ClosingCta } from "@/components/landing/closing-cta";
 import { Footer } from "@/components/landing/footer";
 import { BackToTop } from "@/components/landing/back-to-top";
 import { createServerClient } from "@/lib/supabase/server";
@@ -25,6 +26,7 @@ export default async function HomePage() {
         <Benefits />
         <Faq />
       </main>
+      <ClosingCta authed={authed} />
       <Footer />
       <BackToTop />
     </>

@@ -13,7 +13,7 @@ export function CheckoutCard() {
           Checkout
         </span>
         <Badge variant="outline" className="font-mono text-[10px]">
-          via qkit
+          via any kit
         </Badge>
       </div>
 

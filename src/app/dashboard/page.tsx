@@ -1,14 +1,43 @@
 import Link from "next/link";
-import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
+import { getVendorSession } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
 import { shouldNudgePro } from "@/lib/usage";
 import { stampTourSeen } from "@/lib/tour-prefs";
+import { getConfig } from "./config/actions";
+import type { VendorPaymentConfig } from "@/lib/types";
+
+// Middle-mask an identifier (UEN/mobile) for the dashboard summary card —
+// enough for a vendor to recognize their own config at a glance without
+// putting the full number on screen. Values too short to usefully mask
+// (shouldn't happen given the config form's own validation, but keep this
+// total) fall back to a fixed-width mask.
+function maskIdentifier(value: string): string {
+  if (value.length <= 4) return "••••";
+  return `${value.slice(0, 2)}••••${value.slice(-2)}`;
+}
+
+function paymentMethodSummary(config: VendorPaymentConfig): {
+  kindLabel: string;
+  identifier: string;
+} {
+  if (config.kind === "paynow") {
+    const raw = config.uen ?? config.mobile ?? "";
+    return {
+      kindLabel: "PayNow QR",
+      identifier: raw ? maskIdentifier(raw) : "—",
+    };
+  }
+  return {
+    kindLabel: "Payment link or QR image",
+    identifier: config.label ?? "—",
+  };
+}
 
 export default async function DashboardPage() {
   const { supabase, user } = await getVendorSession();
 
   const [config, count, { data: prefs }] = await Promise.all([
-    getVendorPlan(supabase, user.id),
+    getConfig(),
     txCountThisMonth(user.id),
     supabase
       .from("vendor_prefs")
@@ -28,6 +57,7 @@ export default async function DashboardPage() {
   }
 
   const plan = config?.plan ?? "free";
+  const methodSummary = config ? paymentMethodSummary(config) : null;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -46,12 +76,36 @@ export default async function DashboardPage() {
         </p>
       )}
 
+      {methodSummary && (
+        <div className="rounded-xl border bg-card p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Payment method
+              </p>
+              <p className="mt-1 truncate text-sm font-medium">
+                {methodSummary.kindLabel} · {methodSummary.identifier}
+              </p>
+            </div>
+            <Link
+              href="/dashboard/config"
+              className="shrink-0 text-sm underline underline-offset-4"
+            >
+              Edit
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-xl border p-4" data-tour="tx-count">
         <p className="text-sm font-medium">
           {count} transaction{count === 1 ? "" : "s"} this month
         </p>
-        {shouldNudgePro(plan, count) && (
-          <p className="mt-2 text-sm text-muted-foreground">
+      </div>
+
+      {shouldNudgePro(plan, count) && (
+        <div className="rounded-xl border border-mint/30 bg-mint/10 p-4">
+          <p className="text-sm font-medium">
             You&apos;re doing real volume —{" "}
             <Link
               href="/dashboard/plan"
@@ -61,8 +115,8 @@ export default async function DashboardPage() {
             </Link>{" "}
             adds stats and refund tracking, $12/mo.
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

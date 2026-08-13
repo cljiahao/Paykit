@@ -105,8 +105,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display:
-    var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
@@ -130,12 +129,11 @@ body {
   background-attachment: fixed;
 }
 
-/* Space Grotesk display headings — tighten tracking at large sizes,
-   matching the family's per-kit display-face convention (qkit: Fraunces,
-   loopkit: Bricolage Grotesque). */
+/* Display headings tuned for Fraunces optical sizing (shared family face). */
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
 }
 
 /* Load reveal for landing sections; disabled under reduced-motion below.

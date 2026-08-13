@@ -7,9 +7,9 @@ export const BRAND_INK = "#14161f";
 
 /**
  * The paykit "P" app mark for ImageResponse-generated icons (favicon,
- * apple-touch). paykit's display font is Space Grotesk (sans), so a system
- * sans-serif stands in here — fine at icon scale and avoids shipping font
- * data to the icon route.
+ * apple-touch). paykit's display font is Fraunces (shared family face, see
+ * docs/business/2026-08-13-typography-family-standard.md), a serif, so this
+ * uses the same Georgia stand-in as qkit.
  */
 export function brandIcon(size: number): ReactElement {
   return (
@@ -22,7 +22,7 @@ export function brandIcon(size: number): ReactElement {
         justifyContent: "center",
         background: BRAND_MINT,
         color: BRAND_INK,
-        fontFamily: "system-ui, sans-serif",
+        fontFamily: "Georgia, 'Times New Roman', serif",
         fontWeight: 700,
         fontSize: size * 0.62,
         lineHeight: 1,

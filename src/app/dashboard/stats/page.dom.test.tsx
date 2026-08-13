@@ -102,7 +102,7 @@ describe("StatsPage", () => {
     expect(listTransactionsMock).toHaveBeenCalledWith("v1");
     expect(RevenueChartMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: [{ date: "2026-07-15", cents: 500 }],
+        data: [{ date: "2026-07-15", cents: 500, count: 1 }],
       }),
       undefined,
     );

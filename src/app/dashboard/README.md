@@ -70,24 +70,33 @@ page.tsx`/`stats/page.tsx`'s title-plus-cards structure, not a generic
   Sheet mapping its message to `submitSupportMessageAction`'s `body` field,
   and that a failed feedback/support submit surfaces an inline error
   rather than failing silently.
-- `page.tsx` — `DashboardPage()` (server): shows a running monthly
-  transaction count and an empty-state prompt to `/dashboard/config` when
-  no payment method is set up yet; the Pro nudge (`shouldNudgePro`) appears
-  once a Free-tier vendor crosses real usage — never a hard cap, see
-  `docs/superpowers/specs/2026-07-22-paykit-freemium-nudge-redesign-
-design.md`. Also reads `vendor_prefs.tour_seen_at` and, if unset, calls
-  `@/lib/tour-prefs`'s `stampTourSeen` directly, synchronously, as part of
-  this request — the durable half of the onboarding-tour "stamp on start"
-  fix; see `src/lib/README.md` and `tour-actions.ts` below for why the
-  client-fired path alone isn't reliable. Renders a plain `<div
+- `page.tsx` — `DashboardPage()` (server): calls `./config/actions`'s
+  `getConfig()` (the same full-row fetch `config/page.tsx` uses, not the
+  plan-only `getVendorPlan`) so it can render a payment-method summary card
+  — kind (`PayNow QR` / `Payment link or QR image`) + a middle-masked
+  identifier (`maskIdentifier`; a BYO pointer's `label` is shown unmasked,
+  since it's already vendor-chosen display text, not a bank identifier) +
+  an edit link into `/dashboard/config` — above the transaction-count card
+  once a config exists, or the existing empty-state prompt to
+  `/dashboard/config` when it doesn't. Also shows a running monthly
+  transaction count; the Pro nudge (`shouldNudgePro`) now renders as its
+  own `bg-mint/10 border-mint/30` card (not nested muted text inside the
+  count card) once a Free-tier vendor crosses real usage — never a hard
+  cap, see `docs/superpowers/specs/2026-07-22-paykit-freemium-nudge-
+redesign-design.md`. Also reads `vendor_prefs.tour_seen_at` and, if unset,
+  calls `@/lib/tour-prefs`'s `stampTourSeen` directly, synchronously, as
+  part of this request — the durable half of the onboarding-tour "stamp on
+  start" fix; see `src/lib/README.md` and `tour-actions.ts` below for why
+  the client-fired path alone isn't reliable. Renders a plain `<div
 className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
-  `<main>` already owns that landmark), sized for its two small info cards
+  `<main>` already owns that landmark), sized for its small info-card stack
   rather than stretching to the layout's full `max-w-7xl`.
 - `page.dom.test.tsx` — same "await the async server component, render the
   result with RTL" pattern as `layout.dom.test.tsx`: the empty-state
-  prompt, the transaction count, the Free/Pro nudge-threshold branches, and
-  that `stampTourSeen` is called when `tour_seen_at` is null/missing and
-  never called once it's already set.
+  prompt, the payment-method summary card (masked PayNow identifier vs.
+  unmasked pointer label, edit link), the transaction count, the Free/Pro
+  nudge-threshold branches, and that `stampTourSeen` is called when
+  `tour_seen_at` is null/missing and never called once it's already set.
 - `tour-actions.ts` — `markTourSeen()`, a `"use server"` action wiring
   `@/lib/tour-prefs`'s `stampTourSeen` to `dashboard-tour.tsx`'s
   client-fired `onFirstSeen`. That client path is fire-and-forget and can

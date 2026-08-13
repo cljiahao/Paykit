@@ -19,12 +19,19 @@ function tx(overrides: Partial<Transaction>): Transaction {
 }
 
 describe("aggregateRevenueByDay", () => {
-  it("sums same-day confirmed transactions", () => {
+  it("sums same-day confirmed transactions and counts them", () => {
     const result = aggregateRevenueByDay([
       tx({ amount_cents: 100, created_at: "2026-07-15T01:00:00Z" }),
       tx({ amount_cents: 200, created_at: "2026-07-15T23:00:00Z" }),
     ]);
-    expect(result).toEqual([{ date: "2026-07-15", cents: 300 }]);
+    expect(result).toEqual([{ date: "2026-07-15", cents: 300, count: 2 }]);
+  });
+
+  it("counts a single confirmed transaction as 1", () => {
+    const result = aggregateRevenueByDay([
+      tx({ amount_cents: 100, created_at: "2026-07-15T01:00:00Z" }),
+    ]);
+    expect(result).toEqual([{ date: "2026-07-15", cents: 100, count: 1 }]);
   });
 
   it("excludes non-confirmed transactions", () => {

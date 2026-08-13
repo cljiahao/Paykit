@@ -6,8 +6,44 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Display font switched from Space Grotesk to Fraunces (the shared
+  family display face — see
+  `docs/business/2026-08-13-typography-family-standard.md`). qkit
+  already used Fraunces; this brings paykit in line with the rest of the
+  family now that cross-kit SSO means vendors move between kits under
+  one identity, so a per-kit display face reads as a seam rather than a
+  feature. Body (Inter) and mono (JetBrains Mono) fonts are unchanged.
+  The brand-icon mark's font fallback also switched from the system
+  sans-serif stack to the Georgia serif stand-in, matching Fraunces
+  being a serif.
+
 ### Fixed
 
+- `saveConfigAction` (`/dashboard/config`) used `.upsert()`, whose
+  `ON CONFLICT DO UPDATE` path requires table-level `UPDATE` privilege
+  regardless of column-level grants — but `vendor_payment_config`'s
+  `UPDATE` grant is deliberately column-scoped to exclude `plan` (see
+  `0001_paykit_core.sql`, so a vendor can't self-escalate to Pro). The
+  result: every payment-config save failed with a silent "Could not
+  save. Try again." — the core setup flow was completely broken for both
+  first-time and repeat saves. Replaced the upsert with an explicit
+  select-then-insert-or-update, which respects the same column grants
+  as every other write in the app; no grant was widened.
+- The revenue chart (`/dashboard/stats`) had no tooltip — hovering a bar
+  showed nothing, so a vendor could only eyeball a day's revenue against
+  the gridlines. Added a `recharts` `Tooltip` with a custom, card-styled
+  content component showing the exact date, amount, and transaction count.
+- The free-plan Stats page's "upgrade to see aggregated revenue…" copy
+  had no way to act on it — "upgrade" was plain text, not a link. It now
+  links to `/dashboard/plan`, matching the linked pattern already used in
+  the dashboard home Pro nudge.
+- Refund amount was entered in raw cents ("450" for $4.50) while
+  every other money value in the app displays as SGD dollars — real
+  error risk on an action that writes a refund ledger row. The
+  refund dialog now takes a dollar amount and converts to cents
+  before submit.
 - `issueRefundAction` never revalidated the transactions page after
   inserting a refund, so the table kept showing the pre-refund state until
   a manual reload despite the toast confirming success. The refund dialog
@@ -65,6 +101,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Design pass from a completed frontend-design/impeccable critique:
+  claimed transactions now have a distinct visual state instead of
+  looking identical to pending ones; dashboard home gained a
+  payment-method summary card and a proper Pro-nudge card; the Pro
+  badge and config-saved confirmation now use the brand mint token
+  instead of stock Tailwind emerald; the revenue chart's bars use
+  the mint accent and gained a total/count/average summary row;
+  added the family's documented ink closing-CTA band (previously
+  defined but unused) to the landing page; and a few smaller
+  copy/consistency fixes (FAQ heading pattern, upgrade-CTA SLA note,
+  softened "via qkit" checkout badge copy).
 - Bumped `@merqo/ui` to v0.10.0 and wired its new optional `LinkComponent`
   prop with `next/link`'s `Link` at the `DashboardNav` call site
   (`src/app/dashboard/dashboard-nav.tsx`). `DashboardNav`/`AccountMenu`

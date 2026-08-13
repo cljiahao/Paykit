@@ -79,9 +79,25 @@ export async function saveConfigAction(
           qr_image_url: parsed.data.qr_image_url ?? null,
         };
 
-  const { error } = await supabase
+  // Not `.upsert()`: PostgREST's ON CONFLICT DO UPDATE path checks for
+  // table-level UPDATE privilege regardless of column-level grants, but this
+  // table's `plan` column is deliberately excluded from the vendor's
+  // column-scoped UPDATE grant (see 0001_paykit_core.sql) so a vendor can't
+  // self-escalate to Pro. A plain update-or-insert respects column grants
+  // like every other write in this app, so the existing grant is enough.
+  const { vendor_id, ...writableFields } = row;
+  const { data: existing } = await supabase
     .from("vendor_payment_config")
-    .upsert(row, { onConflict: "vendor_id" });
+    .select("vendor_id")
+    .eq("vendor_id", vendor_id)
+    .maybeSingle();
+
+  const { error } = existing
+    ? await supabase
+        .from("vendor_payment_config")
+        .update(writableFields)
+        .eq("vendor_id", vendor_id)
+    : await supabase.from("vendor_payment_config").insert(row);
   if (error) {
     console.error("saveConfigAction failed", error.message);
     return { status: "error", message: "Could not save. Try again." };

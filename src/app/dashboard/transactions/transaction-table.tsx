@@ -7,8 +7,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { RefundDialog } from "./refund-dialog";
-import type { Transaction } from "@/lib/types";
+import type { Transaction, TxStatus } from "@/lib/types";
 
 function formatCents(cents: number): string {
   return new Intl.NumberFormat("en-SG", {
@@ -16,6 +17,15 @@ function formatCents(cents: number): string {
     currency: "SGD",
   }).format(cents / 100);
 }
+
+// `claimed` — the customer says they've paid, waiting on the vendor to
+// confirm — is the one status that actually needs the vendor's attention
+// right now, so it gets the brand mint accent instead of shadcn's Badge
+// `default`/`secondary` pair (which otherwise reduces the 3-state
+// pending→claimed→confirmed machine, `@/lib/tx-state`, to 2 visual states).
+const STATUS_BADGE_CLASS: Partial<Record<TxStatus, string>> = {
+  claimed: "bg-mint/15 text-mint ring-1 ring-mint/30",
+};
 
 export function TransactionTable({
   transactions,
@@ -51,6 +61,7 @@ export function TransactionTable({
             <TableCell>
               <Badge
                 variant={tx.status === "confirmed" ? "default" : "secondary"}
+                className={cn(STATUS_BADGE_CLASS[tx.status])}
               >
                 {tx.status}
               </Badge>

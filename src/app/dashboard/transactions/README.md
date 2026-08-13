@@ -16,11 +16,20 @@ across every kit — plus, for Pro vendors, a per-transaction refund action.
 - `transaction-table.tsx` — `TransactionTable({ transactions, isPro })`:
   renders `Kit`/`Order ref`/`Amount`/`Status`/`Created` columns (`@/components/
 ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
-  are formatted via `Intl.NumberFormat` (SGD). Empty state is a plain "No
-  transactions yet." message.
+  are formatted via `Intl.NumberFormat` (SGD). The `Status` badge gives
+  `claimed` its own `bg-mint/15 text-mint ring-mint/30` treatment
+  (`STATUS_BADGE_CLASS`) instead of falling into the shadcn `secondary`
+  variant it'd otherwise share with `pending` — `claimed` is the one status
+  that actually needs the vendor's attention (customer says they've paid,
+  waiting on vendor confirmation), so it shouldn't look inert. Empty state
+  is a plain "No transactions yet." message.
 - `refund-dialog.tsx` — Pro-only dialog: calls `issueRefundAction` to file a
   refund against a `confirmed` transaction (bookkeeping only — no real
-  money movement, see `AGENTS.md`'s data model). The `useActionState`
+  money movement, see `AGENTS.md`'s data model). The amount field is
+  dollar-denominated (`refunded_amount`, `type="number" step="0.01"`),
+  matching every other money value in the dashboard (`transaction-table.tsx`'s
+  `formatCents`) instead of asking the vendor to enter raw cents; `actions.ts`
+  converts it to cents before validation. The `useActionState`
   action passed in is a local wrapper around `issueRefundAction` (not the
   server action directly): on `status: "ok"` it toasts, resets the form
   (`formRef`), and closes the dialog (`setOpen(false)`) inline, as part of
@@ -33,8 +42,10 @@ ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
   and wiring the transaction id, that a successful submit toasts, clears,
   and closes the dialog (reopening shows a blank form), and that a failed
   submit keeps the dialog open with the inline error.
-- `actions.ts` — `issueRefundAction`: validates the refund form with
-  `issueRefundInputSchema`, then inserts into `refunds` and calls
+- `actions.ts` — `issueRefundAction`: converts the form's dollar amount
+  (`refunded_amount`) to cents (`dollarsToCents`), validates it with
+  `issueRefundInputSchema` (still cents-denominated — that's the DB column's
+  unit), then inserts into `refunds` and calls
   `revalidatePath("/dashboard/transactions")` so the transactions table
   reflects the refund without a manual reload. Ownership, `confirmed`-only,
   and Pro-only enforcement is the `refunds_insert_own` RLS policy, not this

@@ -24,9 +24,14 @@ own BYO payment link/QR image, and saves it as their `vendor_payment_config`.
   `PaymentConfigForm` stubbed so the test stays focused on `page.tsx`'s own
   job: fetching the vendor + config and passing them through as props.
 - `actions.ts` — `saveConfigAction`: validates + persists the form via the
-  vendor-scoped RLS client.
-- `actions.test.ts` — unit coverage for both config kinds and validation
-  failures.
+  vendor-scoped RLS client. Persists with an explicit select-then-
+  insert-or-update, not `.upsert()`: PostgREST's `ON CONFLICT DO UPDATE`
+  path requires table-level `UPDATE` privilege regardless of column-level
+  grants, but `vendor_payment_config`'s `UPDATE` grant is deliberately
+  column-scoped to exclude `plan` (a vendor must never self-escalate to
+  Pro) — `.upsert()` failed permission checks on every save as a result.
+- `actions.test.ts` — unit coverage for both config kinds, validation
+  failures, and the insert-vs-update branch.
 
 ## Parent
 

@@ -12,8 +12,9 @@ manually once a vendor's upgrade request comes in.
 - `page.tsx` — `PlanPage()` (server, `revalidate = 0`): calls
   `getVendorSession()`/`getVendorPlan()` and `txCountThisMonth()`, resolves
   the free/pro branching through `resolvePlanView()` (`@/lib/plan-view`),
-  and renders the plan card + feature list + (Free only) the nudge copy and
-  `UpgradeCta`. Kept deliberately thin — the feature list, count-copy
+  and renders the plan card + feature list + (Free only) the nudge copy,
+  `UpgradeCta`, and a one-line turnaround expectation ("We usually action
+  this within one business day.") under the CTA. Kept deliberately thin — the feature list, count-copy
   pluralization, and nudge/upgrade visibility are pure logic in
   `plan-view.ts`, not inline JSX branching, so they're unit-testable without
   rendering this async server component. Content sits in a plain

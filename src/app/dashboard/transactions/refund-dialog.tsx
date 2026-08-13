@@ -50,14 +50,19 @@ export function RefundDialog({ transactionId }: { transactionId: string }) {
         <form ref={formRef} action={formAction} className="space-y-4">
           <input type="hidden" name="transaction_id" value={transactionId} />
           <div className="space-y-2">
-            <Label htmlFor="refunded_amount_cents">Amount (cents)</Label>
+            <Label htmlFor="refunded_amount">Amount</Label>
             <Input
-              id="refunded_amount_cents"
-              name="refunded_amount_cents"
+              id="refunded_amount"
+              name="refunded_amount"
               type="number"
-              min={1}
+              step="0.01"
+              min="0.01"
+              placeholder="4.50"
               required
             />
+            <p className="text-xs text-muted-foreground">
+              In dollars, same as the amount shown in the table (e.g. 4.50).
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="reason">Reason (optional)</Label>

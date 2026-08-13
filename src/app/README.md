@@ -18,7 +18,7 @@ for this project.
 - `icon.tsx` — `Icon` route handler; renders `brandIcon(32)` as a 32×32 PNG favicon.
 - `layout.tsx` — `RootLayout`. Loads `Space_Grotesk`/`Inter`/`JetBrains_Mono` via `next/font/google`, sets `metadata`, wraps children in `TooltipProvider` + `Toaster`.
 - `login/` — combined sign-in/sign-up page, including the "Forgot password?" flow.
-- `page.tsx` — `Home` async server component, the marketing landing page. Composes `Nav`, `Hero`, `Benefits`, `HowItWorks`, `Faq`, `Footer`, and `BackToTop` from `@/components/landing/`. No CTA band above the footer, matching qkit.
+- `page.tsx` — `Home` async server component, the marketing landing page. Composes `Nav`, `Hero`, `Benefits`, `HowItWorks`, `Faq`, `ClosingCta`, `Footer`, and `BackToTop` from `@/components/landing/`. `ClosingCta` is the family's documented ink-band closing section, rendered between `Faq` and `Footer`.
 
 ## Connectivity
 

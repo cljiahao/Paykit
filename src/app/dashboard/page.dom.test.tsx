@@ -2,21 +2,23 @@
 //
 // DashboardPage is an async Server Component, same pattern as
 // layout.dom.test.tsx: await it directly and render the returned element
-// tree with RTL. Covers the empty-state prompt, the transaction count, the
-// Pro nudge threshold (`shouldNudgePro`) branches, and the durable
-// tour-seen stamp (see page.tsx's own comment, and tour-actions.ts's
-// stampTourSeen/markTourSeen) firing exactly when it should.
+// tree with RTL. Covers the empty-state prompt, the payment-method summary
+// card, the transaction count, the Pro nudge threshold (`shouldNudgePro`)
+// branches, and the durable tour-seen stamp (see page.tsx's own comment, and
+// tour-actions.ts's stampTourSeen/markTourSeen) firing exactly when it
+// should.
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import DashboardPage from "./page";
+import type { VendorPaymentConfig } from "@/lib/types";
 
 const {
-  getVendorPlanMock,
+  getConfigMock,
   txCountThisMonthMock,
   maybeSingleMock,
   stampTourSeenMock,
 } = vi.hoisted(() => ({
-  getVendorPlanMock: vi.fn(),
+  getConfigMock: vi.fn(),
   txCountThisMonthMock: vi.fn(),
   maybeSingleMock: vi.fn(),
   stampTourSeenMock: vi.fn(async () => {}),
@@ -35,7 +37,9 @@ vi.mock("@/lib/vendor-session", () => ({
     },
     user: { id: "v1" },
   })),
-  getVendorPlan: getVendorPlanMock,
+}));
+vi.mock("./config/actions", () => ({
+  getConfig: getConfigMock,
 }));
 vi.mock("@/lib/transactions", () => ({
   txCountThisMonth: txCountThisMonthMock,
@@ -44,18 +48,42 @@ vi.mock("@/lib/tour-prefs", () => ({
   stampTourSeen: stampTourSeenMock,
 }));
 
+const PAYNOW_CONFIG: VendorPaymentConfig = {
+  vendor_id: "v1",
+  kind: "paynow",
+  uen: "53312345A",
+  mobile: null,
+  payee_name: "Kopitiam Cart",
+  label: null,
+  url: null,
+  qr_image_url: null,
+  verification_method: "manual",
+  plan: "free",
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
+};
+
+const POINTER_CONFIG: VendorPaymentConfig = {
+  ...PAYNOW_CONFIG,
+  kind: "pointer",
+  uen: null,
+  payee_name: null,
+  label: "Pay with PayLah",
+  url: "https://example.com/pay",
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   maybeSingleMock.mockResolvedValue({
     data: { tour_seen_at: "2026-01-01T00:00:00Z" },
   });
-  getVendorPlanMock.mockResolvedValue({ plan: "free" });
+  getConfigMock.mockResolvedValue(PAYNOW_CONFIG);
   txCountThisMonthMock.mockResolvedValue(0);
 });
 
 describe("DashboardPage", () => {
   it("shows the setup prompt when the vendor has no payment config yet", async () => {
-    getVendorPlanMock.mockResolvedValue(null);
+    getConfigMock.mockResolvedValue(null);
     txCountThisMonthMock.mockResolvedValue(5);
 
     const jsx = await DashboardPage();
@@ -69,10 +97,11 @@ describe("DashboardPage", () => {
       "/dashboard/config",
     );
     expect(screen.getByText("5 transactions this month")).toBeInTheDocument();
+    expect(screen.queryByText("Payment method")).not.toBeInTheDocument();
   });
 
   it("hides the setup prompt once a config exists, and hides the nudge below threshold", async () => {
-    getVendorPlanMock.mockResolvedValue({ plan: "free" });
+    getConfigMock.mockResolvedValue({ ...PAYNOW_CONFIG, plan: "free" });
     txCountThisMonthMock.mockResolvedValue(10);
 
     const jsx = await DashboardPage();
@@ -85,8 +114,31 @@ describe("DashboardPage", () => {
     expect(screen.queryByText(/doing real volume/i)).not.toBeInTheDocument();
   });
 
+  it("shows a masked PayNow summary with an edit link into config", async () => {
+    const jsx = await DashboardPage();
+    render(jsx);
+
+    expect(screen.getByText("Payment method")).toBeInTheDocument();
+    expect(screen.getByText("PayNow QR · 53••••5A")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Edit" })).toHaveAttribute(
+      "href",
+      "/dashboard/config",
+    );
+  });
+
+  it("shows the pointer label (unmasked) for a BYO payment link/QR config", async () => {
+    getConfigMock.mockResolvedValue(POINTER_CONFIG);
+
+    const jsx = await DashboardPage();
+    render(jsx);
+
+    expect(
+      screen.getByText("Payment link or QR image · Pay with PayLah"),
+    ).toBeInTheDocument();
+  });
+
   it("shows the Pro nudge once a Free vendor crosses the usage threshold", async () => {
-    getVendorPlanMock.mockResolvedValue({ plan: "free" });
+    getConfigMock.mockResolvedValue({ ...PAYNOW_CONFIG, plan: "free" });
     txCountThisMonthMock.mockResolvedValue(50);
 
     const jsx = await DashboardPage();
@@ -100,7 +152,7 @@ describe("DashboardPage", () => {
   });
 
   it("never shows the nudge for a Pro vendor, even above threshold", async () => {
-    getVendorPlanMock.mockResolvedValue({ plan: "pro" });
+    getConfigMock.mockResolvedValue({ ...PAYNOW_CONFIG, plan: "pro" });
     txCountThisMonthMock.mockResolvedValue(999);
 
     const jsx = await DashboardPage();
