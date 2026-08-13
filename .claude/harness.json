@@ -1,5 +1,5 @@
 {
-  "templatecentral_version": "5.11.0",
+  "templatecentral_version": "5.14.0",
   "stack": "nextjs",
   "adapted": "Next 16 + Supabase (auth/db) — Supabase variant, based on qkit harness",
   "seeded_at": "2026-07-22",
@@ -8,7 +8,7 @@
   "richReadme": true,
   "seeded_files": {
     "AGENTS.md": {
-      "origin_hash": "85e3df18b1732ce4b88226e83f21705545c39769dce21992ec8f2260b9d1e871",
+      "origin_hash": "577b3cdadb6e2e4f71c54d80500ec7fba2adc17a7e574d4e133548faaa364d4c",
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
@@ -56,7 +56,7 @@
       "path": ".claude/hooks/skill-usage-log.sh"
     },
     ".claude/hooks/stop-checks.sh": {
-      "origin_hash": "6c1142a9207b1ff1f055596875eb962d6ef3da8dd1c7d97c5c9f35fcad973b2e",
+      "origin_hash": "91e87eef5d1fdb2a2b7ee2b59d907cf341816e42512cb99eb8c3de24e7fd7ab8",
       "path": ".claude/hooks/stop-checks.sh"
     },
     ".claude/hooks/subagent-stop.sh": {
