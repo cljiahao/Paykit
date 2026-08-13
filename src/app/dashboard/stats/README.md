@@ -9,23 +9,27 @@ a vendor. Pro only — Free vendors see an upsell instead of the chart.
 
 - `page.tsx` — `StatsPage()` (server): calls `getVendorSession()`/
   `getVendorPlan()`; on Free, returns an upsell message in a plain
-  `mx-auto max-w-lg` div; on Pro, calls `listTransactions()` +
-  `aggregateRevenueByDay()` (`@/lib/revenue-report`) and renders
-  `RevenueChart` inside a plain `mx-auto max-w-3xl` div. Neither branch
-  uses `<main>` — the parent `dashboard/layout.tsx` owns that landmark and
-  the page-family's canonical `max-w-7xl` outer width; a chart this size
-  reads better narrower than the full dashboard width.
+  `mx-auto max-w-lg` div — "upgrade" is a `next/link` to `/dashboard/plan`,
+  not plain text, so the upsell is actually actionable; on Pro, calls
+  `listTransactions()` + `aggregateRevenueByDay()` (`@/lib/revenue-report`)
+  and renders `RevenueChart` inside a plain `mx-auto max-w-3xl` div.
+  Neither branch uses `<main>` — the parent `dashboard/layout.tsx` owns
+  that landmark and the page-family's canonical `max-w-7xl` outer width; a
+  chart this size reads better narrower than the full dashboard width.
 - `revenue-chart.tsx` — `RevenueChart({ data })`: client component. A 3-tile
   stat row (`StatTile`: Total revenue, Transactions, Avg / day) sits above
   the chart, computed from the existing `data` prop — no separate fetch —
   followed by a `recharts` `BarChart` (dollars by day, bars filled with
   `var(--color-mint)`, the brand accent, not the near-monochrome
-  `--color-primary` it used before) inside a `ResponsiveContainer`. Recharts
-  renders to an inline SVG with no text alternative of its own, so the
-  chart's wrapping `div` carries `role="img"` + a summarizing `aria-label`
-  (total SGD revenue, day count, date range), plus an `sr-only` `<table>`
-  of the underlying per-day data for screen readers that want the actual
-  numbers, not just the summary.
+  `--color-primary` it used before) inside a `ResponsiveContainer`. A
+  `Tooltip` with a custom `ChartTooltip` content component (card-styled,
+  SGD-formatted date/amount/count) shows on hover — the chart previously
+  had no way to read an individual day's exact figure. Recharts renders to
+  an inline SVG with no text alternative of its own, so the chart's
+  wrapping `div` carries `role="img"` + a summarizing `aria-label` (total
+  SGD revenue, day count, date range), plus an `sr-only` `<table>` of the
+  underlying per-day data for screen readers that want the actual numbers,
+  not just the summary.
 - `page.dom.test.tsx` — awaits `StatsPage()` directly and renders the
   result (same pattern as `dashboard/layout.dom.test.tsx`): the Free/no-
   config upsell branch, and the Pro branch's `listTransactions` →

@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -27,6 +28,27 @@ function summarize(data: DailyRevenue[]): string {
       ? data[0].date
       : `${data[0].date} to ${data[data.length - 1].date}`;
   return `Revenue chart: ${total} total across ${data.length} day${data.length === 1 ? "" : "s"}, ${range}.`;
+}
+
+/** Custom tooltip content — recharts' default tooltip doesn't pick up the
+ * app's card styling or SGD currency formatting. */
+function ChartTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: { payload: DailyRevenue }[];
+}) {
+  if (!active || !payload?.length) return null;
+  const { date, cents, count } = payload[0].payload;
+  return (
+    <div className="rounded-lg border bg-popover px-3 py-2 text-sm shadow-md">
+      <p className="font-medium">{date}</p>
+      <p className="text-muted-foreground">
+        {formatCents(cents)} · {count} transaction{count === 1 ? "" : "s"}
+      </p>
+    </div>
+  );
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
@@ -63,6 +85,10 @@ export function RevenueChart({ data }: { data: DailyRevenue[] }) {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" fontSize={12} />
             <YAxis fontSize={12} />
+            <Tooltip
+              content={<ChartTooltip />}
+              cursor={{ fill: "var(--color-muted)" }}
+            />
             <Bar dataKey="dollars" fill="var(--color-mint)" radius={4} />
           </BarChart>
         </ResponsiveContainer>

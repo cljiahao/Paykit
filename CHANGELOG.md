@@ -21,6 +21,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- `saveConfigAction` (`/dashboard/config`) used `.upsert()`, whose
+  `ON CONFLICT DO UPDATE` path requires table-level `UPDATE` privilege
+  regardless of column-level grants — but `vendor_payment_config`'s
+  `UPDATE` grant is deliberately column-scoped to exclude `plan` (see
+  `0001_paykit_core.sql`, so a vendor can't self-escalate to Pro). The
+  result: every payment-config save failed with a silent "Could not
+  save. Try again." — the core setup flow was completely broken for both
+  first-time and repeat saves. Replaced the upsert with an explicit
+  select-then-insert-or-update, which respects the same column grants
+  as every other write in the app; no grant was widened.
+- The revenue chart (`/dashboard/stats`) had no tooltip — hovering a bar
+  showed nothing, so a vendor could only eyeball a day's revenue against
+  the gridlines. Added a `recharts` `Tooltip` with a custom, card-styled
+  content component showing the exact date, amount, and transaction count.
+- The free-plan Stats page's "upgrade to see aggregated revenue…" copy
+  had no way to act on it — "upgrade" was plain text, not a link. It now
+  links to `/dashboard/plan`, matching the linked pattern already used in
+  the dashboard home Pro nudge.
 - Refund amount was entered in raw cents ("450" for $4.50) while
   every other money value in the app displays as SGD dollars — real
   error risk on an action that writes a refund ledger row. The
