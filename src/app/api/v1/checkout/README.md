@@ -11,7 +11,8 @@ pointer for a vendor's transaction. Bearer-secret authenticated
 - `route.ts` — `POST`: validates the request body against
   `checkoutRequestSchema`, verifies the caller's bearer secret, then inserts
   a `transactions` row (service-role client) and renders the checkout
-  (PayNow QR or BYO pointer) via `renderCheckout`. Idempotent on
+  (PayNow QR or BYO pointer) via `getProvider().createCheckout(...)` (see
+  `src/lib/payments/README.md` for the provider seam itself). Idempotent on
   `(kit_slug, order_ref)` — a retried call with the same pair (Postgres
   unique-constraint violation on insert) reads back and returns the
   existing transaction instead of creating a duplicate or failing.
