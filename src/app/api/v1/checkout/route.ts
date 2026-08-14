@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKitAuth } from "@/lib/kit-auth";
 import { checkoutRequestSchema } from "@/lib/api-schemas";
-import { renderCheckout } from "@/lib/payments/adapter";
+import { getProvider } from "@/lib/payments/provider";
 import type { VendorPaymentConfig } from "@/lib/types";
 
 export async function POST(request: Request) {
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const view = renderCheckout(config as VendorPaymentConfig, {
+  const view = getProvider().createCheckout(config as VendorPaymentConfig, {
     amountCents: amount_cents,
     orderRef: order_ref,
   });
