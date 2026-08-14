@@ -57,6 +57,7 @@ src/proxy.ts                      — Supabase session refresh + /dashboard guar
 src/lib/supabase/                 — browser / server / service clients + mw helper (schema=paykit)
 src/lib/payments/paynow.ts        — EMVCo PayNow QR builder (ported verbatim from qkit)
 src/lib/payments/adapter.ts       — renderCheckout (paynow|pointer) + reserved-but-dark auto-verify stub
+src/lib/payments/provider.ts      — PaymentProvider seam: direct provider (wraps renderCheckout, unchanged) + getProvider() (PAYKIT_PROVIDER-selected, defaults/falls back to direct)
 src/lib/tx-state.ts               — pure pending→claimed→confirmed transition logic
 src/lib/kit-auth.ts               — bearer-secret verification for calling kits
 src/lib/schemas.ts                — Zod: vendor payment config write schema (paynow|pointer)
