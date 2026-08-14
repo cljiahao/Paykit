@@ -29,7 +29,12 @@ part of the request, as defense-in-depth. `@merqo/ui`'s `DashboardNav`
 client-side transition rather than a full page reload in the first
 place. `POST /api/v1/checkout` is idempotent
 on `(kit_slug, order_ref)` — a retried call returns the existing
-transaction instead of creating a duplicate. `pnpm-workspace.yaml`'s
+transaction instead of creating a duplicate. Checkout creation itself
+goes through a pluggable `PaymentProvider` seam
+(`src/lib/payments/provider.ts`) — today's only registered provider is
+`direct`, wrapping the existing PayNow/pointer builder unchanged, so a
+future real gateway is a `PAYKIT_PROVIDER` config value plus one new
+provider implementation, not a route rewrite. `pnpm-workspace.yaml`'s
 `overrides` pins several transitive dependencies (`postcss`, `undici`,
 `vite`, `qs`, `sharp`, `nanoid`, `fast-uri`, `js-yaml`, `brace-expansion`)
 past known-vulnerable versions Next.js itself and dev tooling still
