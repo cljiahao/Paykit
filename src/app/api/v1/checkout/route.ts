@@ -41,10 +41,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const view = getProvider().createCheckout(config as VendorPaymentConfig, {
-    amountCents: amount_cents,
-    orderRef: order_ref,
-  });
+  const view = await getProvider().createCheckout(
+    config as VendorPaymentConfig,
+    {
+      amountCents: amount_cents,
+      orderRef: order_ref,
+    },
+  );
   if (!view) {
     return NextResponse.json(
       { error: "vendor payment config is incomplete" },

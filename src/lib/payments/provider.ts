@@ -18,7 +18,7 @@ export interface PaymentProvider {
   createCheckout(
     config: VendorPaymentConfig,
     ctx: { amountCents: number; orderRef: string },
-  ): CheckoutView | null;
+  ): CheckoutView | null | Promise<CheckoutView | null>;
   getStatus(transactionId: string): Promise<ProviderCheckoutStatus>;
 }
 
@@ -44,7 +44,7 @@ const PROVIDERS: Record<string, PaymentProvider> = {
 export function getProvider(): PaymentProvider {
   const name = process.env.PAYKIT_PROVIDER;
   if (!name) return directProvider;
-  const provider = PROVIDERS[name];
+  const provider = Object.hasOwn(PROVIDERS, name) ? PROVIDERS[name] : undefined;
   if (!provider) {
     console.warn(`paykit: unknown PAYKIT_PROVIDER "${name}", using "direct"`);
     return directProvider;

@@ -29,6 +29,14 @@ describe("getProvider", () => {
     );
     warn.mockRestore();
   });
+
+  it('falls back to direct and warns on a prototype-chain key like "constructor"', () => {
+    process.env.PAYKIT_PROVIDER = "constructor";
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(getProvider()).toBe(directProvider);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("constructor"));
+    warn.mockRestore();
+  });
 });
 
 describe("directProvider", () => {
@@ -47,8 +55,8 @@ describe("directProvider", () => {
     updated_at: "2026-01-01T00:00:00Z",
   };
 
-  it("delegates createCheckout to renderCheckout (same behavior as before this seam)", () => {
-    const view = directProvider.createCheckout(paynowConfig, {
+  it("delegates createCheckout to renderCheckout (same behavior as before this seam)", async () => {
+    const view = await directProvider.createCheckout(paynowConfig, {
       amountCents: 450,
       orderRef: "order-1",
     });
