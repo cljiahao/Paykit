@@ -14,7 +14,12 @@ vi.mock("@/lib/supabase/server", () => ({
   })),
 }));
 
-import { platformTotals, recentActivity, listVendors } from "@/lib/admin-data";
+import {
+  platformTotals,
+  recentActivity,
+  listVendors,
+  getAdminPricing,
+} from "@/lib/admin-data";
 
 function builder(data: unknown, error: unknown = null) {
   const b: Record<string, unknown> = {
@@ -216,6 +221,22 @@ describe("admin-data", () => {
     it("throws when a read errors", async () => {
       fromMock.mockReturnValueOnce(builder(null, { message: "boom" }));
       await expect(listVendors()).rejects.toThrow("listVendors");
+    });
+  });
+
+  describe("getAdminPricing", () => {
+    it("reads the single pricing row via the service-role client", async () => {
+      mockTables({ pricing: { monthly_cents: 499, currency: "SGD" } });
+      await expect(getAdminPricing()).resolves.toEqual({
+        monthly_cents: 499,
+        currency: "SGD",
+      });
+    });
+
+    it("falls back to DEFAULT_PRICING when the row can't be read", async () => {
+      fromMock.mockReturnValueOnce(builder(null, null));
+      const { DEFAULT_PRICING } = await import("@/lib/pricing");
+      await expect(getAdminPricing()).resolves.toEqual(DEFAULT_PRICING);
     });
   });
 });
