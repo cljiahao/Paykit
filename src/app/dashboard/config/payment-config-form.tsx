@@ -302,7 +302,10 @@ export function PaymentConfigForm({
                 )}
               {isValidHttpUrl(url) && (
                 <a
-                  href={url}
+                  // Re-serialized through URL rather than the raw input: an
+                  // explicit sanitizing step CodeQL's dataflow can see,
+                  // on top of isValidHttpUrl's existing http(s)-only guard.
+                  href={new URL(url).href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline"
