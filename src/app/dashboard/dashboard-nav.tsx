@@ -22,6 +22,20 @@ function isActive(path: string, href: string): boolean {
   return href === "/dashboard" ? path === "/dashboard" : path.startsWith(href);
 }
 
+// The other live sibling kits a signed-in vendor can jump to — SSO (the
+// shared `.merqo.io` cookie) already signs them in there too, this just
+// adds the in-product navigation. Deliberately static and unconditional
+// (not filtered to kits the vendor has actually activated): every live
+// kit's dashboard already handles a signed-in vendor gracefully even if
+// they haven't set that kit up yet, so listing all three is safe. Mirrors
+// merqo/src/lib/kits.ts's own `name`/URL values for these kits, minus
+// paykit itself.
+const SWITCH_KITS = [
+  { label: "qkit", href: "https://qkit-sg.vercel.app" },
+  { label: "loopkit", href: "https://loopkit-sg.vercel.app" },
+  { label: "stockkit", href: "https://stockkit-sg.vercel.app" },
+];
+
 /** Stable anchor id for the onboarding tour, e.g. "/dashboard/config" -> "nav-config". */
 function tourAnchor(href: string): string {
   return `nav-${href === "/dashboard" ? "dashboard" : href.split("/").pop()}`;
@@ -128,6 +142,7 @@ export function DashboardNav({
       }}
       signOutAction={signOut}
       tierBadge={<TierBadge tier={plan} />}
+      switchKits={SWITCH_KITS}
       getHelp={{
         type: "form",
         onSubmit: async ({ message, category }) => {

@@ -52,6 +52,15 @@ account"` fallback only for the edge case of an empty string) — never a
   client-side transition instead of a full page reload; `DashboardNav`
   forwards it down to the `AccountMenu` it composes internally, so this
   one call site covers both — paykit has no standalone `AccountMenu` usage.
+  Also passes a static `switchKits` array (`@merqo/ui` v0.13.0+) listing
+  the other three live sibling kits (qkit/loopkit/stockkit, mirroring
+  `merqo/src/lib/kits.ts`'s own `name`/URL values, minus paykit itself) so
+  the account dropdown's "Switch products" submenu lets a signed-in vendor
+  jump to another kit's dashboard — SSO already signs them in there via the
+  shared `.merqo.io` cookie. Deliberately unconditional/unfiltered (not
+  scoped to kits the vendor has actually activated) — every live kit's own
+  dashboard already handles a signed-in vendor who hasn't set that kit up
+  yet gracefully, so this is a v1 static list, no new API call.
 - `loading.tsx` — route-segment loading fallback for every `/dashboard/*`
   page. `layout.tsx` (the header/nav) resolves outside the Suspense
   boundary `loading.tsx` creates, so this only stands in for the page
@@ -68,8 +77,9 @@ page.tsx`/`stats/page.tsx`'s title-plus-cards structure, not a generic
   with correct hrefs, the account-menu item order, that Sign out is a
   genuine form submit reaching the `signOut` action, that Get help opens a
   Sheet mapping its message to `submitSupportMessageAction`'s `body` field,
-  and that a failed feedback/support submit surfaces an inline error
-  rather than failing silently.
+  that a failed feedback/support submit surfaces an inline error rather
+  than failing silently, and that the account menu's "Switch products"
+  submenu links to qkit/loopkit/stockkit (not paykit itself).
 - `page.tsx` — `DashboardPage()` (server): calls `./config/actions`'s
   `getConfig()` (the same full-row fetch `config/page.tsx` uses, not the
   plan-only `getVendorPlan`) so it can render a payment-method summary card
