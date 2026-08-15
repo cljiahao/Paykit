@@ -367,3 +367,14 @@ variant="ghost" size="sm"` control instead of a hand-rolled `Link`,
   `src/lib/utils.ts`. Removed `schemas.ts`'s `parseSocialLinks` — dead
   code with zero callers (the real `social_links` data flow reads
   straight from the merqo RPC response, never through this function).
+
+### Security
+
+- `vendorPaymentConfigInputSchema`'s pointer `url`/`qr_image_url` and
+  `socialLinksSchema`'s social link fields validated only with
+  `z.string().url()`, which accepts any scheme — `javascript:`, `data:`,
+  `file:`, etc. The pointer `url` is later rendered as a real link both in
+  the vendor's own dashboard and, via `/api/v1/checkout`'s `"link"`
+  response type, in front of an end customer on whichever kit's checkout
+  UI renders it. Added an `isHttpUrl()` refinement restricting all of
+  these fields to `http:`/`https:` at the schema layer.
