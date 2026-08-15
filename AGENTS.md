@@ -69,6 +69,8 @@ src/lib/kit-auth.ts               — bearer-secret verification for calling kit
 src/lib/schemas.ts                — Zod: vendor payment config write schema (paynow|pointer)
 src/lib/api-schemas.ts            — Zod: HTTP API request/response contracts + shared uuidSchema path-param validator
 src/lib/vendor-session.ts         — shared dashboard auth guard (getVendorSession) + plan lookup (getVendorPlan)
+src/lib/pricing.ts                — PricingConfig, DEFAULT_PRICING, getPricing() (shared by admin/dashboard/landing)
+src/app/admin/pricing-section.tsx — @merqo/ui PricingForm wired to setPricing + toast
 src/lib/types.ts                  — DB types (mirror of supabase/migrations)
 scripts/create-kit-key.mjs        — mint + store a hashed bearer secret for a calling kit
 supabase/migrations/              — SQL schema + RLS + grants
@@ -86,18 +88,27 @@ test/contract/                    — HTTP API contract test (mirrors merqo's qk
   `qr_image_url`) — see `docs/superpowers/specs/2026-07-22-paykit-multi-
 method-byo-design.md`. `payee_name`/`uen`/`mobile` apply only to
   `'paynow'`; `label`/`url`/`qr_image_url` only to `'pointer'`. `plan`
-  (`free`|`pro`) gates Pro-exclusive features (stats, refunds) only — no
-  transaction-volume cap; Free tier checkout is unlimited (see
-  `docs/superpowers/specs/2026-07-22-paykit-freemium-nudge-redesign-design.md`).
+  (`free`|`pro`) gates refund tracking only — transaction history and
+  revenue stats are both free; Free tier checkout is unlimited, no
+  transaction-volume cap (see
+  `docs/superpowers/specs/2026-07-22-paykit-freemium-nudge-redesign-design.md`,
+  `docs/superpowers/specs/2026-08-15-paykit-pro-simplification-design.md`).
   This column is a minimal addition beyond the design spec's literal table
   listing, necessary to implement the very Pro-gate the same spec
-  describes (see the plan's Self-Review). `verification_method` is
-  schema-reserved (`'manual'` only is ever written).
+  describes (see the plan's Self-Review). Pro's price is admin-tunable via
+  `/admin` (seeded at $4.99/mo) — see `paykit.pricing`. `verification_method`
+  is schema-reserved (`'manual'` only is ever written).
 - `transactions`: one row per checkout, `status` `pending`→`claimed`→`confirmed`,
   `kit_slug` records which kit created it, `qr_payload` stored at creation for
   replay/audit.
 - `refunds` (Pro only): bookkeeping ledger row against a `confirmed`
   transaction — no real money movement.
+- `pricing` (single row, `id` pinned to 1): the Pro price shown on the
+  plan page, dashboard nudge, and landing site. Admin-tunable via
+  `/admin` (no redeploy needed) — see `paykit.pricing`,
+  `src/lib/pricing.ts`. Public-read RLS (the price isn't secret); writes
+  go through the service-role `setPricing` action only. Seeded at
+  `monthly_cents = 499` ($4.99).
 - `kit_api_keys`: one hashed bearer secret per calling kit, service-role only
   (no RLS policy grants any access to `authenticated`/`anon`).
 - `vendor_prefs` (PK `vendor_id`): dashboard UI state, currently just
@@ -223,7 +234,7 @@ entry carries a real sha256 as of the 2026-08-01 husky migration's
 - Cutting qkit (or any other kit) over to actually call paykit started
   2026-08-11 with `POST /api/v1/vendors/{vendor_id}/config` (kit-auth
   config write, for qkit's own "quick add PayNow details" dashboard UI).
-  qkit's checkout flow itself has not yet been switched over to
-  `POST /api/v1/checkout`.
+  qkit's checkout flow itself completed its own cutover to
+  `POST /api/v1/checkout` (see "What paykit is" above).
 
 <!-- [[post-harness]] — reserved for trace capture and meta-harness integration -->
