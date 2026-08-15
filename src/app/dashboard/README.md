@@ -52,15 +52,18 @@ account"` fallback only for the edge case of an empty string) — never a
   client-side transition instead of a full page reload; `DashboardNav`
   forwards it down to the `AccountMenu` it composes internally, so this
   one call site covers both — paykit has no standalone `AccountMenu` usage.
-  Also passes a static `switchKits` array (`@merqo/ui` v0.13.0+) listing
-  the other three live sibling kits (qkit/loopkit/stockkit, mirroring
-  `merqo/src/lib/kits.ts`'s own `name`/URL values, minus paykit itself) so
+  Also passes `switchKits={getSwitchKits("paykit")}` (`@merqo/ui` v0.14.0+)
+  listing the other three live sibling kits (qkit/loopkit/stockkit) so
   the account dropdown's "Switch products" submenu lets a signed-in vendor
   jump to another kit's dashboard — SSO already signs them in there via the
-  shared `.merqo.io` cookie. Deliberately unconditional/unfiltered (not
-  scoped to kits the vendor has actually activated) — every live kit's own
-  dashboard already handles a signed-in vendor who hasn't set that kit up
-  yet gracefully, so this is a v1 static list, no new API call.
+  shared `.merqo.io` cookie. `getSwitchKits` centralizes the kit family in
+  `@merqo/ui` itself (mirroring `merqo/src/lib/kits.ts`'s own `name`/URL
+  values), so adding a future sibling kit only requires updating
+  `@merqo/ui`, not this file's own hardcoded list. Deliberately
+  unconditional/unfiltered (not scoped to kits the vendor has actually
+  activated) — every live kit's own dashboard already handles a signed-in
+  vendor who hasn't set that kit up yet gracefully, so this needs no new
+  API call.
 - `loading.tsx` — route-segment loading fallback for every `/dashboard/*`
   page. `layout.tsx` (the header/nav) resolves outside the Suspense
   boundary `loading.tsx` creates, so this only stands in for the page

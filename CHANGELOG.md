@@ -26,6 +26,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Bumped `@merqo/ui` to v0.14.0 and switched the dashboard nav's
+  `switchKits` prop to the new `getSwitchKits("paykit")` helper, replacing
+  the locally hardcoded sibling-kit array. `@merqo/ui` now owns the
+  canonical kit family list (`KIT_FAMILY`), so adding a future kit only
+  requires updating `@merqo/ui`, not every kit's own `DashboardNav`
+  wrapper. No behavior change — same three sibling kits, same URLs.
 - Display font switched from Space Grotesk to Fraunces (the shared
   family display face — see
   `docs/business/2026-08-13-typography-family-standard.md`). qkit

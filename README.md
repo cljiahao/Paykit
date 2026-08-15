@@ -48,13 +48,13 @@ bundle; `pnpm audit --prod --audit-level=high` is CI's hard gate — bump
 the relevant floor here when a new advisory lands, and re-check after any
 `next` upgrade in case it's safe to drop one. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.13.0, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.14.0, `package.json`;
 kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
 wiring as thin adapters over the shared components). The dashboard nav's
-account menu also passes a static `switchKits` list (qkit/loopkit/stockkit)
-so a signed-in vendor can jump to another kit's dashboard via the shared
-SSO cookie — see `src/app/dashboard/README.md`. The admin console's
+account menu also passes `switchKits` via `@merqo/ui`'s `getSwitchKits("paykit")`
+helper (qkit/loopkit/stockkit) so a signed-in vendor can jump to another
+kit's dashboard via the shared SSO cookie — see `src/app/dashboard/README.md`. The admin console's
 Pricing section wraps `@merqo/ui`'s `PricingForm` (paykit's first real
 adopter of that component). Every `/dashboard`
 route shares one layout-level content-width container (`mx-auto w-full
