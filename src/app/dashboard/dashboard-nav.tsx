@@ -22,6 +22,15 @@ function isActive(path: string, href: string): boolean {
   return href === "/dashboard" ? path === "/dashboard" : path.startsWith(href);
 }
 
+// The other live sibling kits a vendor can jump to via the shared SSO
+// cookie. Static and unfiltered by design (see the kit-switcher plan doc)
+// — mirrors merqo/src/lib/kits.ts's own `name`/URL values, minus paykit.
+const SWITCH_KITS = [
+  { label: "qkit", href: "https://qkit-sg.vercel.app" },
+  { label: "loopkit", href: "https://loopkit-sg.vercel.app" },
+  { label: "stockkit", href: "https://stockkit-sg.vercel.app" },
+];
+
 /** Stable anchor id for the onboarding tour, e.g. "/dashboard/config" -> "nav-config". */
 function tourAnchor(href: string): string {
   return `nav-${href === "/dashboard" ? "dashboard" : href.split("/").pop()}`;
@@ -128,6 +137,7 @@ export function DashboardNav({
       }}
       signOutAction={signOut}
       tierBadge={<TierBadge tier={plan} />}
+      switchKits={SWITCH_KITS}
       getHelp={{
         type: "form",
         onSubmit: async ({ message, category }) => {

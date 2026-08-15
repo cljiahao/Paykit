@@ -8,11 +8,11 @@
   "richReadme": true,
   "seeded_files": {
     "AGENTS.md": {
-      "origin_hash": "577b3cdadb6e2e4f71c54d80500ec7fba2adc17a7e574d4e133548faaa364d4c",
+      "origin_hash": "45fc088896be57fe6bccf502a23a4cd8dc26ab3cad01fa775ee27cdcc9a9b244",
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
-      "origin_hash": "d7dfe86a9ae7636e07fed741baa35297d809d891e1b24edb8f9e2bbad8547075",
+      "origin_hash": "4f4c90b4d431c38749d05bbeb611ece62a3f20223ea8ca76045f43d45ea8b537",
       "path": ".claude/settings.json"
     },
     ".claude/hooks/block-no-verify.sh": {
