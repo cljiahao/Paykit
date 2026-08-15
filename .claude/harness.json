@@ -1,5 +1,5 @@
 {
-  "templatecentral_version": "5.14.0",
+  "templatecentral_version": "5.15.0",
   "stack": "nextjs",
   "adapted": "Next 16 + Supabase (auth/db) — Supabase variant, based on qkit harness",
   "seeded_at": "2026-07-22",
@@ -12,7 +12,7 @@
       "path": "AGENTS.md"
     },
     ".claude/settings.json": {
-      "origin_hash": "37fa9a211283bc5ea7db15eda2c832deafee3551d83099587aeae87c1b50f889",
+      "origin_hash": "d7dfe86a9ae7636e07fed741baa35297d809d891e1b24edb8f9e2bbad8547075",
       "path": ".claude/settings.json"
     },
     ".claude/hooks/block-no-verify.sh": {
@@ -24,7 +24,7 @@
       "path": ".claude/hooks/protect-files.sh"
     },
     ".claude/hooks/user-prompt-guard.cjs": {
-      "origin_hash": "d1c376ffcbaba440838b52da3114b4671038042958126c4a316b4ef7de4056f6",
+      "origin_hash": "7d1d56b9b305dd5f3c54f919a07736ad9e5e824ca5d86ee8b77ef40f1cc5cda0",
       "path": ".claude/hooks/user-prompt-guard.cjs"
     },
     ".claude/hooks/post-edit-comment-check.sh": {

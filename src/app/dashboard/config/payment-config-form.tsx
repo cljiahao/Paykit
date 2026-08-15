@@ -104,8 +104,9 @@ export function PaymentConfigForm({
     }
   }
 
+  const identifier = idKind === "uen" ? uen : mobile;
   const previewPayload =
-    kind === "paynow" && payeeName && (idKind === "uen" ? uen : mobile)
+    kind === "paynow" && payeeName && identifier
       ? buildPayNowPayload({
           uen: idKind === "uen" ? uen : undefined,
           mobile: idKind === "mobile" ? mobile : undefined,

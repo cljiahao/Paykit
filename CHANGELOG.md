@@ -349,3 +349,12 @@ variant="ghost" size="sm"` control instead of a hand-rolled `Link`,
   `src/components/`, `src/components/landing/`, and `src/components/ui/`
   `README.md` files — previously bypassed via the `skip-readme-check`
   label on prior PRs that touched those folders.
+
+### Changed
+
+- `eslint.config.mjs` expanded from one hand-picked sonarjs rule to the
+  plugin's full `sonarjs.configs.recommended` set (206 of 268 rules at
+  `error`), with scoped overrides for generated shadcn primitives and
+  test-fixture false positives. Fixed every real finding it surfaced: 4
+  nested ternaries de-nested (display-string logic only, no behavior
+  change) and 2 `concise-regex` simplifications.
