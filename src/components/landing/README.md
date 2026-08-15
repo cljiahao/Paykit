@@ -23,13 +23,20 @@ file. Presentational only — no data fetching, no client state beyond the
 - `checkout-card.tsx` — stylized non-functional "live checkout" artifact for
   the hero (not a real scannable QR — a stand-in with a status pill using
   the product's own pending/claimed/confirmed language).
-- `benefits.tsx` — the "why paykit" feature grid.
+- `benefits.tsx` — the "why paykit" feature grid. Takes
+  `{ monthlyPriceLabel }` (formatted from the live admin-tunable
+  `pricing` row, `@/lib/pricing`) for the "Free while you're small" tile's
+  Pro-price mention — no hardcoded price string.
 - `how-it-works.tsx` — 3-step explainer (connect method → share checkout →
   confirm).
-- `faq.tsx` — static Q&A list, including "does paykit hold my money?"; heading
-  uses the same eyebrow (`font-mono uppercase tracking-widest`) +
-  `font-display` heading pair as `how-it-works.tsx`/`benefits.tsx`, not a
-  bespoke centered heading.
+- `faq.tsx` — Q&A list, including "does paykit hold my money?"; takes
+  `{ monthlyPriceLabel }` (the `FAQ` array lives in the component body, not
+  module scope, so its "what does the free plan include?" answer can
+  interpolate the live price) — same source as `benefits.tsx`'s prop, both
+  fed by `src/app/page.tsx`'s single `getPricing` call. Heading uses the
+  same eyebrow (`font-mono uppercase tracking-widest`) + `font-display`
+  heading pair as `how-it-works.tsx`/`benefits.tsx`, not a bespoke centered
+  heading.
 - `closing-cta.tsx` — full-bleed `bg-ink text-ink-foreground` closing
   section between `Faq` and `Footer` (the family's shared "dark
   authoritative band" convention documented on the `--ink`/`--ink-foreground`
