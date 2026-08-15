@@ -6,6 +6,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- BYO payment preset picker on the `pointer` config form
+  (`src/app/dashboard/config/pointer-presets.ts`): four cards (Stripe
+  Payment Link, HitPay Payment Link, PayLah! QR, Other/Custom), each
+  with tailored "where to find this" instructions; Stripe and HitPay
+  additionally get a soft, non-blocking warning if the pasted URL
+  doesn't look like their expected link shape. UI/copy only — no new
+  `vendor_payment_config` column, no PSP integration, free tier always.
+  See `docs/superpowers/specs/2026-08-14-paykit-byo-preset-directory-design.md`.
+
 ### Changed
 
 - Display font switched from Space Grotesk to Fraunces (the shared
