@@ -13,6 +13,12 @@ import { uploadPaykitImage } from "@/lib/image-upload-adapter";
 import { resizeToWebp } from "@/lib/image-resize";
 import { buildPayNowPayload } from "@/lib/payments/paynow";
 import { saveConfigAction, type SaveConfigState } from "./actions";
+import {
+  POINTER_PRESETS,
+  POINTER_PRESET_ORDER,
+  derivePointerPreset,
+  type PointerPresetId,
+} from "./pointer-presets";
 import type { PaymentConfigKind, VendorPaymentConfig } from "@/lib/types";
 
 type IdKind = "uen" | "mobile";
@@ -73,11 +79,34 @@ export function PaymentConfigForm({
       ? "qr"
       : "link",
   );
-  const [label, setLabel] = useState(initial?.label ?? "");
+  const [preset, setPreset] = useState<PointerPresetId>(() =>
+    initial?.kind === "pointer" ? derivePointerPreset(initial) : "stripe",
+  );
+  // A brand-new pointer config lands on the default preset's suggested
+  // label, same as if the vendor had just selected it via handlePresetChange.
+  // labelTouched tracks whether the vendor has ever typed their own label —
+  // an auto-fill (initial default or a preset switch) never counts as
+  // "touched", so switching presets keeps updating the suggestion until the
+  // vendor actually edits the field themselves.
+  const [label, setLabel] = useState(
+    initial?.label ?? POINTER_PRESETS[preset].labelSuggestion,
+  );
+  const [labelTouched, setLabelTouched] = useState(Boolean(initial?.label));
   const [url, setUrl] = useState(initial?.url ?? "");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(
     initial?.qr_image_url ?? null,
   );
+
+  function handlePresetChange(id: PointerPresetId) {
+    setPreset(id);
+    const next = POINTER_PRESETS[id];
+    if (next.mode !== "choice") {
+      setPointerMode(next.mode);
+    }
+    if (!labelTouched) {
+      setLabel(next.labelSuggestion);
+    }
+  }
 
   const previewPayload =
     kind === "paynow" && payeeName && (idKind === "uen" ? uen : mobile)
@@ -194,29 +223,66 @@ export function PaymentConfigForm({
       {kind === "pointer" && (
         <>
           <div className="space-y-2">
+            <Label>Preset</Label>
+            <RadioGroup
+              value={preset}
+              onValueChange={(v) => handlePresetChange(v as PointerPresetId)}
+              className="grid grid-cols-2 gap-2.5"
+            >
+              {POINTER_PRESET_ORDER.map((id) => {
+                const p = POINTER_PRESETS[id];
+                const selected = preset === id;
+                return (
+                  <label
+                    key={id}
+                    className={
+                      selected
+                        ? "flex cursor-pointer items-start gap-2 rounded-xl border border-primary bg-primary/5 px-3 py-2.5 ring-1 ring-primary/30"
+                        : "flex cursor-pointer items-start gap-2 rounded-xl border border-border bg-card px-3 py-2.5 hover:bg-secondary/50"
+                    }
+                  >
+                    <RadioGroupItem
+                      value={id}
+                      aria-label={p.cardLabel}
+                      className="mt-0.5"
+                    />
+                    <span className="text-sm font-medium">{p.cardLabel}</span>
+                  </label>
+                );
+              })}
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="label">Button label</Label>
             <Input
               id="label"
               name="label"
               value={label}
-              onChange={(e) => setLabel(e.target.value)}
+              onChange={(e) => {
+                setLabel(e.target.value);
+                setLabelTouched(true);
+              }}
               placeholder="Pay with PayLah"
             />
           </div>
 
-          <RadioGroup
-            value={pointerMode}
-            onValueChange={(v) => setPointerMode(v as PointerMode)}
-            className="flex gap-4"
-          >
-            <span className="flex items-center gap-2">
-              <RadioGroupItem value="link" aria-label="Use a payment link" />{" "}
-              Payment link
-            </span>
-            <span className="flex items-center gap-2">
-              <RadioGroupItem value="qr" aria-label="Use a QR image" /> QR image
-            </span>
-          </RadioGroup>
+          {preset === "other" && (
+            <RadioGroup
+              value={pointerMode}
+              onValueChange={(v) => setPointerMode(v as PointerMode)}
+              className="flex gap-4"
+            >
+              <span className="flex items-center gap-2">
+                <RadioGroupItem value="link" aria-label="Use a payment link" />{" "}
+                Payment link
+              </span>
+              <span className="flex items-center gap-2">
+                <RadioGroupItem value="qr" aria-label="Use a QR image" /> QR
+                image
+              </span>
+            </RadioGroup>
+          )}
 
           {pointerMode === "link" ? (
             <div className="space-y-2">
@@ -229,9 +295,15 @@ export function PaymentConfigForm({
                 placeholder="https://…"
               />
               <p className="text-xs text-muted-foreground">
-                Any https link: a Qashier/HitPay/GrabPay checkout, your
-                bank&apos;s payment page, or a Stripe Payment Link.
+                {POINTER_PRESETS[preset].instructions}
               </p>
+              {POINTER_PRESETS[preset].urlPattern &&
+                url &&
+                !POINTER_PRESETS[preset].urlPattern!.test(url) && (
+                  <p className="text-xs font-medium text-amber-600 dark:text-amber-500">
+                    {POINTER_PRESETS[preset].urlWarning}
+                  </p>
+                )}
               {isValidHttpUrl(url) && (
                 <a
                   href={url}
@@ -263,8 +335,7 @@ export function PaymentConfigForm({
                 value={qrImageUrl ?? ""}
               />
               <p className="text-xs text-muted-foreground">
-                A static QR you already have: your GrabPay, PayLah, or bank QR
-                code, photographed or screenshotted.
+                {POINTER_PRESETS[preset].instructions}
               </p>
             </div>
           )}

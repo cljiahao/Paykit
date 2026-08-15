@@ -65,13 +65,14 @@ describe("PaymentConfigForm", () => {
     expect(saveConfigActionMock).toHaveBeenCalledTimes(1);
   });
 
-  it("switches to the pointer section and shows link/QR-image sub-options", async () => {
+  it("switches to the pointer section and shows link/QR-image sub-options under the Other preset", async () => {
     const user = userEvent.setup();
     render(<PaymentConfigForm initial={null} vendorId="v1" />);
 
     await user.click(
       screen.getByRole("radio", { name: /payment link or qr image/i }),
     );
+    await user.click(screen.getByRole("radio", { name: "Other / custom" }));
 
     expect(screen.getByLabelText("Button label")).toBeInTheDocument();
     expect(screen.getByLabelText("Payment link")).toBeInTheDocument();
@@ -103,6 +104,175 @@ describe("PaymentConfigForm", () => {
     expect(screen.getByLabelText("Button label")).toHaveValue(
       "Pay with PayLah",
     );
+    expect(screen.getByLabelText("Payment link")).toHaveValue(
+      "https://pay.example/kopitiam",
+    );
+  });
+
+  it("defaults the preset picker to Stripe for a brand-new pointer config, shows its instructions, and pre-fills the label", async () => {
+    const user = userEvent.setup();
+    render(<PaymentConfigForm initial={null} vendorId="v1" />);
+
+    await user.click(
+      screen.getByRole("radio", { name: /payment link or qr image/i }),
+    );
+
+    expect(
+      screen.getByRole("radio", { name: "Stripe Payment Link" }),
+    ).toBeChecked();
+    expect(
+      screen.getByText(/Stripe Dashboard → Payment Links/),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Button label")).toHaveValue(
+      "Pay with Stripe",
+    );
+    // Stripe/HitPay/PayLah! lock the mode — no link/QR toggle shown.
+    expect(
+      screen.queryByRole("radio", { name: "Use a payment link" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("switching to HitPay shows HitPay instructions and pre-fills the label only when it was empty", async () => {
+    const user = userEvent.setup();
+    render(<PaymentConfigForm initial={null} vendorId="v1" />);
+
+    await user.click(
+      screen.getByRole("radio", { name: /payment link or qr image/i }),
+    );
+    await user.click(
+      screen.getByRole("radio", { name: "HitPay Payment Link" }),
+    );
+
+    expect(
+      screen.getByText(/HitPay Dashboard → Payment Links/),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Button label")).toHaveValue(
+      "Pay with HitPay",
+    );
+
+    await user.clear(screen.getByLabelText("Button label"));
+    await user.type(screen.getByLabelText("Button label"), "My Stall");
+    await user.click(
+      screen.getByRole("radio", { name: "Stripe Payment Link" }),
+    );
+
+    // Label was already set by the vendor — switching presets must not clobber it.
+    expect(screen.getByLabelText("Button label")).toHaveValue("My Stall");
+  });
+
+  it("selecting PayLah! locks QR mode, shows the image uploader, and hides the link field", async () => {
+    const user = userEvent.setup();
+    render(<PaymentConfigForm initial={null} vendorId="v1" />);
+
+    await user.click(
+      screen.getByRole("radio", { name: /payment link or qr image/i }),
+    );
+    await user.click(screen.getByRole("radio", { name: "PayLah! QR" }));
+
+    expect(screen.getByTestId("image-uploader")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Payment link")).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Open DBS PayLah! → your QR code screen/),
+    ).toBeInTheDocument();
+  });
+
+  it("selecting Other shows the link/QR toggle exactly as today, with the generic instructions", async () => {
+    const user = userEvent.setup();
+    render(<PaymentConfigForm initial={null} vendorId="v1" />);
+
+    await user.click(
+      screen.getByRole("radio", { name: /payment link or qr image/i }),
+    );
+    await user.click(screen.getByRole("radio", { name: "Other / custom" }));
+
+    expect(
+      screen.getByRole("radio", { name: "Use a payment link" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("radio", { name: "Use a QR image" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/GrabPay, ShopeePay, Qashier/)).toBeInTheDocument();
+  });
+
+  it("warns on a non-matching URL under Stripe without blocking save, and clears once it matches", async () => {
+    const user = userEvent.setup();
+    render(<PaymentConfigForm initial={null} vendorId="v1" />);
+
+    await user.click(
+      screen.getByRole("radio", { name: /payment link or qr image/i }),
+    );
+    await user.type(
+      screen.getByLabelText("Payment link"),
+      "https://example.com/pay",
+    );
+
+    expect(
+      screen.getByText(/doesn't look like a Stripe Payment Link/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /save payment config/i }),
+    ).not.toBeDisabled();
+
+    await user.clear(screen.getByLabelText("Payment link"));
+    await user.type(
+      screen.getByLabelText("Payment link"),
+      "https://buy.stripe.com/test_abc123",
+    );
+
+    expect(
+      screen.queryByText(/doesn't look like a Stripe Payment Link/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("re-derives the Stripe preset from an existing pointer config's URL on edit", () => {
+    render(
+      <PaymentConfigForm
+        vendorId="v1"
+        initial={{
+          vendor_id: "v1",
+          kind: "pointer",
+          uen: null,
+          mobile: null,
+          payee_name: null,
+          label: "Pay with Stripe",
+          url: "https://buy.stripe.com/test_abc123",
+          qr_image_url: null,
+          verification_method: "manual",
+          plan: "free",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("radio", { name: "Stripe Payment Link" }),
+    ).toBeChecked();
+  });
+
+  it("falls back to the Other preset on edit for a URL that matches no known preset", () => {
+    render(
+      <PaymentConfigForm
+        vendorId="v1"
+        initial={{
+          vendor_id: "v1",
+          kind: "pointer",
+          uen: null,
+          mobile: null,
+          payee_name: null,
+          label: "Pay with PayLah",
+          url: "https://pay.example/kopitiam",
+          qr_image_url: null,
+          verification_method: "manual",
+          plan: "free",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("radio", { name: "Other / custom" })).toBeChecked();
+    // Existing saved data still displays correctly under the Other fallback.
     expect(screen.getByLabelText("Payment link")).toHaveValue(
       "https://pay.example/kopitiam",
     );
