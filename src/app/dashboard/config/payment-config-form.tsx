@@ -12,6 +12,7 @@ import { ImageUploader } from "@merqo/ui";
 import { uploadPaykitImage } from "@/lib/image-upload-adapter";
 import { resizeToWebp } from "@/lib/image-resize";
 import { buildPayNowPayload } from "@/lib/payments/paynow";
+import { isHttpUrl } from "@/lib/schemas";
 import { saveConfigAction, type SaveConfigState } from "./actions";
 import {
   POINTER_PRESETS,
@@ -23,15 +24,6 @@ import type { PaymentConfigKind, VendorPaymentConfig } from "@/lib/types";
 
 type IdKind = "uen" | "mobile";
 type PointerMode = "link" | "qr";
-
-function isValidHttpUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
 
 const KIND_OPTIONS: { k: PaymentConfigKind; label: string; hint: string }[] = [
   {
@@ -301,11 +293,11 @@ export function PaymentConfigForm({
                     {POINTER_PRESETS[preset].urlWarning}
                   </p>
                 )}
-              {isValidHttpUrl(url) && (
+              {isHttpUrl(url) && (
                 <a
                   // Re-serialized through URL rather than the raw input: an
                   // explicit sanitizing step CodeQL's dataflow can see,
-                  // on top of isValidHttpUrl's existing http(s)-only guard.
+                  // on top of isHttpUrl's existing http(s)-only guard.
                   href={new URL(url).href}
                   target="_blank"
                   rel="noopener noreferrer"

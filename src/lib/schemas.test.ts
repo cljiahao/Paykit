@@ -122,6 +122,33 @@ describe("vendorPaymentConfigInputSchema", () => {
       });
       expect(parsed.success).toBe(false);
     });
+
+    it("rejects a javascript: url (stored-XSS vector via the checkout link a customer clicks)", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "Pay",
+        url: "javascript:alert(document.cookie)",
+      });
+      expect(parsed.success).toBe(false);
+    });
+
+    it("rejects a data: qr_image_url", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "Scan our QR",
+        qr_image_url: "data:text/html,<script>alert(1)</script>",
+      });
+      expect(parsed.success).toBe(false);
+    });
+
+    it("rejects a file: url", () => {
+      const parsed = vendorPaymentConfigInputSchema.safeParse({
+        kind: "pointer",
+        label: "Pay",
+        url: "file:///etc/passwd",
+      });
+      expect(parsed.success).toBe(false);
+    });
   });
 });
 
