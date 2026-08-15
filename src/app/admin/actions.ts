@@ -67,3 +67,50 @@ export async function setVendorPlan(formData: FormData): Promise<ActionResult> {
   revalidatePath("/admin/vendors");
   return { success: true };
 }
+
+// No monthly SaaS price in this kit should plausibly exceed this — a local
+// sanity bound (paykit has no shared MAX_MONEY_CENTS constant, unlike qkit).
+// 100,000 cents = $1,000.
+const PRICE_CENTS_MAX = 100_000;
+
+const setPricingSchema = z.object({
+  monthly_cents: z.number().int().nonnegative().max(PRICE_CENTS_MAX),
+});
+
+/**
+ * Update the single pricing row (id = 1) shown on the plan page, dashboard
+ * nudge, and landing copy. Admin-only: requireAdmin() 404s non-admins
+ * before any write. Service-role client — pricing has no write policy at
+ * all (see 0008_paykit_pricing.sql), so only this path can ever change it.
+ */
+export async function setPricing(
+  input: z.infer<typeof setPricingSchema>,
+): Promise<ActionResult> {
+  const { user } = await requireAdmin();
+
+  const parsed = setPricingSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: "Invalid input" };
+
+  const supabase = await createServiceClient();
+  const { error } = await supabase
+    .from("pricing")
+    .update({
+      monthly_cents: parsed.data.monthly_cents,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", 1);
+  if (error) {
+    console.error("setPricing failed", error.message);
+    return { success: false, error: "Could not update pricing" };
+  }
+
+  await recordAudit(user.id, "set_pricing", null, {
+    monthly_cents: parsed.data.monthly_cents,
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/plan");
+  revalidatePath("/");
+  return { success: true };
+}

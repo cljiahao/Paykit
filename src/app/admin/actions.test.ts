@@ -1,12 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { requireAdminMock, updateMock, insertMock, createServiceClientMock } =
-  vi.hoisted(() => ({
-    requireAdminMock: vi.fn(),
-    updateMock: vi.fn(),
-    insertMock: vi.fn(),
-    createServiceClientMock: vi.fn(),
-  }));
+const {
+  requireAdminMock,
+  updateMock,
+  pricingUpdateMock,
+  insertMock,
+  createServiceClientMock,
+} = vi.hoisted(() => ({
+  requireAdminMock: vi.fn(),
+  updateMock: vi.fn(),
+  pricingUpdateMock: vi.fn(),
+  insertMock: vi.fn(),
+  createServiceClientMock: vi.fn(),
+}));
 
 vi.mock("@/lib/admin", () => ({ requireAdmin: requireAdminMock }));
 vi.mock("@/lib/supabase/server", () => ({
@@ -30,10 +36,16 @@ beforeEach(() => {
       }),
     }),
   });
+  pricingUpdateMock.mockReset().mockReturnValue({
+    eq: () => Promise.resolve({ error: null }),
+  });
   insertMock.mockReset().mockResolvedValue({ error: null });
   createServiceClientMock.mockReset().mockResolvedValue({
-    from: (table: string) =>
-      table === "admin_audit" ? { insert: insertMock } : { update: updateMock },
+    from: (table: string) => {
+      if (table === "admin_audit") return { insert: insertMock };
+      if (table === "pricing") return { update: pricingUpdateMock };
+      return { update: updateMock };
+    },
   });
 });
 
@@ -126,5 +138,56 @@ describe("setVendorPlan", () => {
     );
 
     expect(result).toEqual({ success: true });
+  });
+});
+
+describe("setPricing", () => {
+  it("404s (via requireAdmin) before writing anything for a non-admin", async () => {
+    requireAdminMock.mockImplementation(() => {
+      throw new Error("NEXT_NOT_FOUND");
+    });
+    const { setPricing } = await import("./actions");
+    await expect(setPricing({ monthly_cents: 499 })).rejects.toThrow(
+      "NEXT_NOT_FOUND",
+    );
+  });
+
+  it("rejects a negative or oversized amount without writing", async () => {
+    const { setPricing } = await import("./actions");
+    expect(await setPricing({ monthly_cents: -1 })).toEqual({
+      success: false,
+      error: "Invalid input",
+    });
+    expect(await setPricing({ monthly_cents: 999_999 })).toEqual({
+      success: false,
+      error: "Invalid input",
+    });
+  });
+
+  it("updates the pricing row, records an audit row, and revalidates on success", async () => {
+    const { setPricing } = await import("./actions");
+    const result = await setPricing({ monthly_cents: 499 });
+    expect(result).toEqual({ success: true });
+    expect(pricingUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ monthly_cents: 499 }),
+    );
+    expect(insertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        admin_id: "admin-1",
+        action: "set_pricing",
+        detail: { monthly_cents: 499 },
+      }),
+    );
+  });
+
+  it("returns an error when the update fails", async () => {
+    pricingUpdateMock.mockReturnValue({
+      eq: () => Promise.resolve({ error: { message: "db down" } }),
+    });
+    const { setPricing } = await import("./actions");
+    expect(await setPricing({ monthly_cents: 499 })).toEqual({
+      success: false,
+      error: "Could not update pricing",
+    });
   });
 });
