@@ -358,6 +358,15 @@ variant="ghost" size="sm"` control instead of a hand-rolled `Link`,
   test-fixture false positives. Fixed every real finding it surfaced: 4
   nested ternaries de-nested (display-string logic only, no behavior
   change) and 2 `concise-regex` simplifications.
+- Code-debt sweep: `merqo-auth.ts`'s `bearerOk`/`provisionBearerOk` shared
+  the same constant-time bearer-check logic twice; extracted into one
+  `bearerMatches()` helper. The identical `formatCents()` currency
+  formatter, previously copy-pasted in `admin/page.tsx`,
+  `dashboard/stats/revenue-chart.tsx`, and
+  `dashboard/transactions/transaction-table.tsx`, now lives once in
+  `src/lib/utils.ts`. Removed `schemas.ts`'s `parseSocialLinks` — dead
+  code with zero callers (the real `social_links` data flow reads
+  straight from the merqo RPC response, never through this function).
 
 ### Security
 

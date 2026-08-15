@@ -111,8 +111,9 @@ configs)`: pure two-step lookup (email → auth user → that user's
   client's Storage API, and returns the public URL. Used at both call
   sites: `dashboard/profile/profile-form.tsx` (avatar) and
   `dashboard/config/payment-config-form.tsx` (BYO QR image).
-- `utils.ts` — `cn()` (clsx + tailwind-merge) and shared form label/error
-  Tailwind class constants.
+- `utils.ts` — `cn()` (clsx + tailwind-merge), shared form label/error
+  Tailwind class constants, and `formatCents()` (integer cents -> SGD
+  currency string), shared by every page that displays a money amount.
 
 ## Connectivity
 
