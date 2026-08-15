@@ -86,6 +86,13 @@ export type AdminAudit = {
   created_at: string;
 };
 
+export type Pricing = {
+  id: number;
+  monthly_cents: number;
+  currency: string;
+  updated_at: string;
+};
+
 export interface Database {
   paykit: {
     Tables: {
@@ -210,6 +217,21 @@ export interface Database {
         };
         Update: {
           detail?: Json;
+        };
+        Relationships: [];
+      };
+      pricing: {
+        Row: Pricing;
+        Insert: {
+          id?: number;
+          monthly_cents?: number;
+          currency?: string;
+          updated_at?: string;
+        };
+        Update: {
+          monthly_cents?: number;
+          currency?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
