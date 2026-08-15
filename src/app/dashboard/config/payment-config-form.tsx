@@ -82,15 +82,11 @@ export function PaymentConfigForm({
   const [preset, setPreset] = useState<PointerPresetId>(() =>
     initial?.kind === "pointer" ? derivePointerPreset(initial) : "stripe",
   );
-  // A brand-new pointer config lands on the default preset's suggested
-  // label, same as if the vendor had just selected it via handlePresetChange.
-  // labelTouched tracks whether the vendor has ever typed their own label —
-  // an auto-fill (initial default or a preset switch) never counts as
-  // "touched", so switching presets keeps updating the suggestion until the
-  // vendor actually edits the field themselves.
+  // A brand-new config lands on the default preset's suggested label.
   const [label, setLabel] = useState(
     initial?.label ?? POINTER_PRESETS[preset].labelSuggestion,
   );
+  // Tracks a vendor-typed label so a preset switch never clobbers it.
   const [labelTouched, setLabelTouched] = useState(Boolean(initial?.label));
   const [url, setUrl] = useState(initial?.url ?? "");
   const [qrImageUrl, setQrImageUrl] = useState<string | null>(
