@@ -21,6 +21,8 @@ export function VendorPlanToggle({
   const { pending, run } = useAsyncAction();
   const nextPlan: VendorPlan = plan === "pro" ? "free" : "pro";
   const who = email ?? "vendor";
+  let label = plan === "pro" ? "Make Free" : "Make Pro";
+  if (pending) label = "Saving…";
 
   function toggle() {
     run(async () => {
@@ -48,7 +50,7 @@ export function VendorPlanToggle({
       onClick={toggle}
       className="rounded-xl"
     >
-      {pending ? "Saving…" : plan === "pro" ? "Make Free" : "Make Pro"}
+      {label}
     </Button>
   );
 }
