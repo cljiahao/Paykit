@@ -32,7 +32,7 @@ live for real checkouts. Progress since 07-17, for context:
 Shopkit doesn't exist yet. Still the one load-bearing integration once it
 does (see 07-17 registry for full reasoning — unchanged).
 
-### T6. BYO payment preset directory — NEW, spec approved
+### T6. BYO payment preset directory — DONE (2026-08-15, `paykit #50`)
 
 Not in the 07-17 registry — new work surfaced by 2026-08-14 roadmap
 research. Today's `pointer` (BYO) config is a blank label+URL field with a
@@ -43,7 +43,17 @@ plus tailored per-service instructions is a proven, low-risk pattern
 (Linktree's "Commerce Link" named-preset blocks are the closest working
 precedent). Full design:
 `docs/superpowers/specs/2026-08-14-paykit-byo-preset-directory-design.md`.
-Plan not yet written.
+Plan: `docs/superpowers/plans/2026-08-15-paykit-byo-preset-directory.md`.
+Shipped: `src/app/dashboard/config/pointer-presets.ts` (preset data +
+best-effort `derivePointerPreset` re-detection on edit) and the picker UI
+in `payment-config-form.tsx`. Caught and fixed one real bug during review:
+the HitPay preset's URL-match regex was unanchored (`/hit-pay\.com/`,
+matched as a substring anywhere in a URL, e.g. a spoofed
+`hit-pay.com.attacker.example`) — now anchored to the host
+(`/^https:\/\/([a-z0-9-]+\.)*hit-pay\.com(\/|$|\?|:)/i`), same style as the
+Stripe preset's existing anchored pattern. Low real-world severity (this
+match only drives a soft, non-blocking warning, never an authorization
+boundary) but fixed properly rather than suppressed.
 
 **Locked decisions from this round:**
 

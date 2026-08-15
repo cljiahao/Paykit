@@ -21,9 +21,15 @@ checkout cutover started 2026-08-11: qkit was minted a `kit_api_keys`
 bearer secret and paykit now exposes `POST /api/v1/vendors/{vendor_id}/config`
 so qkit can write a vendor's `vendor_payment_config` server-to-server (for
 a "quick add PayNow details" UI inside qkit's own dashboard, instead of
-redirecting to paykit's). qkit's checkout flow itself (`booths.payment`,
-`claimPayment`/`confirmPayment`) has not yet been switched to call
-`POST /api/v1/checkout` — that part of the cutover is still in progress.
+redirecting to paykit's). **Cutover complete (verified 2026-08-15):** qkit's
+checkout flow itself (`booths.payment`, `claimPayment`/`confirmPayment`) now
+calls `POST /api/v1/checkout` and the claim/confirm/unclaim endpoints —
+shipped in `qkit #66`/`#70`; qkit's local PayNow builder is no longer what's
+live for real checkouts. Checkout now also routes through a pluggable
+`PaymentProvider` seam (`src/lib/payments/provider.ts`, `paykit #48`) —
+today's EMVCo builder is the only ("direct") provider, selected by
+`PAYKIT_PROVIDER` (unset/unknown → `direct`), so a real gateway can be added
+later as config, not a redesign.
 
 ## Stack
 
