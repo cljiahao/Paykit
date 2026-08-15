@@ -37,7 +37,11 @@ export const POINTER_PRESETS: Record<PointerPresetId, PointerPreset> = {
     mode: "link",
     instructions:
       "HitPay Dashboard → Payment Links → Create Payment Link, then copy the link it gives you.",
-    urlPattern: /hit-pay\.com/,
+    // Anchored to the start of the URL, with an optional subdomain chain
+    // (HitPay's own subdomain varies, e.g. securepayment.hit-pay.com) —
+    // an unanchored /hit-pay\.com/ would also match an attacker-controlled
+    // host like evil.com/hit-pay.com or hit-pay.com.attacker.example.
+    urlPattern: /^https:\/\/([a-z0-9-]+\.)*hit-pay\.com(\/|$|\?|:)/i,
     urlWarning:
       "This doesn't look like a HitPay link (usually contains hit-pay.com) — check you copied the right one.",
   },

@@ -36,6 +36,17 @@ describe("POINTER_PRESETS", () => {
     expect(urlPattern!.test("https://buy.stripe.com/test_abc123")).toBe(false);
   });
 
+  it("hitpay's urlPattern rejects a host that merely contains hit-pay.com as a substring", () => {
+    const { urlPattern } = POINTER_PRESETS.hitpay;
+    expect(urlPattern!.test("https://evil.com/hit-pay.com")).toBe(false);
+    expect(urlPattern!.test("https://hit-pay.com.attacker.example/pay")).toBe(
+      false,
+    );
+    expect(urlPattern!.test("https://attacker.example/?x=hit-pay.com")).toBe(
+      false,
+    );
+  });
+
   it("paylah has no urlPattern (QR-image-only preset)", () => {
     expect(POINTER_PRESETS.paylah.urlPattern).toBeUndefined();
   });
