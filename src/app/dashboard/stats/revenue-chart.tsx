@@ -10,13 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import type { DailyRevenue } from "@/lib/revenue-report";
-
-function formatCents(cents: number): string {
-  return new Intl.NumberFormat("en-SG", {
-    style: "currency",
-    currency: "SGD",
-  }).format(cents / 100);
-}
+import { formatCents } from "@/lib/utils";
 
 /** Screen-reader summary for the chart container — recharts renders to an
  * inline SVG with no text alternative of its own. */

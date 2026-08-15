@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { SocialLinks } from "@/lib/types";
 
 const payNowInputSchema = z.object({
   kind: z.literal("paynow"),
@@ -122,12 +121,6 @@ export const socialLinksSchema = z.object({
   tiktok: socialUrl,
 });
 export type SocialLinksInput = z.infer<typeof socialLinksSchema>;
-
-/** Parse a JSONB social_links value; any malformed shape degrades to {}. */
-export function parseSocialLinks(data: unknown): SocialLinks {
-  const parsed = socialLinksSchema.safeParse(data);
-  return parsed.success ? parsed.data : {};
-}
 
 export const feedbackSchema = z.object({
   nps: z.number().int().min(0).max(10),

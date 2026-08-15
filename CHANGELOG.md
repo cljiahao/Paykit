@@ -349,3 +349,15 @@ variant="ghost" size="sm"` control instead of a hand-rolled `Link`,
   `src/components/`, `src/components/landing/`, and `src/components/ui/`
   `README.md` files — previously bypassed via the `skip-readme-check`
   label on prior PRs that touched those folders.
+
+### Changed
+
+- Code-debt sweep: `merqo-auth.ts`'s `bearerOk`/`provisionBearerOk` shared
+  the same constant-time bearer-check logic twice; extracted into one
+  `bearerMatches()` helper. The identical `formatCents()` currency
+  formatter, previously copy-pasted in `admin/page.tsx`,
+  `dashboard/stats/revenue-chart.tsx`, and
+  `dashboard/transactions/transaction-table.tsx`, now lives once in
+  `src/lib/utils.ts`. Removed `schemas.ts`'s `parseSocialLinks` — dead
+  code with zero callers (the real `social_links` data flow reads
+  straight from the merqo RPC response, never through this function).

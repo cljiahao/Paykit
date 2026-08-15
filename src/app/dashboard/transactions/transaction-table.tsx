@@ -7,16 +7,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, formatCents } from "@/lib/utils";
 import { RefundDialog } from "./refund-dialog";
 import type { Transaction, TxStatus } from "@/lib/types";
-
-function formatCents(cents: number): string {
-  return new Intl.NumberFormat("en-SG", {
-    style: "currency",
-    currency: "SGD",
-  }).format(cents / 100);
-}
 
 // `claimed` — the customer says they've paid, waiting on the vendor to
 // confirm — is the one status that actually needs the vendor's attention
