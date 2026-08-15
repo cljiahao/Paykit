@@ -6,8 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/protect-files.sh"]
+            "command": "bash .claude/hooks/protect-files.sh"
           }
         ]
       },
@@ -16,8 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/block-no-verify.sh"]
+            "command": "bash .claude/hooks/block-no-verify.sh"
           }
         ]
       }
@@ -39,13 +37,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/post-edit-typecheck.sh"]
+            "command": "bash .claude/hooks/post-edit-typecheck.sh"
           },
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/post-edit-comment-check.sh"]
+            "command": "bash .claude/hooks/post-edit-comment-check.sh"
           }
         ]
       },
@@ -54,8 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/skill-usage-log.sh"]
+            "command": "bash .claude/hooks/skill-usage-log.sh"
           }
         ]
       }
@@ -65,8 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/post-tool-failure.sh"]
+            "command": "bash .claude/hooks/post-tool-failure.sh"
           }
         ]
       }
@@ -76,8 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/stop-checks.sh"]
+            "command": "bash .claude/hooks/stop-checks.sh"
           }
         ]
       }
@@ -87,8 +80,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/subagent-stop.sh"]
+            "command": "bash .claude/hooks/subagent-stop.sh"
           }
         ]
       }
@@ -99,8 +91,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash",
-            "args": [".claude/hooks/session-context.sh"]
+            "command": "bash .claude/hooks/session-context.sh"
           }
         ]
       }
