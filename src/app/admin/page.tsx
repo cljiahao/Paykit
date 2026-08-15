@@ -3,15 +3,9 @@ import { platformTotals, recentActivity } from "@/lib/admin-data";
 import { Stat } from "@/app/admin/stat";
 import { Badge } from "@/components/ui/badge";
 import { ElevatedCard } from "@/components/elevated-card";
+import { formatCents } from "@/lib/utils";
 
 export const revalidate = 0;
-
-function formatCents(cents: number): string {
-  return new Intl.NumberFormat("en-SG", {
-    style: "currency",
-    currency: "SGD",
-  }).format(cents / 100);
-}
 
 export default async function AdminOverviewPage() {
   await requireAdmin();
