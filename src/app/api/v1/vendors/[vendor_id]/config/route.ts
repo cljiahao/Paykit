@@ -31,11 +31,9 @@ export async function GET(
     );
   }
 
-  const display_name = data
-    ? data.kind === "paynow"
-      ? data.payee_name
-      : data.label
-    : null;
+  let display_name: string | null = null;
+  if (data)
+    display_name = data.kind === "paynow" ? data.payee_name : data.label;
 
   return NextResponse.json({
     has_config: Boolean(data),

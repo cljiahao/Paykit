@@ -154,6 +154,9 @@ function LoginForm() {
     );
   }
 
+  let submitLabel = isSignin ? "Sign in" : "Create account";
+  if (busy) submitLabel = "Please wait…";
+
   return (
     <main className="flex min-h-screen items-center justify-center p-5">
       <div className="w-full max-w-md">
@@ -257,11 +260,7 @@ function LoginForm() {
                 className="h-12 w-full rounded-xl text-base font-semibold"
                 disabled={busy}
               >
-                {busy
-                  ? "Please wait…"
-                  : isSignin
-                    ? "Sign in"
-                    : "Create account"}
+                {submitLabel}
               </Button>
             </form>
           </div>

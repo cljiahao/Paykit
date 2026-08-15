@@ -13,7 +13,7 @@ const payNowInputSchema = z.object({
   mobile: z
     .string()
     .trim()
-    .regex(/^\+65[0-9]{8}$/, "Use +65XXXXXXXX")
+    .regex(/^\+65\d{8}$/, "Use +65XXXXXXXX")
     .optional()
     .or(z.literal("")),
 });
