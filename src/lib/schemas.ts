@@ -1,12 +1,10 @@
 import { z } from "zod";
 import type { SocialLinks } from "@/lib/types";
 
-// z.string().url() only checks a value parses as a URL — it accepts any
-// scheme, including javascript:/data:/file:. A vendor's pointer link/QR
-// image and social links are later rendered as a real href/src (to the
-// vendor's own dashboard, and — for the pointer url — to an end customer
-// via the cross-kit checkout response), so restrict to http(s) at the
-// validation boundary where the value is first accepted.
+// z.string().url() accepts any scheme, including javascript:/data:/file:.
+// These fields are later rendered as a real href/src (the pointer url even
+// reaches an end customer via the cross-kit checkout response), so restrict
+// to http(s) here, at the validation boundary.
 const HTTP_PROTOCOLS = new Set(["http:", "https:"]);
 export function isHttpUrl(value: string): boolean {
   try {
