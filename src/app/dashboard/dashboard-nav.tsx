@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { DashboardNav as SharedDashboardNav } from "@merqo/ui";
+import { DashboardNav as SharedDashboardNav, getSwitchKits } from "@merqo/ui";
 import { cn } from "@/lib/utils";
 import type { SupportMessageInput } from "@/lib/schemas";
 import { SUPPORT_CATEGORY_LABELS } from "@/lib/schemas";
@@ -21,15 +21,6 @@ const LINKS = [
 function isActive(path: string, href: string): boolean {
   return href === "/dashboard" ? path === "/dashboard" : path.startsWith(href);
 }
-
-// The other live sibling kits a vendor can jump to via the shared SSO
-// cookie. Static and unfiltered by design (see the kit-switcher plan doc)
-// — mirrors merqo/src/lib/kits.ts's own `name`/URL values, minus paykit.
-const SWITCH_KITS = [
-  { label: "qkit", href: "https://qkit-sg.vercel.app" },
-  { label: "loopkit", href: "https://loopkit-sg.vercel.app" },
-  { label: "stockkit", href: "https://stockkit-sg.vercel.app" },
-];
 
 /** Stable anchor id for the onboarding tour, e.g. "/dashboard/config" -> "nav-config". */
 function tourAnchor(href: string): string {
@@ -137,7 +128,7 @@ export function DashboardNav({
       }}
       signOutAction={signOut}
       tierBadge={<TierBadge tier={plan} />}
-      switchKits={SWITCH_KITS}
+      switchKits={getSwitchKits("paykit")}
       getHelp={{
         type: "form",
         onSubmit: async ({ message, category }) => {
