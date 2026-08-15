@@ -3,6 +3,8 @@ import { getVendorSession } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
 import { shouldNudgePro } from "@/lib/usage";
 import { stampTourSeen } from "@/lib/tour-prefs";
+import { getPricing } from "@/lib/pricing";
+import { formatCents } from "@/lib/utils";
 import { getConfig } from "./config/actions";
 import type { VendorPaymentConfig } from "@/lib/types";
 
@@ -36,7 +38,7 @@ function paymentMethodSummary(config: VendorPaymentConfig): {
 export default async function DashboardPage() {
   const { supabase, user } = await getVendorSession();
 
-  const [config, count, { data: prefs }] = await Promise.all([
+  const [config, count, { data: prefs }, pricing] = await Promise.all([
     getConfig(),
     txCountThisMonth(user.id),
     supabase
@@ -44,6 +46,7 @@ export default async function DashboardPage() {
       .select("tour_seen_at")
       .eq("vendor_id", user.id)
       .maybeSingle(),
+    getPricing(supabase),
   ]);
   // Durable "start" stamp, in addition to dashboard-tour.tsx's client-fired
   // one: this route (not layout.tsx, which wraps every /dashboard/* page)
@@ -113,7 +116,7 @@ export default async function DashboardPage() {
             >
               Pro
             </Link>{" "}
-            adds stats and refund tracking, $12/mo.
+            adds refund tracking, {`${formatCents(pricing.monthly_cents)}/mo`}.
           </p>
         </div>
       )}

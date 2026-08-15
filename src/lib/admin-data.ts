@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { listAllUsers } from "@/lib/list-all-users";
+import { getPricing, type PricingConfig } from "@/lib/pricing";
 import type { PaymentConfigKind, TxStatus, VendorPlan } from "@/lib/types";
 
 type ServiceClient = Awaited<ReturnType<typeof createServiceClient>>;
@@ -134,4 +135,10 @@ export async function listVendors(): Promise<VendorRow[]> {
       created_at: v.created_at,
     }))
     .sort((a, b) => (a.email ?? "").localeCompare(b.email ?? ""));
+}
+
+/** The single pricing row, read with the service-role client (admin console). */
+export async function getAdminPricing(): Promise<PricingConfig> {
+  const supabase = await createServiceClient();
+  return getPricing(supabase);
 }

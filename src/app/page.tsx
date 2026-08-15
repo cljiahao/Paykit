@@ -7,15 +7,21 @@ import { ClosingCta } from "@/components/landing/closing-cta";
 import { Footer } from "@/components/landing/footer";
 import { BackToTop } from "@/components/landing/back-to-top";
 import { createServerClient } from "@/lib/supabase/server";
+import { getPricing } from "@/lib/pricing";
+import { formatCents } from "@/lib/utils";
 
 export default async function HomePage() {
   // Reflect the session in the landing CTAs: a signed-in vendor jumps
   // straight to the dashboard instead of being sent back through /login.
   const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [
+    {
+      data: { user },
+    },
+    pricing,
+  ] = await Promise.all([supabase.auth.getUser(), getPricing(supabase)]);
   const authed = !!user;
+  const monthlyPriceLabel = `${formatCents(pricing.monthly_cents)}/mo`;
 
   return (
     <>
@@ -23,8 +29,8 @@ export default async function HomePage() {
       <main>
         <Hero authed={authed} />
         <HowItWorks />
-        <Benefits />
-        <Faq />
+        <Benefits monthlyPriceLabel={monthlyPriceLabel} />
+        <Faq monthlyPriceLabel={monthlyPriceLabel} />
       </main>
       <ClosingCta authed={authed} />
       <Footer />

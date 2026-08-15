@@ -17,11 +17,13 @@ const {
   txCountThisMonthMock,
   maybeSingleMock,
   stampTourSeenMock,
+  getPricingMock,
 } = vi.hoisted(() => ({
   getConfigMock: vi.fn(),
   txCountThisMonthMock: vi.fn(),
   maybeSingleMock: vi.fn(),
   stampTourSeenMock: vi.fn(async () => {}),
+  getPricingMock: vi.fn(),
 }));
 
 vi.mock("@/lib/vendor-session", () => ({
@@ -46,6 +48,9 @@ vi.mock("@/lib/transactions", () => ({
 }));
 vi.mock("@/lib/tour-prefs", () => ({
   stampTourSeen: stampTourSeenMock,
+}));
+vi.mock("@/lib/pricing", () => ({
+  getPricing: getPricingMock,
 }));
 
 const PAYNOW_CONFIG: VendorPaymentConfig = {
@@ -79,6 +84,7 @@ beforeEach(() => {
   });
   getConfigMock.mockResolvedValue(PAYNOW_CONFIG);
   txCountThisMonthMock.mockResolvedValue(0);
+  getPricingMock.mockResolvedValue({ monthly_cents: 499, currency: "SGD" });
 });
 
 describe("DashboardPage", () => {
@@ -149,6 +155,22 @@ describe("DashboardPage", () => {
       "href",
       "/dashboard/plan",
     );
+    expect(
+      screen.getByText(/adds refund tracking, \$4\.99\/mo/i),
+    ).toBeInTheDocument();
+  });
+
+  it("shows whatever live price getPricing returns in the nudge copy", async () => {
+    getConfigMock.mockResolvedValue({ ...PAYNOW_CONFIG, plan: "free" });
+    txCountThisMonthMock.mockResolvedValue(50);
+    getPricingMock.mockResolvedValue({ monthly_cents: 1200, currency: "SGD" });
+
+    const jsx = await DashboardPage();
+    render(jsx);
+
+    expect(
+      screen.getByText(/adds refund tracking, \$12\.00\/mo/i),
+    ).toBeInTheDocument();
   });
 
   it("never shows the nudge for a Pro vendor, even above threshold", async () => {

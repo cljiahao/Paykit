@@ -3,25 +3,29 @@
 ## Purpose
 
 The vendor's billing page: current tier, this month's transaction count, the
-Free feature list vs. Pro's (stats + refunds), and — for Free vendors — a
-real Pro-upgrade CTA. No payment provider is involved; Pro is granted
-manually once a vendor's upgrade request comes in.
+Free feature list vs. Pro's (Free gets unlimited transactions + revenue
+stats; Pro adds refund tracking, the one remaining gate), and — for Free
+vendors — a real Pro-upgrade CTA. Pro's price is read live from the
+admin-tunable `pricing` table (`@/lib/pricing`), not a hardcoded constant.
+No payment provider is involved; Pro is granted manually once a vendor's
+upgrade request comes in.
 
 ## Contents
 
 - `page.tsx` — `PlanPage()` (server, `revalidate = 0`): calls
-  `getVendorSession()`/`getVendorPlan()` and `txCountThisMonth()`, resolves
-  the free/pro branching through `resolvePlanView()` (`@/lib/plan-view`),
-  and renders the plan card + feature list + (Free only) the nudge copy,
-  `UpgradeCta`, and a one-line turnaround expectation ("We usually action
-  this within one business day.") under the CTA. Kept deliberately thin — the feature list, count-copy
-  pluralization, and nudge/upgrade visibility are pure logic in
-  `plan-view.ts`, not inline JSX branching, so they're unit-testable without
-  rendering this async server component. Content sits in a plain
-  `mx-auto max-w-2xl` div (not `<main>` — the parent `dashboard/layout.tsx`
-  owns that landmark and the page-family's canonical `max-w-7xl` outer
-  width); the plan card + feature list read better narrower than the full
-  dashboard width.
+  `getVendorSession()`/`getVendorPlan()`, `txCountThisMonth()`, and
+  `getPricing()` (`@/lib/pricing`), resolves the free/pro branching through
+  `resolvePlanView()` (`@/lib/plan-view`), and renders the plan card +
+  feature list + (Free only) the nudge copy, `UpgradeCta`, and a one-line
+  turnaround expectation ("We usually action this within one business
+  day.") under the CTA. Kept deliberately thin — the feature list, count-copy
+  pluralization, nudge/upgrade visibility, and the live price's display
+  formatting are pure logic in `plan-view.ts`, not inline JSX branching, so
+  they're unit-testable without rendering this async server component.
+  Content sits in a plain `mx-auto max-w-2xl` div (not `<main>` — the parent
+  `dashboard/layout.tsx` owns that landmark and the page-family's canonical
+  `max-w-7xl` outer width); the plan card + feature list read better
+  narrower than the full dashboard width.
 - `upgrade-cta.tsx` — `UpgradeCta`: client component, "Ask us to upgrade to
   Pro" button. Calls `requestProUpgradeAction()` (`@/app/actions/plan`) in a
   transition and toasts success/failure — mirrors qkit's `UpgradeCta`

@@ -32,11 +32,19 @@ larger clusters; everything else sits flat here.
 - `usage.ts` — `shouldNudgePro`/`PRO_NUDGE_THRESHOLD`: friction-based
   Free→Pro nudge (not a hard cap — Free tier has no transaction-volume
   cap, see root `AGENTS.md`).
-- `plan-view.ts` — `resolvePlanView(plan, countThisMonth)`/`PRO_PRICE`: pure
-  view-model for the dashboard Plan page (feature list, transaction-count
-  copy, `shouldNudgePro`-backed nudge visibility, upgrade-CTA visibility) —
-  kept out of `plan/page.tsx`'s JSX so the free/pro branching is
-  unit-testable without rendering that async server component.
+- `plan-view.ts` — `resolvePlanView(plan, countThisMonth, monthlyCents)`:
+  pure view-model for the dashboard Plan page (feature list — revenue
+  stats free for everyone, refund tracking Pro-only — transaction-count
+  copy, `shouldNudgePro`-backed nudge visibility, upgrade-CTA visibility,
+  and `proPriceLabel` formatted from the live `monthlyCents`) — kept out of
+  `plan/page.tsx`'s JSX so the free/pro branching is unit-testable without
+  rendering that async server component.
+- `pricing.ts` — `PricingConfig`, `DEFAULT_PRICING` (zeroed fallback), and
+  `getPricing(supabase)`: the one shared read of the single admin-tunable
+  `pricing` row (`id = 1`), reused by the admin console, both dashboard
+  pages, and the landing page. Accepts either the cookie client (public-read
+  policy) or the service-role client (admin read) — both are structurally
+  the same generated client type.
 - `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
   for calling kits, checked on every `/api/v1/*` route before any DB access.
 - `tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: upserts
@@ -55,10 +63,12 @@ larger clusters; everything else sits flat here.
   and `requireAdmin()`: the `/admin` route/Server-Action gate, 404ing signed-
   out and non-admin callers alike so the route's existence is never revealed.
 - `admin-data.ts` — `platformTotals()`, `recentActivity(limit)`,
-  `listVendors()`: service-role, cross-vendor reads for the admin console
-  (RLS-exempt by design — the console spans every vendor). Vendor identity
-  is resolved to email via `listAllUsers()`, since `payee_name` is null for
-  `kind='pointer'` config rows.
+  `listVendors()`, `getAdminPricing()`: service-role, cross-vendor reads for
+  the admin console (RLS-exempt by design — the console spans every
+  vendor). Vendor identity is resolved to email via `listAllUsers()`, since
+  `payee_name` is null for `kind='pointer'` config rows. `getAdminPricing`
+  is a thin `getPricing` (`@/lib/pricing`) call against a fresh
+  service-role client.
 - `list-all-users.ts` — `listAllUsers(supabase)`: paginates
   `supabase.auth.admin.listUsers()` (1000/page, capped at 50 pages) so a
   lookup doesn't silently drop vendors past the first 1000 auth users. Ported

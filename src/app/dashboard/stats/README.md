@@ -3,19 +3,19 @@
 ## Purpose
 
 Confirmed revenue by day, aggregated across every kit that uses paykit for
-a vendor. Pro only — Free vendors see an upsell instead of the chart.
+a vendor. Free for every vendor regardless of plan — a view over data
+(transaction history) that's already free to see raw; only refund tracking
+stays a Pro-exclusive gate (see `dashboard/plan/`).
 
 ## Contents
 
-- `page.tsx` — `StatsPage()` (server): calls `getVendorSession()`/
-  `getVendorPlan()`; on Free, returns an upsell message in a plain
-  `mx-auto max-w-lg` div — "upgrade" is a `next/link` to `/dashboard/plan`,
-  not plain text, so the upsell is actually actionable; on Pro, calls
+- `page.tsx` — `StatsPage()` (server): calls `getVendorSession()`, then
   `listTransactions()` + `aggregateRevenueByDay()` (`@/lib/revenue-report`)
-  and renders `RevenueChart` inside a plain `mx-auto max-w-3xl` div.
-  Neither branch uses `<main>` — the parent `dashboard/layout.tsx` owns
-  that landmark and the page-family's canonical `max-w-7xl` outer width; a
-  chart this size reads better narrower than the full dashboard width.
+  and renders `RevenueChart` inside a plain `mx-auto max-w-3xl` div — one
+  unconditional branch, no plan check. Doesn't use `<main>` — the parent
+  `dashboard/layout.tsx` owns that landmark and the page-family's canonical
+  `max-w-7xl` outer width; a chart this size reads better narrower than the
+  full dashboard width.
 - `revenue-chart.tsx` — `RevenueChart({ data })`: client component. A 3-tile
   stat row (`StatTile`: Total revenue, Transactions, Avg / day) sits above
   the chart, computed from the existing `data` prop — no separate fetch —
@@ -31,11 +31,11 @@ a vendor. Pro only — Free vendors see an upsell instead of the chart.
   underlying per-day data for screen readers that want the actual numbers,
   not just the summary.
 - `page.dom.test.tsx` — awaits `StatsPage()` directly and renders the
-  result (same pattern as `dashboard/layout.dom.test.tsx`): the Free/no-
-  config upsell branch, and the Pro branch's `listTransactions` →
-  `aggregateRevenueByDay` wiring into the chart's data prop.
-  `RevenueChart` is stubbed since `ResponsiveContainer` needs real layout
-  to size itself, which jsdom doesn't provide.
+  result (same pattern as `dashboard/layout.dom.test.tsx`): the chart
+  renders for every vendor, and `listTransactions` → `aggregateRevenueByDay`
+  wires correctly into the chart's data prop. `RevenueChart` is stubbed
+  since `ResponsiveContainer` needs real layout to size itself, which
+  jsdom doesn't provide.
 - `revenue-chart.dom.test.tsx` — the chart's own coverage: the aria-label
   summary branches, the sr-only per-day table, and the 3 stat tiles
   (including the all-zero state when `data` is empty).

@@ -1,6 +1,7 @@
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
-import { resolvePlanView, PRO_PRICE } from "@/lib/plan-view";
+import { resolvePlanView } from "@/lib/plan-view";
+import { getPricing } from "@/lib/pricing";
 import { BackButton } from "@/components/back-button";
 import { UpgradeCta } from "./upgrade-cta";
 
@@ -8,10 +9,13 @@ export const revalidate = 0;
 
 export default async function PlanPage() {
   const { supabase, user } = await getVendorSession();
-  const config = await getVendorPlan(supabase, user.id);
+  const [config, count, pricing] = await Promise.all([
+    getVendorPlan(supabase, user.id),
+    txCountThisMonth(user.id),
+    getPricing(supabase),
+  ]);
   const plan = config?.plan ?? "free";
-  const count = await txCountThisMonth(user.id);
-  const view = resolvePlanView(plan, count);
+  const view = resolvePlanView(plan, count, pricing.monthly_cents);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -32,8 +36,8 @@ export default async function PlanPage() {
         <p className="mt-2 text-sm text-muted-foreground">{view.countLabel}</p>
         {view.showNudge && (
           <p className="mt-2 text-sm text-muted-foreground">
-            You&apos;re doing real volume — Pro adds stats and refund tracking,{" "}
-            {PRO_PRICE}.
+            You&apos;re doing real volume — Pro adds refund tracking,{" "}
+            {view.proPriceLabel}.
           </p>
         )}
       </div>
@@ -48,8 +52,8 @@ export default async function PlanPage() {
         {view.showUpgrade && (
           <div className="mt-3">
             <p className="text-sm text-muted-foreground">
-              Ask us to upgrade your account to Pro for stats and refunds,{" "}
-              {PRO_PRICE}.
+              Ask us to upgrade your account to Pro for refund tracking,{" "}
+              {view.proPriceLabel}.
             </p>
             <UpgradeCta />
             <p className="mt-2 text-xs text-muted-foreground">

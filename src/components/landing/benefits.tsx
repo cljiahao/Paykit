@@ -1,6 +1,6 @@
 import { Link2, ShieldCheck, Gauge, History } from "lucide-react";
 
-export function Benefits() {
+export function Benefits({ monthlyPriceLabel }: { monthlyPriceLabel: string }) {
   return (
     <section className="mx-auto max-w-6xl px-6 py-16">
       <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
@@ -54,9 +54,9 @@ export function Benefits() {
                 Free while you&apos;re small
               </h3>
               <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                Unlimited transactions, no card required. Pro adds revenue stats
-                and refund tracking — $12/mo, once you&apos;re doing enough
-                volume to want them.
+                Unlimited transactions and revenue stats, no card required. Pro
+                adds refund tracking — {monthlyPriceLabel}, once you&apos;re
+                doing enough volume to want it.
               </p>
             </div>
             <span className="font-mono text-xs text-muted-foreground">

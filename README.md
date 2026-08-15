@@ -48,10 +48,12 @@ bundle; `pnpm audit --prod --audit-level=high` is CI's hard gate — bump
 the relevant floor here when a new advisory lands, and re-check after any
 `next` upgrade in case it's safe to drop one. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.11.1, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.12.0, `package.json`;
 kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
-wiring as thin adapters over the shared components). Every `/dashboard`
+wiring as thin adapters over the shared components). The admin console's
+Pricing section wraps `@merqo/ui`'s `PricingForm` (paykit's first real
+adopter of that component). Every `/dashboard`
 route shares one layout-level content-width container (`mx-auto w-full
 max-w-7xl` in `src/app/dashboard/layout.tsx`, matching qkit's canonical
 dashboard width) instead of each page setting its own, inconsistent width
@@ -64,8 +66,13 @@ confirmation state and a real forgot-password flow) and Google OAuth. Once
 signed in, a Free-tier vendor can file a real, one-click Pro-upgrade request
 from the dashboard's Plan page — no payment provider involved; Pro is
 granted manually, via a Merqo-team-only admin console (`/admin`, gated by
-an `admins` allow-list) with platform-wide stats and a per-vendor plan
-toggle. `/api/merqo/vendor-status` (merqo hub's own vendor-active/plan
+an `admins` allow-list) with platform-wide stats, a per-vendor plan
+toggle, and a live Pro-price editor (`paykit.pricing`, `@merqo/ui`'s
+`PricingForm`) — the Pro price (seeded at $4.99/mo) can be changed with no
+redeploy, and every page that quotes it (plan page, dashboard nudge,
+landing copy) reads it live instead of a hardcoded string. Pro's one
+remaining gate is refund tracking; revenue stats are free for every
+vendor. `/api/merqo/vendor-status` (merqo hub's own vendor-active/plan
 lookup) paginates the Supabase admin-users API properly, via the same
 `listAllUsers` helper the admin console uses — it no longer silently
 truncates at the first 1000 auth users. The landing footer matches qkit's exactly (single-row

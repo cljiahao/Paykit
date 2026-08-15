@@ -1,18 +1,24 @@
 import { requireAdmin } from "@/lib/admin";
-import { platformTotals, recentActivity } from "@/lib/admin-data";
+import {
+  platformTotals,
+  recentActivity,
+  getAdminPricing,
+} from "@/lib/admin-data";
 import { Stat } from "@/app/admin/stat";
 import { Badge } from "@/components/ui/badge";
 import { ElevatedCard } from "@/components/elevated-card";
 import { formatCents } from "@/lib/utils";
+import { PricingSection } from "./pricing-section";
 
 export const revalidate = 0;
 
 export default async function AdminOverviewPage() {
   await requireAdmin();
 
-  const [totals, activity] = await Promise.all([
+  const [totals, activity, pricing] = await Promise.all([
     platformTotals(),
     recentActivity(15),
+    getAdminPricing(),
   ]);
 
   return (
@@ -80,6 +86,13 @@ export default async function AdminOverviewPage() {
             )}
           </ul>
         </ElevatedCard>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Pricing
+        </h2>
+        <PricingSection initial={pricing} />
       </section>
     </main>
   );

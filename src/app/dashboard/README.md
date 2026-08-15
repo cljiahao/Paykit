@@ -116,10 +116,10 @@ className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
   payment link/QR image; own README).
 - `transactions/` — transaction history + refund dialog (Pro only; own
   README).
-- `stats/` — revenue-by-day chart, Pro only (own README).
-- `plan/` — current tier, usage, and the Pro upsell (`UpgradeCta` — a
-  button that files a Pro-upgrade request via `requestProUpgradeAction`
-  and shows toast feedback; own README).
+- `stats/` — revenue-by-day chart, free for every vendor (own README).
+- `plan/` — current tier, usage, the live admin-tunable Pro price, and the
+  Pro upsell (`UpgradeCta` — a button that files a Pro-upgrade request via
+  `requestProUpgradeAction` and shows toast feedback; own README).
 - `profile/` — stall/shop name and social links (shared across every
   Merqo kit), plus display name/avatar/password (local to paykit; own
   README).
