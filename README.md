@@ -9,7 +9,13 @@ their own bank/payment app, and a human confirms receipt. A calling kit
 without its own vendor-session UI can also write the config directly via
 `POST /api/v1/vendors/{vendor_id}/config` (bearer-secret authenticated,
 same schema the dashboard's own config form uses) — see
-`src/app/api/v1/vendors/[vendor_id]/config/README.md`. Display font is
+`src/app/api/v1/vendors/[vendor_id]/config/README.md`. A vendor setting up
+their own BYO payment link/QR picks from a four-card preset directory
+(Stripe Payment Link, HitPay Payment Link, PayLah! QR, or Other/Custom —
+`src/app/dashboard/config/pointer-presets.ts`) that shows tailored
+"where to find this" instructions and, for Stripe/HitPay, a soft warning
+if the pasted link doesn't look right; it's UI/copy only, no PSP
+integration and no new database column. Display font is
 Fraunces (`src/app/layout.tsx`), the shared family face every Merqo kit
 now uses — see `docs/business/2026-08-13-typography-family-standard.md`
 in the workspace root for why.
