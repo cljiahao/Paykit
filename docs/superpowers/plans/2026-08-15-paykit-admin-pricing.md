@@ -660,7 +660,9 @@ export function PricingSection({ initial }: { initial: PricingConfig }) {
 
   return (
     <PricingForm
-      fields={[{ key: "monthly_cents", label: `Monthly (${initial.currency})` }]}
+      fields={[
+        { key: "monthly_cents", label: `Monthly (${initial.currency})` },
+      ]}
       initial={{
         values: { monthly_cents: initial.monthly_cents },
         currency: initial.currency,
@@ -835,7 +837,7 @@ const [config, count, { data: prefs }, pricing] = await Promise.all([
 ```
 
 Replace the nudge paragraph's literal price with
-`` {`${formatCents(pricing.monthly_cents)}/mo`} ``, and (if
+``{`${formatCents(pricing.monthly_cents)}/mo`}``, and (if
 `pro-simplification` hasn't landed yet) leave "adds stats and refund
 tracking" as-is — this task only touches the price, not that copy's
 feature list, per Global Constraints.
@@ -928,7 +930,7 @@ export function Benefits({ monthlyPriceLabel }: { monthlyPriceLabel: string }) {
   <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
     Unlimited transactions, no card required. Pro adds refund tracking —{" "}
     {monthlyPriceLabel}, once you&apos;re doing enough volume to want it.
-  </p>
+  </p>;
   // ...
 }
 ```

@@ -32,12 +32,12 @@ non-differentiated feature set. This spec:
    bookkeeping feature that applies to every vendor regardless of which
    payment method (PayNow QR or BYO link) they use.
 5. Documents, but does **not** build, a real auto-verify feature as a
-   *future* Pro perk — researched this session and found it can only ever
+   _future_ Pro perk — researched this session and found it can only ever
    cover vendors on the BYO-PSP path (Stripe/HitPay webhooks exist);
    PayNow-QR vendors (the free, default path — likely most vendors) have no
    generic webhook path available without a real bank business-API
    relationship. Because it can't cover most vendors, it can't be the
-   *only* thing Pro sells — it stays a future addition on top of refunds,
+   _only_ thing Pro sells — it stays a future addition on top of refunds,
    not a replacement for them. Still correctly deferred (paykit's own T3),
    no code changes in this spec.
 
@@ -51,7 +51,7 @@ non-differentiated feature set. This spec:
 2. **Flat two-tier split (`lite` $4/mo / `pro` $12/mo, identical
    features).** Rejected on the direct question "why are we gating paykit
    with a fee at all, given it's not a payment service" — having two paid
-   tiers with *identical* features was already a design smell (nothing
+   tiers with _identical_ features was already a design smell (nothing
    distinguishes them except price, so nothing justifies picking the more
    expensive one), and re-examining what Pro's $12/mo actually buys found
    it thin enough that the honest fix was a single lower price, not a
@@ -61,7 +61,7 @@ non-differentiated feature set. This spec:
 
 - **One paid tier, not two.** `VendorPlan` stays exactly `"free" | "pro"` —
   no schema change, no migration, no RLS change. This spec is pure pricing
-  + feature-gate correction, not new infrastructure.
+  - feature-gate correction, not new infrastructure.
 - **$4/mo, chosen to match the price this session already validated** via
   the rejected `lite` draft's own reasoning (a flat third of the old
   $12/mo, cheap enough to be a genuine low-commitment price for a utility
@@ -69,7 +69,7 @@ non-differentiated feature set. This spec:
   price.
 - **Stats moves to Free.** A vendor can already see every transaction's
   amount/status/date for free (`transactions/page.tsx`); gating only the
-  aggregated *view* of the same data one click away never added real
+  aggregated _view_ of the same data one click away never added real
   friction, just an inconsistency between the raw and the summarized form
   of the same information.
 - **Refunds stays the one Pro gate.** It's the one feature here that's
@@ -94,7 +94,7 @@ export const PRO_PRICE = "$4/mo";
 ```
 
 `resolvePlanView`'s `features` list changes from a free/pro split that
-included stats on the Pro side to: stats is now in *both* lists (it's no
+included stats on the Pro side to: stats is now in _both_ lists (it's no
 longer a differentiator), Pro's list adds only refund tracking:
 
 ```ts

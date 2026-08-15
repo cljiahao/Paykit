@@ -31,7 +31,7 @@ Library (jsdom), Tailwind v4.
 - Commit messages follow Conventional Commits.
 - Run `pnpm check && pnpm test` before considering any task done; run
   `pnpm build` before opening the PR (touches client/server pages — `pnpm
-  check`/`pnpm test` miss Next.js client/server bundle-boundary errors, per
+check`/`pnpm test` miss Next.js client/server bundle-boundary errors, per
   project rule).
 
 ---
@@ -257,11 +257,13 @@ In `src/app/dashboard/plan/page.tsx`, the nudge block already imports
 `PRO_PRICE` — just change its copy:
 
 ```tsx
-{view.showNudge && (
-  <p className="mt-2 text-sm text-muted-foreground">
-    You&apos;re doing real volume — Pro adds refund tracking, {PRO_PRICE}.
-  </p>
-)}
+{
+  view.showNudge && (
+    <p className="mt-2 text-sm text-muted-foreground">
+      You&apos;re doing real volume — Pro adds refund tracking, {PRO_PRICE}.
+    </p>
+  );
+}
 ```
 
 And the upgrade-CTA paragraph:
@@ -304,9 +306,8 @@ Change the "Free while you're small" tile's paragraph to:
 
 ```tsx
 <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-  Unlimited transactions and revenue stats, no card required. Pro adds
-  refund tracking — {"$4/mo"}, once you&apos;re doing enough volume to
-  want it.
+  Unlimited transactions and revenue stats, no card required. Pro adds refund
+  tracking — {"$4/mo"}, once you&apos;re doing enough volume to want it.
 </p>
 ```
 
@@ -387,8 +388,8 @@ for whoever owns final pricing sign-off, not something to auto-resolve in
 a docs-sync pass.
 
 - [ ] **Step 4: Commit** (in the `Merqo Business` parent, not this repo —
-  it is not a git repository; this step is a plain file save, no commit
-  command applies here.)
+      it is not a git repository; this step is a plain file save, no commit
+      command applies here.)
 
 ---
 
@@ -429,6 +430,6 @@ Do not open a PR on a red local gate.
   the direct payoff of collapsing to one tier instead of adding a second.
 - **Cross-repo edit flagged, not silently done:** Task 5 explicitly notes
   it edits a file outside this repo's own git history (the parent `Merqo
-  Business` folder is not a git repository) — kept as its own task so a
+Business` folder is not a git repository) — kept as its own task so a
   reviewer running only this repo's diff doesn't miss that a sibling doc
   also needs updating.

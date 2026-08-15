@@ -19,7 +19,7 @@ to **$4.99/mo**.
 `Merqo Business/docs/business/2026-08-15-per-kit-pricing-rationale.md`
 (this session's own pricing review, researched via live web search): paykit
 never touches funds — no PSP integration, no settlement, no
-per-transaction cost basis — so it was deliberately *not* priced against
+per-transaction cost basis — so it was deliberately _not_ priced against
 real payment processors, whose per-transaction fees reflect real
 settlement/compliance cost paykit doesn't carry. No direct "payment
 tracking middleware" comparator exists either; the closest applicable data
@@ -43,12 +43,12 @@ qkit's live number; $4.99 is the correction, not a new argument.
 $4/mo, moves stats to Free, leaves refund tracking as the one Pro gate) was
 written earlier the same session and is approved with its own plan, not yet
 implemented in live code as of this spec (`plan-view.ts` still reads
-`PRO_PRICE = "$12/mo"` and the old stats-gated feature list). This spec
+`PRO_PRICE = "$12/mo"`and the old stats-gated feature list). This spec
 does **not** re-implement that scope — the free/pro feature list is out of
-bounds here, untouched. What it does is delete `PRO_PRICE` entirely (the
-constant simplification's own plan would otherwise set to `"$4/mo"`) and
+bounds here, untouched. What it does is delete`PRO_PRICE`entirely (the
+constant simplification's own plan would otherwise set to`"$4/mo"`) and
 replace it with a live DB read seeded at 499 cents. The two plans' diffs on
-`plan-view.ts` mostly don't overlap (simplification touches `features`;
+`plan-view.ts`mostly don't overlap (simplification touches`features`;
 this touches `PRO_PRICE`/the function signature) but do share the file —
 whichever implementation plan lands second should rebase on the first
 rather than assume a clean parallel merge. See this spec's own plan's Task
@@ -144,7 +144,7 @@ one-field `fields` config, converts the initial `PricingConfig` into the
 component's `{ values, currency }` shape, and implements `onSave`/`onError`
 — `onSave` calls `setPricing`, throws on `{ success: false }` (so the
 component's own `onError` path fires, per its documented contract — no
-`try/catch` needed here, the thrown rejection *is* the signal), toasts
+`try/catch` needed here, the thrown rejection _is_ the signal), toasts
 success and `router.refresh()`s on the resolved path.
 
 ### `src/lib/admin-data.ts`
