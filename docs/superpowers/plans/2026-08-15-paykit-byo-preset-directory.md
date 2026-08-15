@@ -98,7 +98,12 @@ import {
 
 describe("POINTER_PRESETS", () => {
   it("has exactly the v1 shortlist, in order: stripe, hitpay, paylah, other", () => {
-    expect(POINTER_PRESET_ORDER).toEqual(["stripe", "hitpay", "paylah", "other"]);
+    expect(POINTER_PRESET_ORDER).toEqual([
+      "stripe",
+      "hitpay",
+      "paylah",
+      "other",
+    ]);
     expect(Object.keys(POINTER_PRESETS).sort()).toEqual(
       ["hitpay", "other", "paylah", "stripe"].sort(),
     );
@@ -119,9 +124,7 @@ describe("POINTER_PRESETS", () => {
       true,
     );
     expect(urlPattern!.test("https://hit-pay.com/pay/abc123")).toBe(true);
-    expect(urlPattern!.test("https://buy.stripe.com/test_abc123")).toBe(
-      false,
-    );
+    expect(urlPattern!.test("https://buy.stripe.com/test_abc123")).toBe(false);
   });
 
   it("paylah has no urlPattern (QR-image-only preset)", () => {
@@ -491,150 +494,144 @@ import {
 Add preset state, directly after the existing `pointerMode` state declaration:
 
 ```typescript
-  const [preset, setPreset] = useState<PointerPresetId>(() =>
-    initial?.kind === "pointer" ? derivePointerPreset(initial) : "stripe",
-  );
+const [preset, setPreset] = useState<PointerPresetId>(() =>
+  initial?.kind === "pointer" ? derivePointerPreset(initial) : "stripe",
+);
 ```
 
 Add the preset-change handler, directly above the `return (`:
 
 ```typescript
-  function handlePresetChange(id: PointerPresetId) {
-    setPreset(id);
-    const next = POINTER_PRESETS[id];
-    if (next.mode !== "choice") {
-      setPointerMode(next.mode);
-    }
-    if (!label) {
-      setLabel(next.labelSuggestion);
-    }
+function handlePresetChange(id: PointerPresetId) {
+  setPreset(id);
+  const next = POINTER_PRESETS[id];
+  if (next.mode !== "choice") {
+    setPointerMode(next.mode);
   }
+  if (!label) {
+    setLabel(next.labelSuggestion);
+  }
+}
 ```
 
 Replace the entire `{kind === "pointer" && ( ... )}` block with:
 
 ```tsx
-      {kind === "pointer" && (
-        <>
-          <div className="space-y-2">
-            <Label>Preset</Label>
-            <RadioGroup
-              value={preset}
-              onValueChange={(v) => handlePresetChange(v as PointerPresetId)}
-              className="grid grid-cols-2 gap-2.5"
-            >
-              {POINTER_PRESET_ORDER.map((id) => {
-                const p = POINTER_PRESETS[id];
-                const selected = preset === id;
-                return (
-                  <label
-                    key={id}
-                    className={
-                      selected
-                        ? "flex cursor-pointer items-start gap-2 rounded-xl border border-primary bg-primary/5 px-3 py-2.5 ring-1 ring-primary/30"
-                        : "flex cursor-pointer items-start gap-2 rounded-xl border border-border bg-card px-3 py-2.5 hover:bg-secondary/50"
-                    }
-                  >
-                    <RadioGroupItem
-                      value={id}
-                      aria-label={p.cardLabel}
-                      className="mt-0.5"
-                    />
-                    <span className="text-sm font-medium">{p.cardLabel}</span>
-                  </label>
-                );
-              })}
-            </RadioGroup>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="label">Button label</Label>
-            <Input
-              id="label"
-              name="label"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              placeholder="Pay with PayLah"
-            />
-          </div>
-
-          {preset === "other" && (
-            <RadioGroup
-              value={pointerMode}
-              onValueChange={(v) => setPointerMode(v as PointerMode)}
-              className="flex gap-4"
-            >
-              <span className="flex items-center gap-2">
+{
+  kind === "pointer" && (
+    <>
+      <div className="space-y-2">
+        <Label>Preset</Label>
+        <RadioGroup
+          value={preset}
+          onValueChange={(v) => handlePresetChange(v as PointerPresetId)}
+          className="grid grid-cols-2 gap-2.5"
+        >
+          {POINTER_PRESET_ORDER.map((id) => {
+            const p = POINTER_PRESETS[id];
+            const selected = preset === id;
+            return (
+              <label
+                key={id}
+                className={
+                  selected
+                    ? "flex cursor-pointer items-start gap-2 rounded-xl border border-primary bg-primary/5 px-3 py-2.5 ring-1 ring-primary/30"
+                    : "flex cursor-pointer items-start gap-2 rounded-xl border border-border bg-card px-3 py-2.5 hover:bg-secondary/50"
+                }
+              >
                 <RadioGroupItem
-                  value="link"
-                  aria-label="Use a payment link"
-                />{" "}
-                Payment link
-              </span>
-              <span className="flex items-center gap-2">
-                <RadioGroupItem value="qr" aria-label="Use a QR image" /> QR
-                image
-              </span>
-            </RadioGroup>
-          )}
+                  value={id}
+                  aria-label={p.cardLabel}
+                  className="mt-0.5"
+                />
+                <span className="text-sm font-medium">{p.cardLabel}</span>
+              </label>
+            );
+          })}
+        </RadioGroup>
+      </div>
 
-          {pointerMode === "link" ? (
-            <div className="space-y-2">
-              <Label htmlFor="url">Payment link</Label>
-              <Input
-                id="url"
-                name="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://…"
-              />
-              <p className="text-xs text-muted-foreground">
-                {POINTER_PRESETS[preset].instructions}
-              </p>
-              {POINTER_PRESETS[preset].urlPattern &&
-                url &&
-                !POINTER_PRESETS[preset].urlPattern!.test(url) && (
-                  <p className="text-xs font-medium text-amber-600 dark:text-amber-500">
-                    {POINTER_PRESETS[preset].urlWarning}
-                  </p>
-                )}
-              {isValidHttpUrl(url) && (
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Open link
-                  <ExternalLink className="size-3" />
-                </a>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label>QR image</Label>
-              <ImageUploader
-                bucket="vendor-images"
-                pathPrefix={vendorId}
-                value={qrImageUrl}
-                onChange={setQrImageUrl}
-                onUpload={uploadPaykitImage}
-                resizeImage={resizeToWebp}
-                imageComponent={Image}
-                variant="thumb"
-              />
-              <input
-                type="hidden"
-                name="qr_image_url"
-                value={qrImageUrl ?? ""}
-              />
-              <p className="text-xs text-muted-foreground">
-                {POINTER_PRESETS[preset].instructions}
-              </p>
-            </div>
-          )}
-        </>
+      <div className="space-y-2">
+        <Label htmlFor="label">Button label</Label>
+        <Input
+          id="label"
+          name="label"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="Pay with PayLah"
+        />
+      </div>
+
+      {preset === "other" && (
+        <RadioGroup
+          value={pointerMode}
+          onValueChange={(v) => setPointerMode(v as PointerMode)}
+          className="flex gap-4"
+        >
+          <span className="flex items-center gap-2">
+            <RadioGroupItem value="link" aria-label="Use a payment link" />{" "}
+            Payment link
+          </span>
+          <span className="flex items-center gap-2">
+            <RadioGroupItem value="qr" aria-label="Use a QR image" /> QR image
+          </span>
+        </RadioGroup>
       )}
+
+      {pointerMode === "link" ? (
+        <div className="space-y-2">
+          <Label htmlFor="url">Payment link</Label>
+          <Input
+            id="url"
+            name="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://…"
+          />
+          <p className="text-xs text-muted-foreground">
+            {POINTER_PRESETS[preset].instructions}
+          </p>
+          {POINTER_PRESETS[preset].urlPattern &&
+            url &&
+            !POINTER_PRESETS[preset].urlPattern!.test(url) && (
+              <p className="text-xs font-medium text-amber-600 dark:text-amber-500">
+                {POINTER_PRESETS[preset].urlWarning}
+              </p>
+            )}
+          {isValidHttpUrl(url) && (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Open link
+              <ExternalLink className="size-3" />
+            </a>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label>QR image</Label>
+          <ImageUploader
+            bucket="vendor-images"
+            pathPrefix={vendorId}
+            value={qrImageUrl}
+            onChange={setQrImageUrl}
+            onUpload={uploadPaykitImage}
+            resizeImage={resizeToWebp}
+            imageComponent={Image}
+            variant="thumb"
+          />
+          <input type="hidden" name="qr_image_url" value={qrImageUrl ?? ""} />
+          <p className="text-xs text-muted-foreground">
+            {POINTER_PRESETS[preset].instructions}
+          </p>
+        </div>
+      )}
+    </>
+  );
+}
 ```
 
 Note: the `pointerMode` initial-state derivation (existing code, just above
