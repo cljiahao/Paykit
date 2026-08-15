@@ -4,8 +4,8 @@
 // layout.dom.test.tsx: await it directly and render the returned element
 // tree with RTL. The free/pro branching itself is unit-tested in
 // plan-view.test.ts; this test proves PlanPage actually wires the session
-// + usage lookups into `resolvePlanView` and renders its result, including
-// the child `BackButton`/`UpgradeCta`.
+// + usage + pricing lookups into `resolvePlanView` and renders its result,
+// including the child `BackButton`/`UpgradeCta`.
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import PlanPage from "./page";
@@ -14,11 +14,13 @@ const {
   getVendorSessionMock,
   getVendorPlanMock,
   txCountThisMonthMock,
+  getPricingMock,
   requestProUpgradeActionMock,
 } = vi.hoisted(() => ({
   getVendorSessionMock: vi.fn(),
   getVendorPlanMock: vi.fn(),
   txCountThisMonthMock: vi.fn(),
+  getPricingMock: vi.fn(),
   requestProUpgradeActionMock: vi.fn(),
 }));
 
@@ -28,6 +30,9 @@ vi.mock("@/lib/vendor-session", () => ({
 }));
 vi.mock("@/lib/transactions", () => ({
   txCountThisMonth: txCountThisMonthMock,
+}));
+vi.mock("@/lib/pricing", () => ({
+  getPricing: getPricingMock,
 }));
 vi.mock("@/app/actions/plan", () => ({
   requestProUpgradeAction: requestProUpgradeActionMock,
@@ -40,6 +45,10 @@ beforeEach(() => {
   });
   getVendorPlanMock.mockReset();
   txCountThisMonthMock.mockReset();
+  getPricingMock.mockReset().mockResolvedValue({
+    monthly_cents: 499,
+    currency: "SGD",
+  });
   requestProUpgradeActionMock.mockReset();
 });
 
@@ -55,21 +64,27 @@ describe("PlanPage", () => {
     expect(screen.getByText("free")).toBeInTheDocument();
     expect(screen.getByText("3 transactions this month")).toBeInTheDocument();
     expect(screen.getByText("Unlimited transactions")).toBeInTheDocument();
-    expect(screen.queryByText("Stats")).not.toBeInTheDocument();
+    expect(screen.getByText("Revenue stats")).toBeInTheDocument();
+    expect(screen.queryByText("Refund tracking")).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /ask us to upgrade to pro/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/ask us to upgrade.*for refund tracking.*\$4\.99\/mo/i),
     ).toBeInTheDocument();
     expect(screen.queryByText(/doing real volume/i)).not.toBeInTheDocument();
   });
 
-  it("shows the Pro nudge once a Free vendor crosses the usage threshold", async () => {
+  it("shows the Pro nudge with the live price once a Free vendor crosses the usage threshold", async () => {
     getVendorPlanMock.mockResolvedValue({ plan: "free" });
     txCountThisMonthMock.mockResolvedValue(50);
 
     const jsx = await PlanPage();
     render(jsx);
 
-    expect(screen.getByText(/doing real volume/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/doing real volume.*adds refund tracking.*\$4\.99\/mo/i),
+    ).toBeInTheDocument();
   });
 
   it("shows the Pro plan, its full feature list, and no upgrade CTA", async () => {
@@ -80,8 +95,8 @@ describe("PlanPage", () => {
     render(jsx);
 
     expect(screen.getByText("pro")).toBeInTheDocument();
-    expect(screen.getByText("Stats")).toBeInTheDocument();
-    expect(screen.getByText("Refunds")).toBeInTheDocument();
+    expect(screen.getByText("Revenue stats")).toBeInTheDocument();
+    expect(screen.getByText("Refund tracking")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /ask us to upgrade to pro/i }),
     ).not.toBeInTheDocument();
@@ -96,5 +111,18 @@ describe("PlanPage", () => {
 
     expect(screen.getByText("free")).toBeInTheDocument();
     expect(screen.getByText("0 transactions this month")).toBeInTheDocument();
+  });
+
+  it("renders whatever live price getPricing returns", async () => {
+    getVendorPlanMock.mockResolvedValue({ plan: "free" });
+    txCountThisMonthMock.mockResolvedValue(3);
+    getPricingMock.mockResolvedValue({ monthly_cents: 1200, currency: "SGD" });
+
+    const jsx = await PlanPage();
+    render(jsx);
+
+    expect(
+      screen.getByText(/refund tracking, \$12\.00\/mo/i),
+    ).toBeInTheDocument();
   });
 });

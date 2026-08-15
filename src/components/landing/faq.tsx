@@ -1,24 +1,5 @@
 type FaqEntry = { q: string; a: string };
 
-const FAQ: FaqEntry[] = [
-  {
-    q: "Does paykit hold my money?",
-    a: "No. paykit only renders your checkout — a PayNow QR, or your own payment link/QR — and tracks its status. Customers pay you directly — paykit never touches funds.",
-  },
-  {
-    q: "How do I know a payment came through?",
-    a: "A customer marks an order as paid after scanning; you confirm it yourself once you see it land in your bank account. There's no automatic bank-side verification.",
-  },
-  {
-    q: "Do I need a business bank account?",
-    a: "No — use PayNow with your UEN or personal mobile number, or bring your own payment link/QR (GrabPay, HitPay, Qashier, or your bank's own) instead.",
-  },
-  {
-    q: "What does the free plan include?",
-    a: "Unlimited transactions on the free plan, no cap. Pro adds revenue stats and refund tracking.",
-  },
-];
-
 function FaqItem({ q, a }: FaqEntry) {
   return (
     <details className="group overflow-hidden rounded-xl border border-border bg-card open:border-primary/50">
@@ -40,7 +21,26 @@ function FaqItem({ q, a }: FaqEntry) {
   );
 }
 
-export function Faq() {
+export function Faq({ monthlyPriceLabel }: { monthlyPriceLabel: string }) {
+  const FAQ: FaqEntry[] = [
+    {
+      q: "Does paykit hold my money?",
+      a: "No. paykit only renders your checkout — a PayNow QR, or your own payment link/QR — and tracks its status. Customers pay you directly — paykit never touches funds.",
+    },
+    {
+      q: "How do I know a payment came through?",
+      a: "A customer marks an order as paid after scanning; you confirm it yourself once you see it land in your bank account. There's no automatic bank-side verification.",
+    },
+    {
+      q: "Do I need a business bank account?",
+      a: "No — use PayNow with your UEN or personal mobile number, or bring your own payment link/QR (GrabPay, HitPay, Qashier, or your bank's own) instead.",
+    },
+    {
+      q: "What does the free plan include?",
+      a: `Unlimited transactions and revenue stats on the free plan, no cap. Pro adds refund tracking, ${monthlyPriceLabel}.`,
+    },
+  ];
+
   return (
     <section id="faq" className="mx-auto max-w-3xl px-5 py-16">
       <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">

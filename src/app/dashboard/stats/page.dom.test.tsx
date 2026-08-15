@@ -5,28 +5,23 @@
 // tree with RTL. `RevenueChart` wraps recharts' `ResponsiveContainer`,
 // which needs real layout to size itself — not something jsdom provides
 // meaningfully — so it's stubbed here to keep this test focused on
-// StatsPage's own job: the Free/Pro gate and wiring `listTransactions` +
-// `aggregateRevenueByDay` into the chart's data prop.
+// StatsPage's own job: wiring `listTransactions` + `aggregateRevenueByDay`
+// into the chart's data prop. Revenue stats are free for every vendor —
+// no plan gate left to test here.
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import StatsPage from "./page";
 import type { Transaction } from "@/lib/types";
 
-const {
-  getVendorSessionMock,
-  getVendorPlanMock,
-  listTransactionsMock,
-  RevenueChartMock,
-} = vi.hoisted(() => ({
-  getVendorSessionMock: vi.fn(),
-  getVendorPlanMock: vi.fn(),
-  listTransactionsMock: vi.fn(),
-  RevenueChartMock: vi.fn(() => <div data-testid="revenue-chart" />),
-}));
+const { getVendorSessionMock, listTransactionsMock, RevenueChartMock } =
+  vi.hoisted(() => ({
+    getVendorSessionMock: vi.fn(),
+    listTransactionsMock: vi.fn(),
+    RevenueChartMock: vi.fn(() => <div data-testid="revenue-chart" />),
+  }));
 
 vi.mock("@/lib/vendor-session", () => ({
   getVendorSession: getVendorSessionMock,
-  getVendorPlan: getVendorPlanMock,
 }));
 vi.mock("@/lib/transactions", () => ({
   listTransactions: listTransactionsMock,
@@ -38,35 +33,23 @@ beforeEach(() => {
     supabase: {},
     user: { id: "v1" },
   });
-  getVendorPlanMock.mockReset();
   listTransactionsMock.mockReset();
   RevenueChartMock.mockClear();
 });
 
 describe("StatsPage", () => {
-  it("shows the Pro upsell and never fetches transactions for a Free vendor", async () => {
-    getVendorPlanMock.mockResolvedValue({ plan: "free" });
+  it("renders the revenue chart for every vendor regardless of plan", async () => {
+    listTransactionsMock.mockResolvedValue([]);
 
     const jsx = await StatsPage();
     render(jsx);
 
     expect(screen.getByRole("heading", { name: "Stats" })).toBeInTheDocument();
-    expect(screen.getByText(/pro feature/i)).toBeInTheDocument();
-    expect(screen.queryByTestId("revenue-chart")).not.toBeInTheDocument();
-    expect(listTransactionsMock).not.toHaveBeenCalled();
+    expect(screen.getByText(/confirmed revenue by day/i)).toBeInTheDocument();
+    expect(screen.getByTestId("revenue-chart")).toBeInTheDocument();
   });
 
-  it("shows the Pro upsell when the vendor has no config yet", async () => {
-    getVendorPlanMock.mockResolvedValue(null);
-
-    const jsx = await StatsPage();
-    render(jsx);
-
-    expect(screen.getByText(/pro feature/i)).toBeInTheDocument();
-  });
-
-  it("aggregates confirmed revenue by day and renders the chart for a Pro vendor", async () => {
-    getVendorPlanMock.mockResolvedValue({ plan: "pro" });
+  it("aggregates confirmed revenue by day and renders the chart", async () => {
     const transactions: Transaction[] = [
       {
         id: "tx1",
