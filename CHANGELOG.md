@@ -18,6 +18,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   The brand-icon mark's font fallback also switched from the system
   sans-serif stack to the Georgia serif stand-in, matching Fraunces
   being a serif.
+- Checkout now goes through a pluggable `PaymentProvider` seam
+  (`src/lib/payments/provider.ts`) instead of calling the EMVCo/pointer
+  builder (`renderCheckout`) directly. No behavior change today — the
+  only registered provider is `direct`, which wraps the existing builder
+  unchanged — but wiring in a future real payment gateway becomes a
+  `PAYKIT_PROVIDER` config value plus one new provider implementation,
+  not a route rewrite.
 
 ### Fixed
 

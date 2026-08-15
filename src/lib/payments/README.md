@@ -21,11 +21,19 @@ to await here.
   (whichever of `url`/`qr_image_url` is set). `autoVerify()` is a reserved-
   but-dark stub — throws unconditionally; do not wire it to a real
   provider (see root `AGENTS.md`).
+- `provider.ts` — `PaymentProvider` interface, the `direct` provider
+  (wraps `renderCheckout`), and `getProvider()` (reads `PAYKIT_PROVIDER`,
+  defaults/falls back to `direct`). The seam a future real gateway
+  provider plugs into — see the root `AGENTS.md` and
+  `docs/superpowers/specs/2026-08-13-paynow-tap-to-pay-design.md` (qkit
+  repo) for why.
 
 ## Connectivity
 
-`renderCheckout` is called by the checkout route/page to build what the
-customer sees. `buildPayNowPayload`/`crc16` are only reached through
+`renderCheckout` is called through `provider.ts`'s `directProvider` — the
+checkout route calls `getProvider().createCheckout(...)`, not
+`renderCheckout` directly, so a future non-default provider needs no route
+change. `buildPayNowPayload`/`crc16` are only reached through
 `renderCheckout` for `kind: "paynow"`, but are exported directly for their
 own unit tests.
 
