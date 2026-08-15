@@ -15,26 +15,42 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
-    const connectSrc =
-      process.env.NODE_ENV === "production"
-        ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co"
-        : "connect-src 'self' https://*.supabase.co wss://*.supabase.co http://127.0.0.1:54321 ws://127.0.0.1:54321";
+    const isProd = process.env.NODE_ENV === "production";
 
-    const imgSrc =
-      process.env.NODE_ENV === "production"
-        ? "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com"
-        : "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com http://127.0.0.1:54321";
+    const connectSrc = isProd
+      ? "connect-src 'self' https://*.supabase.co wss://*.supabase.co"
+      : "connect-src 'self' https://*.supabase.co wss://*.supabase.co http://127.0.0.1:54321 ws://127.0.0.1:54321";
 
-    const scriptSrc =
-      process.env.NODE_ENV === "production"
-        ? "script-src 'self' 'unsafe-inline'"
-        : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+    const imgSrc = isProd
+      ? "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com"
+      : "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com http://127.0.0.1:54321";
+
+    const scriptSrc = isProd
+      ? "script-src 'self' 'unsafe-inline'"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+
+    // X-Frame-Options: DENY and the CSP's frame-ancestors 'none' both block
+    // any <iframe> from rendering this app — including an IDE's embedded
+    // preview pane, which next dev serves under this same headers() config.
+    // Scoped to production only, matching connectSrc/imgSrc/scriptSrc above.
+    const cspDirectives = [
+      "default-src 'self'",
+      scriptSrc,
+      "style-src 'self' 'unsafe-inline'",
+      imgSrc,
+      "font-src 'self' data:",
+      connectSrc,
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ];
+    if (isProd) cspDirectives.push("frame-ancestors 'none'");
 
     return [
       {
         source: "/(.*)",
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
+          ...(isProd ? [{ key: "X-Frame-Options", value: "DENY" }] : []),
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
@@ -48,18 +64,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              scriptSrc,
-              "style-src 'self' 'unsafe-inline'",
-              imgSrc,
-              "font-src 'self' data:",
-              connectSrc,
-              "object-src 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "frame-ancestors 'none'",
-            ].join("; "),
+            value: cspDirectives.join("; "),
           },
         ],
       },
