@@ -8,6 +8,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Admin-tunable Pro pricing: a single-row `paykit.pricing` table, a
+  `setPricing` admin action, and `@merqo/ui`'s new `PricingForm` wired into
+  `/admin` let an admin change the Pro price live, no redeploy needed —
+  seeded at $4.99/mo (up from the hardcoded `$12/mo` `PRO_PRICE` constant).
+  Every price call site (plan page, dashboard nudge, landing copy) now
+  reads the live price instead of a hardcoded string. In the same change,
+  revenue stats become free for every vendor (previously Pro-gated) and
+  refund tracking becomes Pro's one remaining gate. See
+  `docs/superpowers/specs/2026-08-15-paykit-admin-pricing-design.md` and
+  `docs/superpowers/specs/2026-08-15-paykit-pro-simplification-design.md`.
 - BYO payment preset picker on the `pointer` config form
   (`src/app/dashboard/config/pointer-presets.ts`): four cards (Stripe
   Payment Link, HitPay Payment Link, PayLah! QR, Other/Custom), each

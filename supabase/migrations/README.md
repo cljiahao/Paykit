@@ -14,6 +14,7 @@ tables, RLS policies, RPCs, and grants, applied in order.
 - `0005_paykit_vendor_prefs.sql` — `vendor_prefs` (currently just `tour_seen_at`, dashboard onboarding-tour state).
 - `0006_paykit_admin.sql` — `admins` (allow-list) + `is_admin(uid)` + `admin_audit`, backing the Merqo-team `/admin` console's gate and audit trail.
 - `0007_paykit_checkout_idempotency.sql` — unique constraint on `transactions (kit_slug, order_ref)`, so a retried `POST /api/v1/checkout` call can't create a duplicate pending transaction.
+- `0008_paykit_pricing.sql` — `pricing`, a single-row (`id` pinned to 1) admin-editable price config (`monthly_cents`, `currency`), seeded at 499 ($4.99). Public-read RLS (the price isn't secret); no write policy — writes go through the service-role `setPricing` admin action only.
 
 ## Parent
 
