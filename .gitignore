@@ -23,3 +23,4 @@ PRODUCT.md
 # secrets). Machine-local — never the same across two developers or CI.
 supabase/.branches
 supabase/.temp
+.vercel
