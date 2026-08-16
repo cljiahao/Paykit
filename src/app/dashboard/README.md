@@ -52,11 +52,15 @@ account"` fallback only for the edge case of an empty string) — never a
   client-side transition instead of a full page reload; `DashboardNav`
   forwards it down to the `AccountMenu` it composes internally, so this
   one call site covers both — paykit has no standalone `AccountMenu` usage.
-  Also passes `switchKits={getSwitchKits("paykit")}` (`@merqo/ui` v0.14.0+)
-  listing the other three live sibling kits (qkit/loopkit/stockkit) so
-  the account dropdown's "Switch products" submenu lets a signed-in vendor
-  jump to another kit's dashboard — SSO already signs them in there via the
-  shared `.merqo.io` cookie. `getSwitchKits` centralizes the kit family in
+  Also passes `switchKits={getSwitchKits("paykit")}` (`@merqo/ui` v0.14.1+)
+  listing the other three live sibling kits (qkit/loopkit/stockkit,
+  their real `<kit>.merqo.io` domains — v0.14.1 fixed a bug where the
+  package pointed each kit at its `-sg.vercel.app` deployment host
+  instead, a different domain from the shared-session cookie's
+  `.merqo.io` scope) so the account dropdown's "Switch products" submenu
+  lets a signed-in vendor jump to another kit's dashboard — SSO already
+  signs them in there via the shared `.merqo.io` cookie. `getSwitchKits`
+  centralizes the kit family in
   `@merqo/ui` itself (mirroring `merqo/src/lib/kits.ts`'s own `name`/URL
   values), so adding a future sibling kit only requires updating
   `@merqo/ui`, not this file's own hardcoded list. Deliberately
