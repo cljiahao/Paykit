@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Bumped `@merqo/ui` to v0.14.1 — the kit-switcher (account menu's
+  "Switch products") was sending vendors to a kit's `-sg.vercel.app`
+  deployment host instead of its real `<kit>.merqo.io` domain, a
+  different host from the shared-session cookie's `.merqo.io` scope —
+  bouncing a switching vendor into a login loop instead of a live
+  session.
+
 ### Added
 
 - "Switch products" submenu in the dashboard account menu, letting a
