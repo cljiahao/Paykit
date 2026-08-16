@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- "Switch products" submenu in the dashboard account menu, letting a
+  signed-in vendor jump to another live sibling kit's dashboard (qkit,
+  loopkit, stockkit) — SSO via the shared `.merqo.io` cookie already signs
+  them in there, this just adds the in-product navigation link. Bumped
+  `@merqo/ui` to v0.13.0 for the new `switchKits` prop on
+  `DashboardNav`/`AccountMenu`. Static v1 list, no new API call.
 - Admin-tunable Pro pricing: a single-row `paykit.pricing` table, a `setPricing` admin action, and `@merqo/ui`'s new `PricingForm` wired into `/admin` let an admin change the Pro price live, no redeploy needed, seeded at $4.99/mo (up from the hardcoded $12/mo `PRO_PRICE` constant). Every price call site (plan page, dashboard nudge, landing copy) now reads the live price instead of a hardcoded string. In the same change, revenue stats become free for every vendor (previously Pro-gated) and refund tracking becomes Pro's one remaining gate. See `docs/superpowers/specs/2026-08-15-paykit-admin-pricing-design.md` and `docs/superpowers/specs/2026-08-15-paykit-pro-simplification-design.md`.
 - BYO payment preset picker on the `pointer` config form
   (`src/app/dashboard/config/pointer-presets.ts`): four cards (Stripe
@@ -20,6 +26,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Bumped `@merqo/ui` to v0.14.0 and switched the dashboard nav's
+  `switchKits` prop to the new `getSwitchKits("paykit")` helper, replacing
+  the locally hardcoded sibling-kit array. `@merqo/ui` now owns the
+  canonical kit family list (`KIT_FAMILY`), so adding a future kit only
+  requires updating `@merqo/ui`, not every kit's own `DashboardNav`
+  wrapper. No behavior change — same three sibling kits, same URLs.
 - Display font switched from Space Grotesk to Fraunces (the shared
   family display face — see
   `docs/business/2026-08-13-typography-family-standard.md`). qkit

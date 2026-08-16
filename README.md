@@ -46,12 +46,18 @@ provider implementation, not a route rewrite. `pnpm-workspace.yaml`'s
 past known-vulnerable versions Next.js itself and dev tooling still
 bundle; `pnpm audit --prod --audit-level=high` is CI's hard gate — bump
 the relevant floor here when a new advisory lands, and re-check after any
-`next` upgrade in case it's safe to drop one. The dashboard nav, account
+`next` upgrade in case it's safe to drop one. `next`/`eslint-config-next`
+are pinned exact at `16.2.12` (not `^16.2.12`) — `16.3.1`'s Turbopack build
+stops emitting `.next/next-server.js.nft.json`, which breaks every Vercel
+deploy; revisit the pin once that's fixed upstream. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.12.0, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.14.0, `package.json`;
 kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
-wiring as thin adapters over the shared components). The admin console's
+wiring as thin adapters over the shared components). The dashboard nav's
+account menu also passes `switchKits` via `@merqo/ui`'s `getSwitchKits("paykit")`
+helper (qkit/loopkit/stockkit) so a signed-in vendor can jump to another
+kit's dashboard via the shared SSO cookie — see `src/app/dashboard/README.md`. The admin console's
 Pricing section wraps `@merqo/ui`'s `PricingForm` (paykit's first real
 adopter of that component). Every `/dashboard`
 route shares one layout-level content-width container (`mx-auto w-full

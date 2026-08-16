@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { DashboardNav as SharedDashboardNav } from "@merqo/ui";
+import { DashboardNav as SharedDashboardNav, getSwitchKits } from "@merqo/ui";
 import { cn } from "@/lib/utils";
 import type { SupportMessageInput } from "@/lib/schemas";
 import { SUPPORT_CATEGORY_LABELS } from "@/lib/schemas";
@@ -128,6 +128,7 @@ export function DashboardNav({
       }}
       signOutAction={signOut}
       tierBadge={<TierBadge tier={plan} />}
+      switchKits={getSwitchKits("paykit")}
       getHelp={{
         type: "form",
         onSubmit: async ({ message, category }) => {
