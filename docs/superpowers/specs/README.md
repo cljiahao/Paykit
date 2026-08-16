@@ -15,6 +15,8 @@ Design docs, one per feature, written and approved before the matching implement
 
 Also relevant, kept outside this repo: `../../../docs/superpowers/specs/2026-08-13-paynow-tap-to-pay-design.md` (cross-kit, in the parent `Merqo Business/docs`) — the design behind `../plans/2026-08-13-payment-provider-seam.md`, covering the same-device QR UX fix (qkit-side) and this repo's pluggable `PaymentProvider` seam.
 
+- `2026-08-17-future-vendor-telegram-alerts-design.md` — "Future: Vendor Telegram Alerts — Design Notes": draft, deferred — paykit never shipped Phase A (no equivalent "vendor isn't looking" gap the way qkit/loopkit had); names a `claimed`-but-unconfirmed transaction as the leading candidate trigger if this ever gets scoped, and notes merqo's now-shared vendor-alert bot means only a small `notify-vendor` call would be needed, no new connect flow.
+
 ## Parent
 
 [docs](../../README.md)
