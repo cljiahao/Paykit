@@ -4,25 +4,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ── paykit — "Signal & Mint" ─────────────────────────────────────────────
-   The Merqo family's shared payment engine — infrastructure, not a storefront.
-   Leans on the visual language of payment-rail products (clean, high-contrast,
-   dark authoritative bands, a flowing gradient standing in for money moving
-   between kits) rather than the warm hand-made feel of qkit's kraft-ember or
-   loopkit's mulberry-gold. Deliberately NOT either sibling's palette. */
+/* ── paykit — "Banknote Engrave" — engraved teal-green ink + steel-blue secondary, replacing "Signal & Mint". */
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  --background: oklch(0.949 0.015 88);
+  --foreground: oklch(0.227 0.006 156);
+  --card: oklch(0.949 0.015 88);
+  --card-foreground: oklch(0.227 0.006 156);
+  --popover: oklch(0.949 0.015 88);
+  --popover-foreground: oklch(0.227 0.006 156);
+  --primary: oklch(0.431 0.066 177);
+  --primary-foreground: oklch(0.949 0.015 88);
+  --secondary: oklch(0.517 0.071 238);
+  --secondary-foreground: oklch(0.949 0.015 88);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
@@ -48,16 +43,16 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
+  --background: oklch(0.231 0.019 172);
+  --foreground: oklch(0.949 0.007 127);
+  --card: oklch(0.231 0.019 172);
+  --card-foreground: oklch(0.949 0.007 127);
+  --popover: oklch(0.231 0.019 172);
+  --popover-foreground: oklch(0.949 0.007 127);
+  --primary: oklch(0.63 0.098 172);
+  --primary-foreground: oklch(0.231 0.019 172);
+  --secondary: oklch(0.683 0.069 234);
+  --secondary-foreground: oklch(0.231 0.019 172);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);
