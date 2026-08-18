@@ -111,6 +111,17 @@ method-byo-design.md`. `payee_name`/`uen`/`mobile` apply only to
   `monthly_cents = 499` ($4.99).
 - `kit_api_keys`: one hashed bearer secret per calling kit, service-role only
   (no RLS policy grants any access to `authenticated`/`anon`).
+- `admin_audit` (`0006_paykit_admin.sql`): one row per admin- or
+  vendor-initiated action worth reconstructing later (`setVendorPlan`,
+  `setPricing`, a vendor's own `record_refund` — see `recordAudit()` in
+  `src/app/admin/actions.ts`). RLS is admin-read-only; the service-role
+  client can `select`/`insert` but not `update`/`delete`
+  (`0009_paykit_admin_audit_immutable.sql`) — the app never touches a row
+  once written, and closing off `update`/`delete` at the grant level means
+  a compromised service-role key still can't rewrite history. **Retention:
+  keep `admin_audit` rows for 5 years**, matching IRAS's record-keeping
+  norm for a small Singapore business; no archival/purge job exists yet —
+  this is the stated policy so retention isn't decided ad hoc later.
 - `vendor_prefs` (PK `vendor_id`): dashboard UI state, currently just
   `tour_seen_at` (nullable — a missing row means "hasn't seen the
   onboarding tour yet"). Deliberately separate from

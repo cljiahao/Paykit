@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getVendorSession } from "@/lib/vendor-session";
 import { issueRefundInputSchema } from "@/lib/schemas";
+import { recordAudit } from "@/app/admin/actions";
 
 export type RefundState = { status: "idle" | "ok" | "error"; message?: string };
 
@@ -54,6 +55,12 @@ export async function issueRefundAction(
         "Could not record refund — check the transaction is confirmed and you're on Pro.",
     };
   }
+
+  await recordAudit(user.id, "record_refund", parsed.data.transaction_id, {
+    refunded_amount_cents: parsed.data.refunded_amount_cents,
+    reason: parsed.data.reason || null,
+  });
+
   revalidatePath("/dashboard/transactions");
   return { status: "ok" };
 }

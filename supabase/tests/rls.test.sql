@@ -1,6 +1,6 @@
 -- RLS cross-vendor isolation — pgTAP, run with `supabase test db`.
 begin;
-select plan(39);
+select plan(41);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 -- Vendor A: free plan, UEN config. Vendor B: pro plan, mobile config.
@@ -43,6 +43,16 @@ select ok((select relrowsecurity from pg_class where oid = 'paykit.refunds'::reg
 select ok((select relrowsecurity from pg_class where oid = 'paykit.kit_api_keys'::regclass), 'RLS on kit_api_keys');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.feedback'::regclass), 'RLS on feedback');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.vendor_prefs'::regclass), 'RLS on vendor_prefs');
+
+-- 0009_paykit_admin_audit_immutable.sql: service_role can still append audit
+-- rows (the app's only write path — recordAudit() in
+-- src/app/admin/actions.ts) but can no longer UPDATE/DELETE one after the
+-- fact, closing the tampering gap RLS alone doesn't (RLS only governs
+-- authenticated/anon; service_role bypasses it entirely).
+select ok(has_table_privilege('service_role', 'paykit.admin_audit', 'INSERT'),
+  'service_role can still INSERT admin_audit');
+select ok(not has_table_privilege('service_role', 'paykit.admin_audit', 'UPDATE'),
+  'service_role cannot UPDATE admin_audit (revoked in 0009)');
 
 -- ── Act as Vendor A ────────────────────────────────────────────────────────
 set local role authenticated;
