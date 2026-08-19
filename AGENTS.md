@@ -65,6 +65,8 @@ src/lib/payments/paynow.ts        — EMVCo PayNow QR builder (ported verbatim f
 src/lib/payments/adapter.ts       — renderCheckout (paynow|pointer) + reserved-but-dark auto-verify stub
 src/lib/payments/provider.ts      — PaymentProvider seam: direct provider (wraps renderCheckout, unchanged) + getProvider() (PAYKIT_PROVIDER-selected, defaults/falls back to direct)
 src/lib/tx-state.ts               — pure pending→claimed→confirmed transition logic
+src/lib/checkout.ts               — createCheckout(): shared by POST /api/v1/checkout and dashboard/bookings/actions.ts
+src/lib/booking-status.ts         — pure balanceDueBadge(): dashboard-badge-only "balance due soon" reminder
 src/lib/kit-auth.ts               — bearer-secret verification for calling kits
 src/lib/schemas.ts                — Zod: vendor payment config write schema (paynow|pointer)
 src/lib/api-schemas.ts            — Zod: HTTP API request/response contracts + shared uuidSchema path-param validator
@@ -101,6 +103,22 @@ method-byo-design.md`. `payee_name`/`uen`/`mobile` apply only to
 - `transactions`: one row per checkout, `status` `pending`→`claimed`→`confirmed`,
   `kit_slug` records which kit created it, `qr_payload` stored at creation for
   replay/audit.
+- `bookings` (`0010_paykit_bookings.sql`): deposit-now/balance-later
+  bookings for event-cart vendors (weddings, private events), instead of a
+  one-shot checkout. Links up to two `transactions` rows by id
+  (`deposit_transaction_id`/`balance_transaction_id`, both nullable — the
+  balance one is only created once the vendor's ready to bill it, not at
+  booking time). `status` (`pending_deposit`→`deposit_paid`→`fully_paid`,
+  or `cancelled`) is kept correct by a Postgres trigger
+  (`sync_booking_status()`, on `transactions`' own `status` turning
+  `confirmed`) rather than app code, since a transaction can be confirmed
+  via the bearer-secret API too, not just this dashboard. A `deposit_
+amount_cents + balance_amount_cents = total_amount_cents` CHECK constraint
+  enforces the split adds up. Reminders are dashboard-badge-only (no
+  cron/notification infra exists in this repo, see `src/lib/booking-
+status.ts`) — not a push. Rescheduling (deposit-carries-forward) is
+  explicitly out of scope; cancelling never touches either linked
+  transaction's own status.
 - `refunds` (Pro only): bookkeeping ledger row against a `confirmed`
   transaction — no real money movement.
 - `pricing` (single row, `id` pinned to 1): the Pro price shown on the
@@ -130,8 +148,13 @@ method-byo-design.md`. `payee_name`/`uen`/`mobile` apply only to
 - RLS: a vendor reads/writes only their own `vendor_payment_config`; reads
   (not writes) only their own `transactions`; reads/inserts `refunds` only for
   their own confirmed transactions while on Pro; reads/writes only their own
-  `vendor_prefs` row. The cross-kit API (`/checkout`, `/claim`, `/confirm`)
-  is service-role + bearer-secret, server-only.
+  `vendor_prefs` row; reads/inserts/updates (no delete) only their own
+  `bookings` row, except its two transaction-id link columns, which are
+  service-role only (same self-escalation-shaped reasoning as `plan`
+  above — the policy only checks `vendor_id`, so an unrestricted grant
+  would let a vendor repoint a booking at another vendor's transaction).
+  The cross-kit API (`/checkout`, `/claim`, `/confirm`) is service-role +
+  bearer-secret, server-only.
 
 ## Rules (always)
 

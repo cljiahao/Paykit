@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKitAuth } from "@/lib/kit-auth";
 import { checkoutRequestSchema } from "@/lib/api-schemas";
-import { getProvider } from "@/lib/payments/provider";
-import type { VendorPaymentConfig } from "@/lib/types";
+import { createCheckout } from "@/lib/checkout";
 
 export async function POST(request: Request) {
   const auth = await verifyKitAuth(request);
@@ -18,115 +16,38 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { vendor_id, amount_cents, order_ref } = parsed.data;
 
-  const supabase = await createServiceClient();
-
-  const { data: config, error: configError } = await supabase
-    .from("vendor_payment_config")
-    .select("*")
-    .eq("vendor_id", vendor_id)
-    .maybeSingle();
-  if (configError) {
-    console.error("checkout: config read failed", configError.message);
+  const result = await createCheckout({
+    vendorId: parsed.data.vendor_id,
+    kitSlug: auth.kitSlug,
+    orderRef: parsed.data.order_ref,
+    amountCents: parsed.data.amount_cents,
+  });
+  if (!result.ok) {
     return NextResponse.json(
-      { error: "Upstream unavailable" },
-      { status: 503 },
-    );
-  }
-  if (!config) {
-    return NextResponse.json(
-      { error: "vendor has no PayNow config" },
-      { status: 422 },
+      { error: result.error },
+      { status: result.status },
     );
   }
 
-  const view = await getProvider().createCheckout(
-    config as VendorPaymentConfig,
-    {
-      amountCents: amount_cents,
-      orderRef: order_ref,
-    },
-  );
-  if (!view) {
-    return NextResponse.json(
-      { error: "vendor payment config is incomplete" },
-      { status: 422 },
-    );
-  }
-
-  // qr_payload is a generic "checkout payload" store — the QR payload for
-  // type "qr", the link/image URL for "link"/"image". Column name unchanged
-  // (additive-only migration), meaning generalized. See the design spec.
-  const payloadValue = view.type === "qr" ? view.payload : view.url;
-
-  const { data: inserted, error: insertError } = await supabase
-    .from("transactions")
-    .insert({
-      vendor_id,
-      kit_slug: auth.kitSlug,
-      order_ref,
-      amount_cents,
-      qr_payload: payloadValue,
-    })
-    .select("id, qr_payload")
-    .single();
-
-  // A retry of the same (kit_slug, order_ref) — e.g. a caller-side timeout —
-  // hits the unique constraint (0007_paykit_checkout_idempotency.sql) rather
-  // than creating a duplicate pending transaction; re-read and return the
-  // transaction the first call already created.
-  let tx = inserted;
-  if (insertError?.code === "23505") {
-    const { data: existing, error: existingError } = await supabase
-      .from("transactions")
-      .select("id, qr_payload")
-      .eq("kit_slug", auth.kitSlug)
-      .eq("order_ref", order_ref)
-      .single();
-    if (existingError || !existing) {
-      console.error(
-        "checkout: idempotent re-read failed",
-        existingError?.message,
-      );
-      return NextResponse.json(
-        { error: "Could not create checkout" },
-        { status: 503 },
-      );
-    }
-    tx = existing;
-  } else if (insertError || !inserted) {
-    console.error("checkout: insert failed", insertError?.message);
-    return NextResponse.json(
-      { error: "Could not create checkout" },
-      { status: 503 },
-    );
-  }
-  if (!tx) {
-    return NextResponse.json(
-      { error: "Could not create checkout" },
-      { status: 503 },
-    );
-  }
-
-  if (view.type === "qr") {
+  if (result.type === "qr") {
     return NextResponse.json({
       type: "qr",
-      transaction_id: tx.id,
-      payload: tx.qr_payload,
+      transaction_id: result.transaction_id,
+      payload: result.payload,
     });
   }
-  if (view.type === "link") {
+  if (result.type === "link") {
     return NextResponse.json({
       type: "link",
-      transaction_id: tx.id,
-      url: tx.qr_payload,
-      label: view.label,
+      transaction_id: result.transaction_id,
+      url: result.url,
+      label: result.label,
     });
   }
   return NextResponse.json({
     type: "image",
-    transaction_id: tx.id,
-    url: tx.qr_payload,
+    transaction_id: result.transaction_id,
+    url: result.url,
   });
 }

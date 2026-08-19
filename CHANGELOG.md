@@ -8,6 +8,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Bookings: deposit-now, balance-later checkout for event-cart vendors
+  (weddings, private events), instead of a one-shot transaction. A new
+  `bookings` table links up to two `transactions` rows (deposit, then
+  later balance) by id; a Postgres trigger keeps `bookings.status`
+  (`pending_deposit`→`deposit_paid`→`fully_paid`, or `cancelled`) correct
+  off those transactions' own `confirmed` state, regardless of which path
+  confirmed them. New `/dashboard/bookings` list + detail pages: a
+  creation dialog, a "Create balance checkout" action once the deposit
+  exists, cancel, and a "balance due soon/overdue" badge (dashboard-only —
+  this repo has no cron/notification infra, so it's not a push).
 - Dark mode is now actually reachable: a manual Light/Dark/System control
   in the dashboard account menu, via bumping `@merqo/ui` to v0.18.0
   (its `AccountMenu` gained a built-in theme control) and wrapping

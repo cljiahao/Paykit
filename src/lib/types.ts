@@ -50,6 +50,26 @@ export type Transaction = {
   created_at: string;
 };
 
+export type BookingStatus =
+  "pending_deposit" | "deposit_paid" | "fully_paid" | "cancelled";
+
+export type Booking = {
+  id: string;
+  vendor_id: string;
+  customer_name: string;
+  customer_phone: string | null;
+  event_date: string;
+  total_amount_cents: number;
+  deposit_amount_cents: number;
+  balance_amount_cents: number;
+  balance_due_date: string;
+  status: BookingStatus;
+  deposit_transaction_id: string | null;
+  balance_transaction_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Refund = {
   id: string;
   transaction_id: string;
@@ -144,6 +164,39 @@ export interface Database {
           status?: TxStatus;
           claimed_at?: string | null;
           confirmed_at?: string | null;
+        };
+        Relationships: [];
+      };
+      bookings: {
+        Row: Booking;
+        Insert: {
+          id?: string;
+          vendor_id: string;
+          customer_name: string;
+          customer_phone?: string | null;
+          event_date: string;
+          total_amount_cents: number;
+          deposit_amount_cents: number;
+          balance_amount_cents: number;
+          balance_due_date: string;
+          status?: BookingStatus;
+          deposit_transaction_id?: string | null;
+          balance_transaction_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          customer_name?: string;
+          customer_phone?: string | null;
+          event_date?: string;
+          total_amount_cents?: number;
+          deposit_amount_cents?: number;
+          balance_amount_cents?: number;
+          balance_due_date?: string;
+          status?: BookingStatus;
+          deposit_transaction_id?: string | null;
+          balance_transaction_id?: string | null;
+          updated_at?: string;
         };
         Relationships: [];
       };

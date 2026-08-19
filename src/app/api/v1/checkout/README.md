@@ -9,13 +9,16 @@ pointer for a vendor's transaction. Bearer-secret authenticated
 ## Contents
 
 - `route.ts` — `POST`: validates the request body against
-  `checkoutRequestSchema`, verifies the caller's bearer secret, then inserts
-  a `transactions` row (service-role client) and renders the checkout
-  (PayNow QR or BYO pointer) via `getProvider().createCheckout(...)` (see
-  `src/lib/payments/README.md` for the provider seam itself). Idempotent on
-  `(kit_slug, order_ref)` — a retried call with the same pair (Postgres
-  unique-constraint violation on insert) reads back and returns the
-  existing transaction instead of creating a duplicate or failing.
+  `checkoutRequestSchema`, verifies the caller's bearer secret, then calls
+  `@/lib/checkout`'s `createCheckout()` — the shared insert-a-`transactions`-
+  row-and-render-the-checkout-view path (PayNow QR or BYO pointer, via
+  `getProvider().createCheckout(...)`, see `src/lib/payments/README.md` for
+  the provider seam itself), also used directly by the dashboard's own
+  booking deposit/balance actions (`dashboard/bookings/actions.ts`), which
+  don't go through this HTTP route. Idempotent on `(kit_slug, order_ref)` —
+  a retried call with the same pair (Postgres unique-constraint violation
+  on insert) reads back and returns the existing transaction instead of
+  creating a duplicate or failing.
 - `route.test.ts` — covers a fresh checkout, the idempotent-retry path
   (same `(kit_slug, order_ref)` returns the same transaction, no duplicate
   row), and the 503 case where the idempotent re-read itself fails.

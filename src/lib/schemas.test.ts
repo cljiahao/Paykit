@@ -3,6 +3,9 @@ import {
   vendorPaymentConfigInputSchema,
   issueRefundInputSchema,
   supportMessageSchema,
+  createBookingInputSchema,
+  cancelBookingInputSchema,
+  createBalanceCheckoutInputSchema,
 } from "./schemas";
 
 describe("vendorPaymentConfigInputSchema", () => {
@@ -208,6 +211,130 @@ describe("issueRefundInputSchema", () => {
       transaction_id: VALID_TX_ID,
       refunded_amount_cents: "99999999999",
       reason: "",
+    });
+    expect(parsed.success).toBe(false);
+  });
+});
+
+describe("createBookingInputSchema", () => {
+  const VALID = {
+    customer_name: "Jane Tan",
+    customer_phone: "+6591234567",
+    event_date: "2026-12-01",
+    balance_due_date: "2026-11-24",
+    total_amount_cents: "100000",
+    deposit_amount_cents: "30000",
+    balance_amount_cents: "70000",
+  };
+
+  it("accepts a valid booking and coerces amounts to numbers", () => {
+    const parsed = createBookingInputSchema.safeParse(VALID);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.total_amount_cents).toBe(100000);
+      expect(parsed.data.deposit_amount_cents).toBe(30000);
+      expect(parsed.data.balance_amount_cents).toBe(70000);
+    }
+  });
+
+  it("accepts an omitted customer phone", () => {
+    const parsed = createBookingInputSchema.safeParse({
+      ...VALID,
+      customer_phone: "",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects an empty customer name", () => {
+    const parsed = createBookingInputSchema.safeParse({
+      ...VALID,
+      customer_name: "",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects when deposit + balance don't add up to the total", () => {
+    const parsed = createBookingInputSchema.safeParse({
+      ...VALID,
+      deposit_amount_cents: "30000",
+      balance_amount_cents: "80000",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects a balance due date after the event date", () => {
+    const parsed = createBookingInputSchema.safeParse({
+      ...VALID,
+      balance_due_date: "2026-12-15",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("accepts a balance due date equal to the event date", () => {
+    const parsed = createBookingInputSchema.safeParse({
+      ...VALID,
+      balance_due_date: VALID.event_date,
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects a malformed event date", () => {
+    const parsed = createBookingInputSchema.safeParse({
+      ...VALID,
+      event_date: "1 Dec 2026",
+    });
+    expect(parsed.success).toBe(false);
+  });
+
+  it("rejects a non-positive deposit amount", () => {
+    const parsed = createBookingInputSchema.safeParse({
+      ...VALID,
+      deposit_amount_cents: "0",
+      balance_amount_cents: "100000",
+    });
+    expect(parsed.success).toBe(false);
+  });
+});
+
+describe("cancelBookingInputSchema", () => {
+  const VALID_ID = "11111111-1111-1111-1111-111111111111";
+
+  it("accepts a valid booking id with no reason", () => {
+    const parsed = cancelBookingInputSchema.safeParse({
+      booking_id: VALID_ID,
+      reason: "",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("accepts a valid booking id with a reason", () => {
+    const parsed = cancelBookingInputSchema.safeParse({
+      booking_id: VALID_ID,
+      reason: "Customer rescheduled elsewhere",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects a non-UUID booking id", () => {
+    const parsed = cancelBookingInputSchema.safeParse({
+      booking_id: "not-a-uuid",
+      reason: "",
+    });
+    expect(parsed.success).toBe(false);
+  });
+});
+
+describe("createBalanceCheckoutInputSchema", () => {
+  it("accepts a valid booking id", () => {
+    const parsed = createBalanceCheckoutInputSchema.safeParse({
+      booking_id: "11111111-1111-1111-1111-111111111111",
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it("rejects a non-UUID booking id", () => {
+    const parsed = createBalanceCheckoutInputSchema.safeParse({
+      booking_id: "not-a-uuid",
     });
     expect(parsed.success).toBe(false);
   });

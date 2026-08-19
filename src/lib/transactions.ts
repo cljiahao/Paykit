@@ -18,6 +18,24 @@ export async function listTransactions(
   return data ?? [];
 }
 
+export async function getTransaction(
+  vendorId: string,
+  transactionId: string,
+): Promise<Transaction | null> {
+  const supabase = await createServerClient();
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("*")
+    .eq("vendor_id", vendorId)
+    .eq("id", transactionId)
+    .maybeSingle();
+  if (error) {
+    console.error("getTransaction failed", error.message);
+    return null;
+  }
+  return data;
+}
+
 export async function txCountThisMonth(vendorId: string): Promise<number> {
   const supabase = await createServerClient();
   const { data, error } = await supabase.rpc("tx_count_this_month", {

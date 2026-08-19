@@ -36,8 +36,8 @@ revenue stats, manage their Pro plan, and edit their account profile.
 plan })` client component: composes `@merqo/ui`'s `DashboardNav`/
   `AccountMenu` for the sticky header row (burger + inline links + account
   dropdown) instead of hand-rolling it. Owns only paykit-specific bits: the
-  wordmark, `LINKS` (`Dashboard`/`Payment setup`/`Transactions`/`Stats`,
-  active-route highlighting via `isActive`/`usePathname`), the 2-tier
+  wordmark, `LINKS` (`Dashboard`/`Payment setup`/`Transactions`/`Bookings`/
+  `Stats`, active-route highlighting via `isActive`/`usePathname`), the 2-tier
   (free/pro) `TierBadge` (ported from qkit's 3-tier badge, flattened), and
   thin throw-adapting wrappers around `submitFeedbackAction`/
   `submitSupportMessageAction` (both return a `{success, error}` result;
@@ -133,6 +133,12 @@ className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
   payment link/QR image; own README).
 - `transactions/` — transaction history + refund dialog (Pro only; own
   README).
+- `bookings/` — deposit-now/balance-later bookings for event-cart vendors:
+  a list page with a per-booking "balance due soon/overdue" badge (a
+  dashboard-only reminder — no cron/notification infra exists in this
+  repo), a creation dialog, and a per-booking detail page showing both
+  linked transactions' status/QR, a "Create balance checkout" action, and
+  cancel (own README).
 - `stats/` — revenue-by-day chart, free for every vendor (own README).
 - `plan/` — current tier, usage, the live admin-tunable Pro price, and the
   Pro upsell (`UpgradeCta` — a button that files a Pro-upgrade request via
@@ -145,9 +151,9 @@ className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
 
 `layout.tsx` gates every route under `/dashboard` and renders
 `dashboard-nav.tsx` around `{children}`; `dashboard-nav.tsx` links out to
-`config/`, `transactions/`, `stats/`, `plan/`, `profile/` — the dashboard's
-sub-routes for payment setup, transaction history, revenue stats, billing,
-and account respectively.
+`config/`, `transactions/`, `bookings/`, `stats/`, `plan/`, `profile/` — the
+dashboard's sub-routes for payment setup, transaction history, event
+bookings, revenue stats, billing, and account respectively.
 
 ## Parent
 

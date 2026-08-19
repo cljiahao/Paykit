@@ -9,11 +9,14 @@ larger clusters; everything else sits flat here.
 ## Contents
 
 - `types.ts` — hand-maintained DB types (`Transaction`, `VendorPaymentConfig`,
-  `TxStatus`, `VendorPlan`, `PaymentConfigKind`, `SocialLinks`, …), kept in
-  sync with `supabase/migrations/` by hand.
+  `TxStatus`, `VendorPlan`, `PaymentConfigKind`, `Booking`, `BookingStatus`,
+  `SocialLinks`, …), kept in sync with `supabase/migrations/` by hand.
 - `schemas.ts` — Zod input schemas for every form/action boundary:
   `vendorPaymentConfigInputSchema` (discriminated union over `kind`,
-  paynow/pointer), `issueRefundInputSchema`, profile/password/social-links
+  paynow/pointer), `issueRefundInputSchema`, `createBookingInputSchema`
+  (deposit + balance must add up to the total; balance due date must be on
+  or before the event date), `cancelBookingInputSchema`,
+  `createBalanceCheckoutInputSchema`, profile/password/social-links
   schemas, `feedbackSchema`, `supportMessageSchema` +
   `SUPPORT_CATEGORY_LABELS`.
 - `api-schemas.ts` — Zod contracts for the `/api/v1/*` HTTP surface
@@ -24,8 +27,25 @@ larger clusters; everything else sits flat here.
   the claimed→pending undo. All three are idempotent by design (a no-op
   success on states they don't apply to); `unclaimTransition` only ever
   reverts `claimed`, so a `confirmed` payment can never be un-confirmed.
-- `transactions.ts` — `listTransactions(vendorId)`: reads a vendor's
-  transactions via the session-scoped Supabase client (RLS-filtered).
+- `transactions.ts` — `listTransactions(vendorId)`/`getTransaction(vendorId,
+id)`: read a vendor's transactions (or one, by id) via the session-scoped
+  Supabase client (RLS-filtered).
+- `checkout.ts` — `createCheckout({vendorId, kitSlug, orderRef,
+amountCents})`: the one `transactions`-insert-plus-render-the-checkout-view
+  path, extracted out of `POST /api/v1/checkout`'s route handler so the
+  dashboard's own booking deposit/balance actions
+  (`dashboard/bookings/actions.ts`, `kitSlug: "paykit"`) can call it directly
+  instead of going back through HTTP. Same idempotency (unique-constraint
+  retry re-read) and error handling either caller gets.
+- `bookings.ts` — `listBookings(vendorId)`/`getBooking(vendorId, id)`: read
+  a vendor's bookings via the session-scoped Supabase client, same shape as
+  `transactions.ts`.
+- `booking-status.ts` — `balanceDueBadge(status, balanceDueDate, now?)`:
+  pure — only ever non-null once a booking is `deposit_paid`, returning a
+  `{label, urgency: "due-soon"|"overdue"}` once the balance is within 14
+  days of due or already past it. This is the whole V1 "reminder" — no
+  cron/notification infra exists in this repo (see `AGENTS.md`), so it's a
+  dashboard badge computed at render time, not a push.
 - `revenue-report.ts` — `aggregateRevenueByDay`: pure aggregation of
   confirmed transactions into per-day totals + counts (`DailyRevenue`:
   `{date, cents, count}`) for the Stats page's chart and its stat-tile row.
@@ -124,8 +144,10 @@ configs)`: pure two-step lookup (email → auth user → that user's
   sites: `dashboard/profile/profile-form.tsx` (avatar) and
   `dashboard/config/payment-config-form.tsx` (BYO QR image).
 - `utils.ts` — `cn()` (clsx + tailwind-merge), shared form label/error
-  Tailwind class constants, and `formatCents()` (integer cents -> SGD
-  currency string), shared by every page that displays a money amount.
+  Tailwind class constants, `formatCents()` (integer cents -> SGD currency
+  string), and `formatDate()` (a `date`-column "YYYY-MM-DD" string ->
+  display date, parsed/formatted with an explicit UTC anchor so it never
+  shifts by a day depending on the server's runtime timezone).
 
 ## Connectivity
 
