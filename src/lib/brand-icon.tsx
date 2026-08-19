@@ -1,9 +1,11 @@
 import type { ReactElement } from "react";
 
-// "Signal & Mint" marks, approximated from the OKLCH theme tokens as
-// concrete hex — ImageResponse needs literal CSS colors.
-export const BRAND_MINT = "#3fa878";
-export const BRAND_INK = "#14161f";
+// "Banknote Engrave" marks, approximated from the OKLCH theme tokens as
+// concrete hex — ImageResponse needs literal CSS colors. Uses the dark
+// theme's brighter primary (not the light theme's deep teal) so the
+// dark-ink text on top stays legible at icon scale.
+export const BRAND_MINT = "#3E9C82";
+export const BRAND_INK = "#1A1D1B";
 
 /**
  * The paykit "P" app mark for ImageResponse-generated icons (favicon,
