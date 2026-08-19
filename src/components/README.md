@@ -26,7 +26,10 @@ sits flat here.
   mark-seen, and cross-page replay behavior.
 - `tour-steps.ts` — `tourSteps(isMobile)`: pure step config (element
   selector + title + description) for the dashboard tour, kept free of any
-  DOM/React dependency so it's trivially unit-testable.
+  DOM/React dependency so it's trivially unit-testable. The first step's
+  description embeds a `.tour-example` HTML snippet (styled in
+  `src/app/globals.css`, rendered via driver.js's own `innerHTML` popover)
+  showing an example transaction.
 - `tour-steps.test.ts` — unit tests asserting the mobile/desktop step lists.
 - `elevated-card.tsx` — `ElevatedCard({ as, className, children })`: the
   shared raised-card container (rounded, bordered, soft shadow) used by the

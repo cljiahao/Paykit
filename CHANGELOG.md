@@ -12,6 +12,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   the old "Signal & Mint" hex after the Banknote Engrave rebrand — a
   real visible bug, not just stale docs.
 
+### Changed
+
+- Onboarding tour copy: no more em dashes, and two new steps
+  (Transactions, Stats) covering ground the tour skipped before. The
+  first step now shows an example transaction preview.
+
 ### Added
 
 - Widened `admin_audit` coverage: a vendor's own refund (`issueRefundAction`)
