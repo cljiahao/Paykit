@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Dark mode is now actually reachable: a manual Light/Dark/System control
+  in the dashboard account menu, via bumping `@merqo/ui` to v0.18.0
+  (its `AccountMenu` gained a built-in theme control) and wrapping
+  `src/app/layout.tsx` in `next-themes`' `ThemeProvider`. `globals.css`'s
+  `.dark` block already existed but had no code path applying the `.dark`
+  class, so it was fully unwired until now.
+
 ### Fixed
 
 - The favicon/apple-touch-icon (`src/lib/brand-icon.tsx`) still rendered
