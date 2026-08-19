@@ -61,34 +61,9 @@ config-form.tsx`'s label-preset wiring) — the deposit+balance-must-equal-
   total check still runs server-side regardless.
 - `new-booking-dialog.dom.test.tsx` — open/submit/close-on-success, the
   balance auto-derivation and its touched-lock, and the inline error path.
-- `[id]/page.tsx` — `BookingDetailPage({params})` (server, Next 16 async
-  `params`): `notFound()`s on a missing/not-owned booking (RLS already
-  filters `getBooking` to this vendor; a wrong id just reads back `null`),
-  then renders the booking's fields, both linked transactions via
-  `TransactionStatusCard`, `CreateBalanceCheckoutButton` (only once
-  eligible), and `CancelBookingDialog` — both hidden once the booking is
-  already `cancelled`.
-- `[id]/page.dom.test.tsx` — 404 path, field rendering, and every
-  action-visibility branch (balance-checkout eligibility, cancelled hides
-  both actions).
-- `[id]/transaction-status-card.tsx` — one linked transaction's status
-  badge (same `claimed` mint treatment as `transaction-table.tsx`), amount,
-  and its `qr_payload` rendered as a QR (`qr-code-view.tsx`) — or "Not yet
-  created." before the balance checkout exists. `qr_payload` isn't tagged
-  with a checkout `type` in the DB, so this always renders it as a QR; for
-  a `pointer`-kind BYO vendor using a payment **link** that still scans
-  fine (opens the link), a BYO **QR image** vendor is the one real
-  degraded case (an image URL re-encoded as a QR instead of shown as the
-  image) — accepted for this round rather than widening `transactions`'
-  schema to persist `type`.
-- `[id]/qr-code-view.tsx` — thin `"use client"` wrapper around
-  `react-qr-code`'s `QRCode`, same reason `payment-config-form.tsx` needs
-  one: kept out of the (server) detail page itself.
-- `[id]/create-balance-checkout-button.tsx` /
-  `[id]/cancel-booking-dialog.tsx` — direct-call client actions (`useTransition`,
-  same shape as `plan/upgrade-cta.tsx`) wiring `createBalanceCheckoutAction`/
-  `cancelBookingAction` to a toast/inline-error.
-- `[id]/*.dom.test.tsx` — coverage for each of the above.
+- `[id]/` — the per-booking detail page: both linked transactions'
+  status/QR, "Create balance checkout" once eligible, and cancel (own
+  README).
 
 ## Connectivity
 
