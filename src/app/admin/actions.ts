@@ -10,8 +10,15 @@ import type { Json } from "@/lib/types";
 /**
  * Append an admin-audit row. Best-effort: a hiccup here must not fail the action
  * it records, but it's logged so a broken trail stays visible.
+ *
+ * Exported so other real mutating actions (e.g. the vendor-initiated refund
+ * action in `src/app/dashboard/transactions/actions.ts`) can reuse the same
+ * insert path instead of duplicating it. `adminId` need not actually be a
+ * `paykit.admins` member — the column is just `admin_id uuid not null
+ * references auth.users(id)`, so any real authenticated actor (a vendor
+ * confirming their own refund, say) satisfies it.
  */
-async function recordAudit(
+export async function recordAudit(
   adminId: string,
   action: string,
   targetId: string | null,

@@ -1,17 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { revalidatePath } from "next/cache";
 
-const { getUserMock, insertMock, createServerClientMock } = vi.hoisted(() => ({
-  getUserMock: vi.fn(),
-  insertMock: vi.fn(),
-  createServerClientMock: vi.fn(),
-}));
+const { getUserMock, insertMock, createServerClientMock, recordAuditMock } =
+  vi.hoisted(() => ({
+    getUserMock: vi.fn(),
+    insertMock: vi.fn(),
+    createServerClientMock: vi.fn(),
+    recordAuditMock: vi.fn(),
+  }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createServerClient: createServerClientMock,
 }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+// recordAudit is exercised directly in `src/app/admin/actions.test.ts`
+// (including its own service-client insert + best-effort-failure paths);
+// here we only assert this action calls it with the right arguments.
+vi.mock("@/app/admin/actions", () => ({ recordAudit: recordAuditMock }));
 
 beforeEach(() => {
   getUserMock.mockReset().mockResolvedValue({ data: { user: { id: "v1" } } });
@@ -21,6 +27,7 @@ beforeEach(() => {
     from: () => ({ insert: insertMock }),
   });
   vi.mocked(revalidatePath).mockReset();
+  recordAuditMock.mockReset().mockResolvedValue(undefined);
 });
 
 function formData(fields: Record<string, string>) {
@@ -50,6 +57,46 @@ describe("issueRefundAction", () => {
       created_by: "v1",
     });
     expect(revalidatePath).toHaveBeenCalledWith("/dashboard/transactions");
+    expect(recordAuditMock).toHaveBeenCalledWith(
+      "v1",
+      "record_refund",
+      VALID_TX_ID,
+      { refunded_amount_cents: 450, reason: "damaged" },
+    );
+  });
+
+  it("records the audit row with a null reason when none was given", async () => {
+    const { issueRefundAction } = await import("./actions");
+    await issueRefundAction(
+      { status: "idle" },
+      formData({
+        transaction_id: VALID_TX_ID,
+        refunded_amount: "4.50",
+        reason: "",
+      }),
+    );
+    expect(recordAuditMock).toHaveBeenCalledWith(
+      "v1",
+      "record_refund",
+      VALID_TX_ID,
+      { refunded_amount_cents: 450, reason: null },
+    );
+  });
+
+  it("does not record an audit row when the refund insert fails", async () => {
+    insertMock.mockResolvedValue({
+      error: { message: "new row violates row-level security policy" },
+    });
+    const { issueRefundAction } = await import("./actions");
+    await issueRefundAction(
+      { status: "idle" },
+      formData({
+        transaction_id: VALID_TX_ID,
+        refunded_amount: "4.50",
+        reason: "",
+      }),
+    );
+    expect(recordAuditMock).not.toHaveBeenCalled();
   });
 
   it("rejects a non-positive amount without inserting or revalidating", async () => {
