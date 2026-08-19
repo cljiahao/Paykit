@@ -44,6 +44,10 @@ describe("DashboardNav", () => {
       "href",
       "/dashboard/transactions",
     );
+    expect(screen.getByRole("link", { name: "Bookings" })).toHaveAttribute(
+      "href",
+      "/dashboard/bookings",
+    );
     expect(screen.getByRole("link", { name: "Stats" })).toHaveAttribute(
       "href",
       "/dashboard/stats",

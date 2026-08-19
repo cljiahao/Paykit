@@ -1,6 +1,6 @@
 -- RLS cross-vendor isolation — pgTAP, run with `supabase test db`.
 begin;
-select plan(41);
+select plan(50);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 -- Vendor A: free plan, UEN config. Vendor B: pro plan, mobile config.
@@ -36,6 +36,27 @@ values
 insert into paykit.kit_api_keys (kit_slug, secret_hash)
 values ('qkit', 'deadbeef');
 
+-- Vendor A has a booking whose deposit transaction is A's own (fixture
+-- inserts run before `set local role authenticated`, so the full row —
+-- including deposit_transaction_id, excluded from authenticated's own
+-- UPDATE grant below — can be seeded directly here).
+insert into paykit.bookings (
+  id, vendor_id, customer_name, event_date,
+  total_amount_cents, deposit_amount_cents, balance_amount_cents, balance_due_date,
+  deposit_transaction_id
+) values (
+  '00000000-0000-0000-0000-0000000e0a01', '00000000-0000-0000-0000-00000000000a',
+  'Alice Customer', '2026-12-01', 100000, 30000, 70000, '2026-11-24',
+  '00000000-0000-0000-0000-0000000d0a01'
+);
+insert into paykit.bookings (
+  id, vendor_id, customer_name, event_date,
+  total_amount_cents, deposit_amount_cents, balance_amount_cents, balance_due_date
+) values (
+  '00000000-0000-0000-0000-0000000e0b01', '00000000-0000-0000-0000-00000000000b',
+  'Bob Customer', '2026-12-05', 200000, 50000, 150000, '2026-11-28'
+);
+
 -- ── RLS is actually enabled on every protected table ─────────────────────────
 select ok((select relrowsecurity from pg_class where oid = 'paykit.vendor_payment_config'::regclass), 'RLS on vendor_payment_config');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.transactions'::regclass), 'RLS on transactions');
@@ -43,6 +64,7 @@ select ok((select relrowsecurity from pg_class where oid = 'paykit.refunds'::reg
 select ok((select relrowsecurity from pg_class where oid = 'paykit.kit_api_keys'::regclass), 'RLS on kit_api_keys');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.feedback'::regclass), 'RLS on feedback');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.vendor_prefs'::regclass), 'RLS on vendor_prefs');
+select ok((select relrowsecurity from pg_class where oid = 'paykit.bookings'::regclass), 'RLS on bookings');
 
 -- 0009_paykit_admin_audit_immutable.sql: service_role can still append audit
 -- rows (the app's only write path — recordAudit() in
@@ -144,6 +166,53 @@ select isnt_empty(
   $$ select 1 from paykit.vendor_prefs where vendor_id = '00000000-0000-0000-0000-00000000000a' $$,
   'A reads its own vendor_prefs row');
 
+-- ── Bookings: A can only see/touch its own ───────────────────────────────
+select isnt_empty(
+  $$ select 1 from paykit.bookings where id = '00000000-0000-0000-0000-0000000e0a01' $$,
+  'A reads its own booking');
+select is_empty(
+  $$ select 1 from paykit.bookings where id = '00000000-0000-0000-0000-0000000e0b01' $$,
+  'A cannot read B''s booking');
+
+select lives_ok(
+  $$ insert into paykit.bookings (
+       vendor_id, customer_name, event_date,
+       total_amount_cents, deposit_amount_cents, balance_amount_cents, balance_due_date
+     ) values (
+       '00000000-0000-0000-0000-00000000000a', 'New Customer', '2027-01-10',
+       50000, 20000, 30000, '2027-01-03'
+     ) $$,
+  'A can insert its own booking');
+select throws_ok(
+  $$ insert into paykit.bookings (
+       vendor_id, customer_name, event_date,
+       total_amount_cents, deposit_amount_cents, balance_amount_cents, balance_due_date
+     ) values (
+       '00000000-0000-0000-0000-00000000000b', 'Forged', '2027-01-10',
+       50000, 20000, 30000, '2027-01-03'
+     ) $$,
+  null,
+  'A cannot insert a booking for B (vendor_id must equal auth.uid())');
+
+select lives_ok(
+  $$ update paykit.bookings set status = 'cancelled'
+     where id = '00000000-0000-0000-0000-0000000e0a01' $$,
+  'A can cancel its own booking');
+with upd as (
+  update paykit.bookings set status = 'cancelled'
+  where id = '00000000-0000-0000-0000-0000000e0b01' returning 1)
+select is((select count(*)::int from upd), 0, 'A cannot update B''s booking (cancel or otherwise)');
+
+-- deposit_transaction_id/balance_transaction_id are excluded from the
+-- vendor's own UPDATE grant (0010_paykit_bookings.sql) so a vendor can't
+-- repoint their own booking's FK at another vendor's transaction — which
+-- the sync_booking_status() trigger would then act on.
+select throws_like(
+  $$ update paykit.bookings set deposit_transaction_id = '00000000-0000-0000-0000-0000000d0b02'
+     where id = '00000000-0000-0000-0000-0000000e0a01' $$,
+  '%permission denied%',
+  'A cannot repoint its own booking''s deposit_transaction_id at B''s transaction (column excluded from the UPDATE grant)');
+
 -- ── Act as Vendor C (no config row yet) ──────────────────────────────────────
 -- Same self-escalation bug, INSERT path: the column-scoped INSERT grant
 -- (migration 0001, ~line 135) also excludes `plan`, so a first-time vendor
@@ -236,6 +305,10 @@ select throws_ok(
   $$ select 1 from paykit.vendor_prefs limit 1 $$,
   null,
   'anon cannot SELECT vendor_prefs');
+select throws_ok(
+  $$ select 1 from paykit.bookings limit 1 $$,
+  null,
+  'anon cannot SELECT bookings');
 select throws_ok(
   $$ insert into paykit.feedback (vendor_id, nps)
      values ('00000000-0000-0000-0000-00000000000a', 9) $$,

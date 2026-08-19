@@ -15,6 +15,7 @@ const LINKS = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/config", label: "Payment setup" },
   { href: "/dashboard/transactions", label: "Transactions" },
+  { href: "/dashboard/bookings", label: "Bookings" },
   { href: "/dashboard/stats", label: "Stats" },
 ];
 

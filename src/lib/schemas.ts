@@ -100,6 +100,77 @@ export const issueRefundInputSchema = z.object({
 
 export type IssueRefundInput = z.infer<typeof issueRefundInputSchema>;
 
+// ── Bookings (dashboard/bookings) ────────────────────────────────────────
+// A vendor's own `<input type="date">` gives an ISO "YYYY-MM-DD" string —
+// zero-padded, so plain string comparison already sorts chronologically;
+// no Date parsing needed for the ordering check below.
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid date");
+
+export const createBookingInputSchema = z
+  .object({
+    customer_name: z
+      .string()
+      .trim()
+      .min(1, "Customer name is required")
+      .max(100),
+    customer_phone: z.string().trim().max(30).optional().or(z.literal("")),
+    event_date: isoDate,
+    balance_due_date: isoDate,
+    total_amount_cents: z.coerce
+      .number({ invalid_type_error: "Enter a valid total amount." })
+      .int("Enter a valid total amount.")
+      .positive("Enter a valid total amount.")
+      .max(PG_INT4_MAX, "Amount is too large."),
+    deposit_amount_cents: z.coerce
+      .number({ invalid_type_error: "Enter a valid deposit amount." })
+      .int("Enter a valid deposit amount.")
+      .positive("Enter a valid deposit amount.")
+      .max(PG_INT4_MAX, "Amount is too large."),
+    balance_amount_cents: z.coerce
+      .number({ invalid_type_error: "Enter a valid balance amount." })
+      .int("Enter a valid balance amount.")
+      .positive("Enter a valid balance amount.")
+      .max(PG_INT4_MAX, "Amount is too large."),
+  })
+  .superRefine((v, ctx) => {
+    if (
+      v.deposit_amount_cents + v.balance_amount_cents !==
+      v.total_amount_cents
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Deposit + balance must add up to the total",
+        path: ["deposit_amount_cents"],
+      });
+    }
+    if (v.balance_due_date > v.event_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Balance due date must be on or before the event date",
+        path: ["balance_due_date"],
+      });
+    }
+  });
+export type CreateBookingInput = z.infer<typeof createBookingInputSchema>;
+
+export const cancelBookingInputSchema = z.object({
+  booking_id: z.string().uuid("Invalid booking"),
+  reason: z
+    .string()
+    .trim()
+    .max(500, "Reason is too long")
+    .optional()
+    .or(z.literal("")),
+});
+export type CancelBookingInput = z.infer<typeof cancelBookingInputSchema>;
+
+export const createBalanceCheckoutInputSchema = z.object({
+  booking_id: z.string().uuid("Invalid booking"),
+});
+export type CreateBalanceCheckoutInput = z.infer<
+  typeof createBalanceCheckoutInputSchema
+>;
+
 // ── Profile settings (dashboard/profile) ─────────────────────────────────
 // Cross-kit standard, not paykit-specific — see `Merqo Business/docs/business/
 // 2026-07-21-profile-settings-page-standard.md`. Stall/shop name + social

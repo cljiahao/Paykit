@@ -103,6 +103,23 @@ wordmark/tagline/copyright/sign-in link, no CTA band above it), and the
 landing page's `BackToTop` button matches the cross-kit landing-page
 parity pass.
 
+Event-cart vendors (weddings, private events) can now take a deposit now
+and bill the balance closer to the event instead of one-shot checkout —
+`/dashboard/bookings` (`src/app/dashboard/bookings/README.md`). A booking
+links up to two `transactions` rows (deposit, then later balance) by id;
+a Postgres trigger (`sync_booking_status()`,
+`supabase/migrations/0010_paykit_bookings.sql`) keeps `bookings.status`
+correct off those transactions' own `confirmed` state regardless of which
+path confirmed them — the dashboard or the bearer-secret
+`/api/v1/checkout/{id}/confirm` API another kit's flow calls. Reminders
+are a dashboard-only "balance due soon/overdue" badge this round — this
+repo has no cron or push-notification infrastructure, so it's computed at
+render time (`src/lib/booking-status.ts`), not a push. The checkout-
+creation logic `POST /api/v1/checkout` used is now shared, via
+`src/lib/checkout.ts`, with the booking actions that create a deposit/
+balance checkout directly from the dashboard instead of round-tripping
+through HTTP.
+
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`
 for what's shipped since the MVP, including the "Name | Tagline" Title Case
