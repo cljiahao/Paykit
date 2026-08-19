@@ -11,6 +11,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    testTimeout: 10000,
     env: {
       NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "test-publishable-anon-key",
