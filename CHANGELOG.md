@@ -6,6 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Widened `admin_audit` coverage: a vendor's own refund (`issueRefundAction`)
+  is now recorded, not just admin-console actions. New migration revokes
+  `UPDATE`/`DELETE` on `admin_audit` from `service_role` (kept to
+  `SELECT`/`INSERT`), closing a real tampering gap at zero functional cost.
+  Retention (5 years, matching IRAS) now stated in `AGENTS.md`.
+
 ### Fixed
 
 - Bumped `@merqo/ui` to v0.14.1 — the kit-switcher (account menu's

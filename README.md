@@ -20,6 +20,12 @@ Fraunces (`src/app/layout.tsx`), the shared family face every Merqo kit
 now uses — see `docs/business/2026-08-13-typography-family-standard.md`
 in the workspace root for why.
 
+`admin_audit`'s coverage now extends past the `/admin` console: a vendor's
+own refund (`issueRefundAction`) is recorded too, and the table is
+append-only at the grant level (`service_role` can no longer `UPDATE`/
+`DELETE` it, only `SELECT`/`INSERT`) — see `src/app/admin/README.md` and
+`AGENTS.md`'s data model section for the retention policy.
+
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on
 one Merqo kit signs you in on the rest. The dashboard's onboarding tour
