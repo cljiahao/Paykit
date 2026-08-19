@@ -20,7 +20,8 @@ Fraunces (`src/app/layout.tsx`), the shared family face every Merqo kit
 now uses — see `docs/business/2026-08-13-typography-family-standard.md`
 in the workspace root for why. Brand theme is "Banknote Engrave"
 (engraved teal-green primary, steel-blue secondary) as of 2026-08-19 —
-see `globals.css`'s own header comment.
+see `globals.css`'s own header comment; `src/lib/brand-icon.tsx`'s
+ImageResponse-generated favicon/apple-touch-icon carries the same rebrand.
 
 `admin_audit`'s coverage now extends past the `/admin` console: a vendor's
 own refund (`issueRefundAction`) is recorded too, and the table is
