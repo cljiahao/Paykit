@@ -16,25 +16,37 @@ const DESKTOP: TourStep[] = [
     element: sel("tx-count"),
     title: "Your transaction activity",
     description:
-      "Welcome to PayKit. Once customers start paying, this card tracks how many transactions you've processed this month.",
+      "Welcome to PayKit. Once customers start paying, this card tracks how many transactions you've processed this month." +
+      '<div class="tour-example"><div class="tour-example-label">Example transaction</div><div class="tour-example-row" style="margin-top:0.35rem"><strong>$4.80 &middot; via qkit</strong><span class="tour-example-pill">Claimed</span></div></div>',
   },
   {
     element: sel("nav-config"),
     title: "Start here: Payment setup",
     description:
-      "Add your PayNow details or your own payment link/QR. This is step one to accepting payments.",
+      "Add your PayNow details or your own payment link and QR. This is step one to accepting payments.",
+  },
+  {
+    element: sel("nav-transactions"),
+    title: "Transactions",
+    description:
+      "Every checkout shows up here. When a customer pays, confirm it once you've checked the money actually landed.",
+  },
+  {
+    element: sel("nav-stats"),
+    title: "Stats",
+    description: "Track your revenue and transaction volume over time.",
   },
   {
     element: sel("nav-account"),
     title: "Your account",
     description:
-      "Update your profile, check your plan, and manage billing here — shared across every Merqo kit you use.",
+      "Update your profile, check your plan, and manage billing here. Shared across every Merqo kit you use.",
   },
   {
     element: sel("tour-replay"),
     title: "Replay anytime",
     description:
-      "Tap here to run this tour again whenever you like. Now — go set up your payment method →",
+      "Tap here to run this tour again whenever you like. Ready? Go set up your payment method.",
   },
 ];
 
@@ -46,7 +58,7 @@ const MOBILE: TourStep[] = [
     element: sel("nav-menu"),
     title: "Your sections",
     description:
-      "Payment setup, transactions, stats, and your account menu live in here. Start with Payment setup to accept your first payment.",
+      "Payment setup, Transactions, Stats, and your account menu all live in here. Start with Payment setup to accept your first payment.",
   },
   DESKTOP[DESKTOP.length - 1],
 ];

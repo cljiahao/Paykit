@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { tourSteps } from "./tour-steps";
 
 describe("tourSteps", () => {
-  it("returns 4 steps on desktop, 3 on mobile (consensus: keep it short)", () => {
-    expect(tourSteps(false)).toHaveLength(4);
+  it("returns 6 steps on desktop, 3 on mobile", () => {
+    expect(tourSteps(false)).toHaveLength(6);
     expect(tourSteps(true)).toHaveLength(3);
   });
 
@@ -31,6 +31,8 @@ describe("tourSteps", () => {
     expect(desktop).toEqual([
       '[data-tour="tx-count"]',
       '[data-tour="nav-config"]',
+      '[data-tour="nav-transactions"]',
+      '[data-tour="nav-stats"]',
       '[data-tour="nav-account"]',
       '[data-tour="tour-replay"]',
     ]);
