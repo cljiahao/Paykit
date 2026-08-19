@@ -105,7 +105,9 @@ configs)`: pure two-step lookup (email → auth user → that user's
 - `brand-icon.tsx` — `brandIcon(size)` + `BRAND_MINT`/`BRAND_INK`: the
   paykit "P" mark as a `ReactElement` for `ImageResponse`-generated icons
   (favicon, apple-touch) — hex literals, not theme tokens, since
-  `ImageResponse` needs concrete CSS colors.
+  `ImageResponse` needs concrete CSS colors. Tracks the "Banknote
+  Engrave" theme (as of 2026-08-19) via the dark theme's brighter
+  primary, so the dark-ink text on top stays legible.
 - `action-result.ts` — `ActionResult<T>`: the discriminated
   `{success:true,...T} | {success:false,error}` shape every Server Action
   returns.
