@@ -18,7 +18,9 @@ if the pasted link doesn't look right; it's UI/copy only, no PSP
 integration and no new database column. Display font is
 Fraunces (`src/app/layout.tsx`), the shared family face every Merqo kit
 now uses — see `docs/business/2026-08-13-typography-family-standard.md`
-in the workspace root for why.
+in the workspace root for why. Brand theme is "Banknote Engrave"
+(engraved teal-green primary, steel-blue secondary) as of 2026-08-19 —
+see `globals.css`'s own header comment.
 
 `admin_audit`'s coverage now extends past the `/admin` console: a vendor's
 own refund (`issueRefundAction`) is recorded too, and the table is

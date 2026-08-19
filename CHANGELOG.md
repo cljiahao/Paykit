@@ -14,6 +14,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `SELECT`/`INSERT`), closing a real tampering gap at zero functional cost.
   Retention (5 years, matching IRAS) now stated in `AGENTS.md`.
 
+### Changed
+
+- Brand theme: `globals.css`'s color tokens replaced with "Banknote
+  Engrave" (engraved teal-green primary, steel-blue secondary), light
+  and dark, across the full shadcn token set. Purely cosmetic — no
+  component/behavior change.
+
 ### Fixed
 
 - Bumped `@merqo/ui` to v0.14.1 — the kit-switcher (account menu's
