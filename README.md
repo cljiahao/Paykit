@@ -62,7 +62,7 @@ are pinned exact at `16.2.12` (not `^16.2.12`) — `16.3.1`'s Turbopack build
 stops emitting `.next/next-server.js.nft.json`, which breaks every Vercel
 deploy; revisit the pin once that's fixed upstream. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.14.1, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.18.0, `package.json`;
 kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
 wiring as thin adapters over the shared components). The dashboard nav's
@@ -78,7 +78,10 @@ route shares one layout-level content-width container (`mx-auto w-full
 max-w-7xl` in `src/app/dashboard/layout.tsx`, matching qkit's canonical
 dashboard width) instead of each page setting its own, inconsistent width
 — pages needing a narrower reading width (forms, short card stacks) nest
-an inner `mx-auto max-w-*` div inside it. See `CHANGELOG.md` for the
+an inner `mx-auto max-w-*` div inside it. Dark mode (`globals.css`'s
+`.dark` block) is now actually reachable: `src/app/layout.tsx` wraps the
+app in `next-themes`' `ThemeProvider`, which `@merqo/ui`'s always-on
+account-menu Light/Dark/System control drives. See `CHANGELOG.md` for the
 latest changes.
 
 Sign-in (`/login`) supports email+password (with a "Check your email"
