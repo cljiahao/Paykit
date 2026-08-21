@@ -82,7 +82,9 @@ an inner `mx-auto max-w-*` div inside it. Dark mode (`globals.css`'s
 `.dark` block) is now actually reachable: `src/app/layout.tsx` wraps the
 app in `next-themes`' `ThemeProvider`, which `@merqo/ui`'s always-on
 account-menu Light/Dark/System control drives. See `CHANGELOG.md` for the
-latest changes.
+latest changes, including a fix restoring card/background contrast in
+both modes after the Banknote Engrave rebrand had accidentally collapsed
+them to the same color.
 
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once

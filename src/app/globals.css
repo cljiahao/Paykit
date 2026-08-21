@@ -10,9 +10,9 @@
   --radius: 0.625rem;
   --background: oklch(0.949 0.015 88);
   --foreground: oklch(0.227 0.006 156);
-  --card: oklch(0.949 0.015 88);
+  --card: oklch(0.979 0.01 88);
   --card-foreground: oklch(0.227 0.006 156);
-  --popover: oklch(0.949 0.015 88);
+  --popover: oklch(0.979 0.01 88);
   --popover-foreground: oklch(0.227 0.006 156);
   --primary: oklch(0.431 0.066 177);
   --primary-foreground: oklch(0.949 0.015 88);
@@ -45,9 +45,9 @@
 .dark {
   --background: oklch(0.231 0.019 172);
   --foreground: oklch(0.949 0.007 127);
-  --card: oklch(0.231 0.019 172);
+  --card: oklch(0.279 0.023 172);
   --card-foreground: oklch(0.949 0.007 127);
-  --popover: oklch(0.231 0.019 172);
+  --popover: oklch(0.279 0.023 172);
   --popover-foreground: oklch(0.949 0.007 127);
   --primary: oklch(0.63 0.098 172);
   --primary-foreground: oklch(0.231 0.019 172);
