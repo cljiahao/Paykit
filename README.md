@@ -84,7 +84,8 @@ app in `next-themes`' `ThemeProvider`, which `@merqo/ui`'s always-on
 account-menu Light/Dark/System control drives. See `CHANGELOG.md` for the
 latest changes, including a fix restoring card/background contrast in
 both modes after the Banknote Engrave rebrand had accidentally collapsed
-them to the same color.
+them to the same color, and a follow-up that widened the gap further
+after the first pass still read as too subtle at a glance.
 
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
