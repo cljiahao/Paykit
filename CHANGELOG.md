@@ -36,6 +36,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Onboarding tour copy: no more em dashes, and two new steps
   (Transactions, Stats) covering ground the tour skipped before. The
   first step now shows an example transaction preview.
+- Bumped `@merqo/ui` to v0.19.0: the account menu's theme control now sits
+  behind a collapsed "Theme · {current}" submenu instead of three
+  always-expanded radio options.
 
 ### Added
 

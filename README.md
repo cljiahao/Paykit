@@ -62,7 +62,7 @@ are pinned exact at `16.2.12` (not `^16.2.12`) — `16.3.1`'s Turbopack build
 stops emitting `.next/next-server.js.nft.json`, which breaks every Vercel
 deploy; revisit the pin once that's fixed upstream. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.18.0, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.19.0, `package.json`;
 kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
 wiring as thin adapters over the shared components). The dashboard nav's
