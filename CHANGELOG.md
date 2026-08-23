@@ -27,6 +27,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Cards were visually indistinguishable from the page background in both
+  light and dark mode — the Banknote Engrave rebrand set `--card`/
+  `--popover` to the exact same OKLCH value as `--background`. Restored a
+  distinct card treatment in both modes (`src/app/globals.css`); a
+  follow-up pass pushed the delta further after the first one still read
+  as too subtle at a glance, and a second follow-up brightened the
+  dark-mode card a bit more on top of that.
 - The favicon/apple-touch-icon (`src/lib/brand-icon.tsx`) still rendered
   the old "Signal & Mint" hex after the Banknote Engrave rebrand — a
   real visible bug, not just stale docs.
