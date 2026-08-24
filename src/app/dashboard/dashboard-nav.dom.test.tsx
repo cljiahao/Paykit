@@ -68,7 +68,7 @@ describe("DashboardNav", () => {
     );
   });
 
-  it("account menu has Switch products, Profile, Plan, Get help, Feedback, then Sign out, in order", async () => {
+  it("account menu has Switch products, Profile, Plan, Get help, Feedback, Theme, then Sign out, in order", async () => {
     const user = userEvent.setup();
     render(<DashboardNav {...baseProps} />);
     await user.click(screen.getByRole("button", { name: /account menu/i }));
@@ -79,6 +79,7 @@ describe("DashboardNav", () => {
       "Plan · free",
       "Get help",
       "Feedback",
+      "Theme · System",
       "Sign out",
     ]);
     expect(screen.getByRole("menuitem", { name: /^Plan/ })).toHaveAttribute(

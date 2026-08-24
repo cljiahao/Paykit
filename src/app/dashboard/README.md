@@ -155,6 +155,10 @@ className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
 dashboard's sub-routes for payment setup, transaction history, event
 bookings, revenue stats, billing, and account respectively.
 
+`dashboard-nav.dom.test.tsx`'s account-menu-order test now expects a
+"Theme · System" entry, matching `@merqo/ui` v0.19.0's collapsed theme
+submenu.
+
 ## Parent
 
 [paykit](../../../README.md) — no intermediate `src/`/`src/app/` README
