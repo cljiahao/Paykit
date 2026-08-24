@@ -51,6 +51,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The onboarding tour's "example transaction" preview now renders the real
   `TransactionStatusBadge` component instead of a hand-copied color/label
   (new `transaction-status-badge.tsx`, extracted from `transaction-table.tsx`).
+- Fixed the spec-doc link this added to `src/components/README.md` — was
+  two directory levels short of the workspace root.
 
 ### Added
 

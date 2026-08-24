@@ -43,7 +43,9 @@ part of the request, as defense-in-depth. The tour's first step now shows
 an example transaction preview, and its copy no longer uses em dashes; the
 preview's status pill renders the real `TransactionStatusBadge` component
 (`src/app/dashboard/transactions/transaction-status-badge.tsx`) instead of
-a hand-copied color, so it can't drift from what the real badge looks like.
+a hand-copied color, so it can't drift from what the real badge looks like;
+see `../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
+(workspace root, cross-kit spec).
 `@merqo/ui`'s `DashboardNav`
 (v0.10.0+) is now wired with `LinkComponent={Link}`
 (`src/app/dashboard/dashboard-nav.tsx`), so its nav links do a
