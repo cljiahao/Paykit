@@ -46,6 +46,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Bumped `@merqo/ui` to v0.19.0: the account menu's theme control now sits
   behind a collapsed "Theme · {current}" submenu instead of three
   always-expanded radio options.
+- "Banknote Engrave" theme's secondary color is now a warm grey instead of
+  steel-blue — it read too close to the primary's own teal-green hue.
 
 ### Added
 
