@@ -26,6 +26,12 @@ describe("tourSteps", () => {
     }
   });
 
+  it("renders the real TransactionStatusBadge markup for the example, not a hand-copied color", () => {
+    const description = tourSteps(false)[0].description;
+    expect(description).toContain("bg-mint/15");
+    expect(description).not.toContain('class="tour-example-pill"');
+  });
+
   it("desktop spotlights each nav landmark; mobile spotlights the menu instead", () => {
     const desktop = tourSteps(false).map((s) => s.element);
     expect(desktop).toEqual([

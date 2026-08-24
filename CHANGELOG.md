@@ -48,6 +48,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   always-expanded radio options.
 - "Banknote Engrave" theme's secondary color is now a warm grey instead of
   steel-blue — it read too close to the primary's own teal-green hue.
+- The onboarding tour's "example transaction" preview now renders the real
+  `TransactionStatusBadge` component instead of a hand-copied color/label
+  (new `transaction-status-badge.tsx`, extracted from `transaction-table.tsx`).
 
 ### Added
 
