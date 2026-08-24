@@ -32,7 +32,7 @@ sits flat here.
   transaction — its status pill renders the real `TransactionStatusBadge`
   via `react-dom/server`'s `renderToStaticMarkup` instead of a hand-copied
   color, so it can't drift from what the real badge looks like; see
-  `../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
+  `../../../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
   (workspace root, cross-kit).
 - `tour-steps.test.ts` — unit tests asserting the mobile/desktop step lists.
 - `elevated-card.tsx` — `ElevatedCard({ as, className, children })`: the
