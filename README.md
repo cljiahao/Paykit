@@ -19,8 +19,9 @@ integration and no new database column. Display font is
 Fraunces (`src/app/layout.tsx`), the shared family face every Merqo kit
 now uses — see `docs/business/2026-08-13-typography-family-standard.md`
 in the workspace root for why. Brand theme is "Banknote Engrave"
-(engraved teal-green primary, steel-blue secondary) as of 2026-08-19 —
-see `globals.css`'s own header comment; `src/lib/brand-icon.tsx`'s
+(engraved teal-green primary, warm-grey secondary — was steel-blue until
+2026-08-25, changed since it read too close to the primary's own hue) as
+of 2026-08-19 — see `globals.css`'s own header comment; `src/lib/brand-icon.tsx`'s
 ImageResponse-generated favicon/apple-touch-icon carries the same rebrand.
 
 `admin_audit`'s coverage now extends past the `/admin` console: a vendor's
