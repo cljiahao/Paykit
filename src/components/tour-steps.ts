@@ -1,5 +1,8 @@
 // Pure step config for the dashboard onboarding tour. No driver.js import here
 // so it stays node-unit-testable; the controller maps these to driver's Config.
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { TransactionStatusBadge } from "@/app/dashboard/transactions/transaction-status-badge";
 
 export type TourStep = {
   /** CSS selector for the element to spotlight. */
@@ -10,6 +13,11 @@ export type TourStep = {
 
 const sel = (tour: string) => `[data-tour="${tour}"]`;
 
+// Renders the real badge, not a hand-copied color, so the example can't drift.
+const exampleClaimedBadge = renderToStaticMarkup(
+  createElement(TransactionStatusBadge, { status: "claimed" }),
+);
+
 // Desktop: nav links are visible, so we can spotlight each landmark.
 const DESKTOP: TourStep[] = [
   {
@@ -17,7 +25,7 @@ const DESKTOP: TourStep[] = [
     title: "Your transaction activity",
     description:
       "Welcome to PayKit. Once customers start paying, this card tracks how many transactions you've processed this month." +
-      '<div class="tour-example"><div class="tour-example-label">Example transaction</div><div class="tour-example-row" style="margin-top:0.35rem"><strong>$4.80 &middot; via qkit</strong><span class="tour-example-pill">Claimed</span></div></div>',
+      `<div class="tour-example"><div class="tour-example-label">Example transaction</div><div class="tour-example-row" style="margin-top:0.35rem"><strong>$4.80 &middot; via qkit</strong>${exampleClaimedBadge}</div></div>`,
   },
   {
     element: sel("nav-config"),

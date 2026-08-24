@@ -16,13 +16,18 @@ across every kit — plus, for Pro vendors, a per-transaction refund action.
 - `transaction-table.tsx` — `TransactionTable({ transactions, isPro })`:
   renders `Kit`/`Order ref`/`Amount`/`Status`/`Created` columns (`@/components/
 ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
-  are formatted via `Intl.NumberFormat` (SGD). The `Status` badge gives
-  `claimed` its own `bg-mint/15 text-mint ring-mint/30` treatment
-  (`STATUS_BADGE_CLASS`) instead of falling into the shadcn `secondary`
+  are formatted via `Intl.NumberFormat` (SGD). Empty state is a plain "No
+  transactions yet." message.
+- `transaction-status-badge.tsx` — `TransactionStatusBadge({ status })`: a
+  pure presentational component (extracted from `transaction-table.tsx` so
+  `src/components/tour-steps.ts` can render the real thing instead of a
+  hand-copied color). Gives `claimed` its own `bg-mint/15 text-mint
+ring-mint/30` treatment instead of falling into the shadcn `secondary`
   variant it'd otherwise share with `pending` — `claimed` is the one status
   that actually needs the vendor's attention (customer says they've paid,
-  waiting on vendor confirmation), so it shouldn't look inert. Empty state
-  is a plain "No transactions yet." message.
+  waiting on vendor confirmation), so it shouldn't look inert.
+- `transaction-status-badge.test.tsx` — asserts `claimed` gets the mint
+  accent and `confirmed` doesn't.
 - `refund-dialog.tsx` — Pro-only dialog: calls `issueRefundAction` to file a
   refund against a `confirmed` transaction (bookkeeping only — no real
   money movement, see `AGENTS.md`'s data model). The amount field is
