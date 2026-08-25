@@ -31,7 +31,8 @@ figure-tile helper used by the overview and vendors screens.
   `@merqo/ui`'s `PricingForm` with paykit's single `monthly_cents` field,
   wiring `setPricing` (`onSave`) and the `sonner` toast convention every
   other paykit form already uses.
-- `stat.tsx` — `Stat`: a small labeled-value tile (`ElevatedCard`-based)
+- `stat.tsx` — `Stat`: a small labeled-value tile (`ElevatedCard`-based,
+  wrapping `@merqo/ui`'s shared `StatTile` for the label/value content)
   used on the admin overview page.
 - `vendors/`
 
