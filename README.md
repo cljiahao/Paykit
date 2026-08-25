@@ -35,7 +35,11 @@ counterpart, `payment_audit` (`src/lib/payment-audit.ts`), attributed by
 `src/app/api/v1/checkout/README.md`. The same surface is also rate-limited
 (`src/lib/rate-limit.ts`, ported from qkit's own DB-backed fixed-window
 limiter, 60 requests/60s per `kit_slug`+IP), closing a real gap where a
-leaked or misbehaving kit secret could hammer any endpoint unbounded.
+leaked or misbehaving kit secret could hammer any endpoint unbounded, and
+every failed bearer-auth attempt is now logged (`kit-auth.ts`) with the
+`kit_slug` when resolvable, never the secret. Server-side error tracking
+(`src/instrumentation.ts`, `@sentry/nextjs`) activates only when
+`SENTRY_DSN` is set.
 
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on
