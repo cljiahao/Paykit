@@ -27,7 +27,10 @@ pointer for a vendor's transaction. Bearer-secret authenticated
   paid"); `unclaim` reverts `claimed`→`pending` (undoes an accidental tap) —
   it is always a no-op on an already-`confirmed` transaction, so a real
   payment can never be un-confirmed; `confirm` moves to `confirmed`
-  (vendor confirmed receipt).
+  (vendor confirmed receipt). Every real transition here (including this
+  route's own `checkout_created`) writes a `payment_audit` row via
+  `@/lib/payment-audit`'s `recordPaymentAudit` — a no-op/idempotent request
+  writes nothing, see `src/lib/README.md`.
 
 ## Parent
 

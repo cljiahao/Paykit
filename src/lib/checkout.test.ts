@@ -4,11 +4,13 @@ const {
   configMaybeSingle,
   insertSingle,
   existingSingle,
+  auditInsert,
   createServiceClientMock,
 } = vi.hoisted(() => ({
   configMaybeSingle: vi.fn(),
   insertSingle: vi.fn(),
   existingSingle: vi.fn(),
+  auditInsert: vi.fn(),
   createServiceClientMock: vi.fn(),
 }));
 
@@ -31,6 +33,9 @@ function fakeSupabase() {
             eq: () => ({ eq: () => ({ single: existingSingle }) }),
           }),
         };
+      }
+      if (table === "payment_audit") {
+        return { insert: auditInsert };
       }
       throw new Error(`unexpected table ${table}`);
     },
@@ -59,6 +64,7 @@ beforeEach(() => {
     error: null,
   });
   existingSingle.mockReset().mockResolvedValue({ data: null, error: null });
+  auditInsert.mockReset().mockResolvedValue({ error: null });
 });
 
 describe("createCheckout", () => {
@@ -75,6 +81,12 @@ describe("createCheckout", () => {
       type: "qr",
       transaction_id: "tx1",
       payload: "0002...6304ABCD",
+    });
+    expect(auditInsert).toHaveBeenCalledWith({
+      transaction_id: "tx1",
+      kit_slug: "paykit",
+      action: "checkout_created",
+      detail: null,
     });
   });
 
@@ -135,6 +147,7 @@ describe("createCheckout", () => {
       transaction_id: "tx1",
       payload: "0002...6304ABCD",
     });
+    expect(auditInsert).not.toHaveBeenCalled();
   });
 
   it("returns a 503 when the insert fails for a reason other than a unique violation", async () => {

@@ -1,6 +1,6 @@
 -- RLS cross-vendor isolation — pgTAP, run with `supabase test db`.
 begin;
-select plan(50);
+select plan(57);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 -- Vendor A: free plan, UEN config. Vendor B: pro plan, mobile config.
@@ -36,6 +36,11 @@ values
 insert into paykit.kit_api_keys (kit_slug, secret_hash)
 values ('qkit', 'deadbeef');
 
+insert into paykit.payment_audit (transaction_id, kit_slug, action)
+values
+  ('00000000-0000-0000-0000-0000000d0a01', 'qkit', 'checkout_created'),
+  ('00000000-0000-0000-0000-0000000d0b01', 'loopkit', 'checkout_created');
+
 -- Vendor A has a booking whose deposit transaction is A's own (fixture
 -- inserts run before `set local role authenticated`, so the full row —
 -- including deposit_transaction_id, excluded from authenticated's own
@@ -65,6 +70,7 @@ select ok((select relrowsecurity from pg_class where oid = 'paykit.kit_api_keys'
 select ok((select relrowsecurity from pg_class where oid = 'paykit.feedback'::regclass), 'RLS on feedback');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.vendor_prefs'::regclass), 'RLS on vendor_prefs');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.bookings'::regclass), 'RLS on bookings');
+select ok((select relrowsecurity from pg_class where oid = 'paykit.payment_audit'::regclass), 'RLS on payment_audit');
 
 -- 0009_paykit_admin_audit_immutable.sql: service_role can still append audit
 -- rows (the app's only write path — recordAudit() in
@@ -75,6 +81,14 @@ select ok(has_table_privilege('service_role', 'paykit.admin_audit', 'INSERT'),
   'service_role can still INSERT admin_audit');
 select ok(not has_table_privilege('service_role', 'paykit.admin_audit', 'UPDATE'),
   'service_role cannot UPDATE admin_audit (revoked in 0009)');
+
+-- 0011_paykit_payment_audit.sql: same immutable-at-the-grant-level
+-- treatment applied up front (the app only ever INSERTs, via
+-- recordPaymentAudit).
+select ok(has_table_privilege('service_role', 'paykit.payment_audit', 'INSERT'),
+  'service_role can INSERT payment_audit');
+select ok(not has_table_privilege('service_role', 'paykit.payment_audit', 'UPDATE'),
+  'service_role cannot UPDATE payment_audit (revoked in 0011)');
 
 -- ── Act as Vendor A ────────────────────────────────────────────────────────
 set local role authenticated;
@@ -95,6 +109,12 @@ select isnt_empty(
 select is_empty(
   $$ select 1 from paykit.transactions where id = '00000000-0000-0000-0000-0000000d0b01' $$,
   'A cannot read B transaction');
+select isnt_empty(
+  $$ select 1 from paykit.payment_audit where transaction_id = '00000000-0000-0000-0000-0000000d0a01' $$,
+  'A reads its own transaction''s payment_audit row');
+select is_empty(
+  $$ select 1 from paykit.payment_audit where transaction_id = '00000000-0000-0000-0000-0000000d0b01' $$,
+  'A cannot read B''s payment_audit row');
 
 select throws_ok(
   $$ insert into paykit.transactions (vendor_id, kit_slug, order_ref, amount_cents, qr_payload)
@@ -248,6 +268,9 @@ select throws_ok(
 select isnt_empty(
   $$ select 1 from paykit.refunds where transaction_id = '00000000-0000-0000-0000-0000000d0b02' $$,
   'B reads its own refund');
+select isnt_empty(
+  $$ select 1 from paykit.payment_audit where transaction_id = '00000000-0000-0000-0000-0000000d0b01' $$,
+  'B reads its own transaction''s payment_audit row');
 
 select is(
   paykit.tx_count_this_month('00000000-0000-0000-0000-00000000000b'),
@@ -309,6 +332,10 @@ select throws_ok(
   $$ select 1 from paykit.bookings limit 1 $$,
   null,
   'anon cannot SELECT bookings');
+select throws_ok(
+  $$ select 1 from paykit.payment_audit limit 1 $$,
+  null,
+  'anon cannot SELECT payment_audit');
 select throws_ok(
   $$ insert into paykit.feedback (vendor_id, nps)
      values ('00000000-0000-0000-0000-00000000000a', 9) $$,

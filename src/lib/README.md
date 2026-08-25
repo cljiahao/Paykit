@@ -39,6 +39,14 @@ amountCents})`: the one `transactions`-insert-plus-render-the-checkout-view
   (`dashboard/bookings/actions.ts`, `kitSlug: "paykit"`) can call it directly
   instead of going back through HTTP. Same idempotency (unique-constraint
   retry re-read) and error handling either caller gets.
+- `payment-audit.ts` — `recordPaymentAudit(supabase, transactionId, kitSlug,
+action, detail?)`: appends one immutable `payment_audit` row
+  (`checkout_created`/`claimed`/`confirmed`/`unclaimed`) — called from
+  `checkout.ts` and the claim/confirm/unclaim route handlers only on a real
+  state transition, never on a no-op/idempotent request. Takes the caller's
+  own already-created service-role client rather than creating its own
+  (unlike `admin/actions.ts`'s `recordAudit`), since every call site here
+  already has one in scope.
 - `bookings.ts` — `listBookings(vendorId)`/`getBooking(vendorId, id)`: read
   a vendor's bookings via the session-scoped Supabase client, same shape as
   `transactions.ts`.

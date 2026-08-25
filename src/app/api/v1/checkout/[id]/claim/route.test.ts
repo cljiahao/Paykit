@@ -5,11 +5,13 @@ const {
   verifyKitAuthMock,
   readMaybeSingle,
   updateSingle,
+  auditInsert,
   createServiceClientMock,
 } = vi.hoisted(() => ({
   verifyKitAuthMock: vi.fn(),
   readMaybeSingle: vi.fn(),
   updateSingle: vi.fn(),
+  auditInsert: vi.fn(),
   createServiceClientMock: vi.fn(),
 }));
 
@@ -40,6 +42,7 @@ function fakeSupabase() {
           eq: () => ({ select: () => ({ single: updateSingle }) }),
         }),
       }),
+      insert: auditInsert,
     }),
   };
 }
@@ -52,6 +55,7 @@ beforeEach(() => {
     data: { ...ROW, status: "claimed", claimed_at: "2026-07-15T00:01:00Z" },
     error: null,
   });
+  auditInsert.mockReset().mockResolvedValue({ error: null });
 });
 
 function req() {
@@ -71,9 +75,15 @@ describe("POST /api/v1/checkout/[id]/claim", () => {
     const json = await res.json();
     expect(json.status).toBe("claimed");
     expect(json.claimed_at).toBe("2026-07-15T00:01:00Z");
+    expect(auditInsert).toHaveBeenCalledWith({
+      transaction_id: TX_ID,
+      kit_slug: "qkit",
+      action: "claimed",
+      detail: null,
+    });
   });
 
-  it("is idempotent on an already-claimed transaction (no update call)", async () => {
+  it("is idempotent on an already-claimed transaction (no update call, no audit row)", async () => {
     readMaybeSingle.mockResolvedValue({
       data: { ...ROW, status: "claimed" },
       error: null,
@@ -81,6 +91,7 @@ describe("POST /api/v1/checkout/[id]/claim", () => {
     const res = await POST(req(), ctx());
     expect(res.status).toBe(200);
     expect(updateSingle).not.toHaveBeenCalled();
+    expect(auditInsert).not.toHaveBeenCalled();
   });
 
   it("401s when unauthorized", async () => {
@@ -127,6 +138,7 @@ describe("POST /api/v1/checkout/[id]/claim", () => {
     const json = await res.json();
     expect(json.status).toBe("claimed");
     expect(readMaybeSingle).toHaveBeenCalledTimes(2);
+    expect(auditInsert).not.toHaveBeenCalled();
   });
 
   it("row was deleted between the read and the conditional update: recheck 404s", async () => {

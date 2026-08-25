@@ -113,6 +113,15 @@ export type Pricing = {
   updated_at: string;
 };
 
+export type PaymentAudit = {
+  id: string;
+  transaction_id: string;
+  kit_slug: string;
+  action: string;
+  detail: Json;
+  created_at: string;
+};
+
 export interface Database {
   paykit: {
     Tables: {
@@ -285,6 +294,21 @@ export interface Database {
           monthly_cents?: number;
           currency?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      payment_audit: {
+        Row: PaymentAudit;
+        Insert: {
+          id?: string;
+          transaction_id: string;
+          kit_slug: string;
+          action: string;
+          detail?: Json;
+          created_at?: string;
+        };
+        Update: {
+          detail?: Json;
         };
         Relationships: [];
       };

@@ -6,12 +6,14 @@ const {
   configMaybeSingle,
   insertSingle,
   existingSingle,
+  auditInsert,
   createServiceClientMock,
 } = vi.hoisted(() => ({
   verifyKitAuthMock: vi.fn(),
   configMaybeSingle: vi.fn(),
   insertSingle: vi.fn(),
   existingSingle: vi.fn(),
+  auditInsert: vi.fn(),
   createServiceClientMock: vi.fn(),
 }));
 
@@ -36,6 +38,9 @@ function fakeSupabase() {
           }),
         };
       }
+      if (table === "payment_audit") {
+        return { insert: auditInsert };
+      }
       throw new Error(`unexpected table ${table}`);
     },
   };
@@ -44,6 +49,7 @@ function fakeSupabase() {
 beforeEach(() => {
   verifyKitAuthMock.mockReset().mockResolvedValue({ kitSlug: "qkit" });
   createServiceClientMock.mockReset().mockResolvedValue(fakeSupabase());
+  auditInsert.mockReset().mockResolvedValue({ error: null });
   configMaybeSingle.mockReset().mockResolvedValue({
     data: {
       vendor_id: "11111111-1111-1111-1111-111111111111",
