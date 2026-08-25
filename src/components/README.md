@@ -33,7 +33,8 @@ sits flat here.
   via `react-dom/server`'s `renderToStaticMarkup` instead of a hand-copied
   color, so it can't drift from what the real badge looks like; see
   `../../../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
-  (workspace root, cross-kit).
+  (workspace root, cross-kit). Also covers Bookings and Earnings, both
+  live nav items that had no tour step until 2026-08-25.
 - `tour-steps.test.ts` — unit tests asserting the mobile/desktop step lists.
 - `elevated-card.tsx` — `ElevatedCard({ as, className, children })`: the
   shared raised-card container (rounded, bordered, soft shadow) used by the

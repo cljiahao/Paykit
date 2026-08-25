@@ -8,6 +8,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Onboarding tour steps for Bookings and Earnings (`tour-steps.ts`) — both
+  live nav items had no tour coverage at all since they shipped, so a new
+  vendor never learned they existed. No nav changes needed; the anchors
+  already existed via `tourAnchor`'s URL-derived `data-tour` id.
+
 - `kit_api_keys.last_used_at` (migration 0013), touched on every
   successful bearer-secret auth. Closes a real gap: rotating a calling
   kit's secret had no way to confirm the new one was actually picked up,
