@@ -47,6 +47,11 @@ describe("verifyKitAuth", () => {
     expect(await verifyKitAuth(req("Bearer justasecret"))).toBeNull();
   });
 
+  it("returns null when the secret half is empty", async () => {
+    const { verifyKitAuth } = await import("./kit-auth");
+    expect(await verifyKitAuth(req("Bearer qkit:"))).toBeNull();
+  });
+
   it("returns null when the kit_slug is unknown", async () => {
     maybeSingleMock.mockResolvedValue({ data: null, error: null });
     const { verifyKitAuth } = await import("./kit-auth");
