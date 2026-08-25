@@ -17,6 +17,10 @@ the actual JSON wire shape a calling kit depends on.
 - `transaction-status.sample.json` — a saved example `GET /api/v1/checkout/{id}`
   response.
 - `vendor-config.sample.json` — a saved example vendor-config response.
+- `merqo-metrics.contract.test.ts` — asserts `computePaykitMetrics`'s output
+  satisfies merqo hub's own `metricsPayloadSchema` (hand-copied here since
+  cross-repo runtime imports aren't available — this test is what catches a
+  drift between the two).
 
 ## Parent
 

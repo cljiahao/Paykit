@@ -174,6 +174,23 @@ configs)`: pure two-step lookup (email → auth user → that user's
   client's Storage API, and returns the public URL. Used at both call
   sites: `dashboard/profile/profile-form.tsx` (avatar) and
   `dashboard/config/payment-config-form.tsx` (BYO QR image).
+- `metrics.ts` — `computePaykitMetrics(input)`: pure, maps
+  `vendor_payment_config`/`transactions` onto merqo hub's qkit-shaped
+  `/api/merqo/metrics` payload. Field mapping: `total`/`pro_vendors` ←
+  `vendor_payment_config` row count / `plan = 'pro'`; `revenue_cents_30d/all`
+  ← confirmed transactions only; `gmv_cents_30d` ← every transaction
+  regardless of status (paykit has no `'cancelled'` status to exclude, unlike
+  qkit's orders); `orders_7d`/`orders_prev_7d` ← raw transaction count per
+  window; `funnel.with_booth` equals `funnel.signed_up` — a
+  `vendor_payment_config` row only ever exists once a vendor has configured
+  a payment method, so paykit has no separate "signed up but not configured"
+  state to track; `pending_upgrade_requests` is always `0` since paykit has
+  no local upgrade-requests table (`src/app/actions/plan.ts` routes an
+  upgrade ask into `merqo.support_messages` instead, a cross-schema table
+  this kit's own service client can't query directly). Locally re-declares
+  merqo's `MetricsPayload` type (verified against the real thing by
+  `test/contract/merqo-metrics.contract.test.ts` — cross-repo runtime
+  imports aren't available).
 - `utils.ts` — `cn()` (clsx + tailwind-merge), shared form label/error
   Tailwind class constants, `formatCents()` (integer cents -> SGD currency
   string), and `formatDate()` (a `date`-column "YYYY-MM-DD" string ->

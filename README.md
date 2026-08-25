@@ -125,7 +125,10 @@ remaining gate is refund tracking; revenue stats are free for every
 vendor. `/api/merqo/vendor-status` (merqo hub's own vendor-active/plan
 lookup) paginates the Supabase admin-users API properly, via the same
 `listAllUsers` helper the admin console uses — it no longer silently
-truncates at the first 1000 auth users. The landing footer matches qkit's exactly (single-row
+truncates at the first 1000 auth users. `/api/merqo/metrics` now exists too
+— merqo hub's cross-kit health/revenue dashboard already polled it the same
+as qkit's and loopkit's, but paykit had no implementation, so it silently
+never showed up there. The landing footer matches qkit's exactly (single-row
 wordmark/tagline/copyright/sign-in link, no CTA band above it), and the
 landing page's `BackToTop` button matches the cross-kit landing-page
 parity pass.

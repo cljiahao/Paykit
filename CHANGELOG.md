@@ -8,6 +8,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `GET /api/merqo/metrics` — merqo hub's cross-kit health/revenue dashboard
+  polls this the same way it already does for qkit and loopkit; paykit had
+  no implementation until now, so it silently never appeared there. Maps
+  paykit's `vendor_payment_config`/`transactions` domain onto the shared
+  payload shape (`src/lib/metrics.ts` documents every field's mapping);
+  `pending_upgrade_requests` is always `0` since paykit has no local
+  upgrade-requests table (upgrade asks file into `merqo.support_messages`
+  instead, a cross-schema table this kit can't query directly).
+
 - A printable booking summary (`bookings/[id]`'s new `PrintBookingButton`,
   `window.print()`) — customer/event/deposit/balance/transaction details
   only, action buttons hidden via `print:hidden`. No new table, no invoice
