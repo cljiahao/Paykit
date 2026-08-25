@@ -131,7 +131,9 @@ balance checkout directly from the dashboard instead of round-tripping
 through HTTP. A booking can be rescheduled (dates change, no new status —
 a deposit already paid stays counted) or cancelled with an optional refund
 against its one unambiguously confirmed transaction, reusing the existing
-Pro-gated `refunds` ledger rather than a second mechanism.
+Pro-gated `refunds` ledger rather than a second mechanism. Creating a
+booking or its balance checkout now logs to the admin audit trail too,
+closing the last two real gaps in that coverage.
 
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`
