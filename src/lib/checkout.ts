@@ -82,9 +82,8 @@ export async function createCheckout({
   // A retry of the same (kit_slug, order_ref) — e.g. a caller-side timeout —
   // hits the unique constraint (0007_paykit_checkout_idempotency.sql) rather
   // than creating a duplicate pending transaction; re-read and return the
-  // transaction the first call already created. Only the fresh-insert path
-  // gets an audit row — a retry didn't create a new checkout, logging it
-  // again would misrepresent the trail.
+  // transaction the first call already created.
+  // isFreshInsert: only a genuinely new checkout gets an audit row.
   const isFreshInsert = !insertError && !!inserted;
   let tx = inserted;
   if (insertError?.code === "23505") {

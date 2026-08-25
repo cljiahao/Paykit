@@ -28,7 +28,11 @@ ImageResponse-generated favicon/apple-touch-icon carries the same rebrand.
 own refund (`issueRefundAction`) is recorded too, and the table is
 append-only at the grant level (`service_role` can no longer `UPDATE`/
 `DELETE` it, only `SELECT`/`INSERT`) — see `src/app/admin/README.md` and
-`AGENTS.md`'s data model section for the retention policy.
+`AGENTS.md`'s data model section for the retention policy. The
+payment-lifecycle API (checkout/claim/confirm/unclaim) has its own
+counterpart, `payment_audit` (`src/lib/payment-audit.ts`), attributed by
+`kit_slug` rather than a human `auth.users` actor — see
+`src/app/api/v1/checkout/README.md`.
 
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on
