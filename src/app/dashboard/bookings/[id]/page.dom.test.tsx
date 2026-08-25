@@ -91,6 +91,7 @@ describe("BookingDetailPage", () => {
     expect(screen.getByText("Deposit paid")).toBeInTheDocument();
     expect(screen.getByText("confirmed")).toBeInTheDocument();
     expect(screen.getByText("Not yet created.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /print/i })).toBeInTheDocument();
   });
 
   it("offers Create balance checkout once the deposit exists and balance doesn't yet", async () => {
@@ -133,5 +134,15 @@ describe("BookingDetailPage", () => {
     expect(
       screen.queryByRole("button", { name: "Cancel booking" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("keeps Print available even on a cancelled booking", async () => {
+    getBookingMock.mockResolvedValue({ ...BOOKING, status: "cancelled" });
+    const { default: BookingDetailPage } = await import("./page");
+    const jsx = await BookingDetailPage({
+      params: Promise.resolve({ id: "b1" }),
+    });
+    render(jsx);
+    expect(screen.getByRole("button", { name: /print/i })).toBeInTheDocument();
   });
 });

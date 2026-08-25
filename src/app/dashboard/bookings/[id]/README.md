@@ -4,8 +4,8 @@
 
 A single booking's detail view: both its linked transactions'
 status/QR, the action to create the balance checkout once eligible,
-reschedule, and cancel (optionally with a refund). Next 16 dynamic route
-(`params` is a `Promise`).
+reschedule, cancel (optionally with a refund), and print a summary. Next
+16 dynamic route (`params` is a `Promise`).
 
 ## Contents
 
@@ -59,6 +59,12 @@ reschedule, and cancel (optionally with a refund). Next 16 dynamic route
 - `reschedule-booking-dialog.dom.test.tsx` — prefilled values, submits new
   dates, toasts and closes on success, keeps the dialog open with the
   inline error on failure.
+- `print-booking-button.tsx` — `window.print()` trigger, `print:hidden`
+  itself so it never appears on the printed page. Every other action
+  button on this page is also `print:hidden`, so a printed copy shows only
+  the customer/booking/transaction summary.
+- `print-booking-button.dom.test.tsx` — renders, calls `window.print`,
+  carries `print:hidden`.
 
 ## Connectivity
 

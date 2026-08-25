@@ -8,6 +8,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- A printable booking summary (`bookings/[id]`'s new `PrintBookingButton`,
+  `window.print()`) — customer/event/deposit/balance/transaction details
+  only, action buttons hidden via `print:hidden`. No new table, no invoice
+  numbering, no email-send infra — a view over data already there.
+
 - Onboarding tour steps for Bookings and Earnings (`tour-steps.ts`) — both
   live nav items had no tour coverage at all since they shipped, so a new
   vendor never learned they existed. No nav changes needed; the anchors
