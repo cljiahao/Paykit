@@ -3,8 +3,9 @@
 ## Purpose
 
 A single booking's detail view: both its linked transactions'
-status/QR, the action to create the balance checkout once eligible, and
-cancel. Next 16 dynamic route (`params` is a `Promise`).
+status/QR, the action to create the balance checkout once eligible,
+reschedule, and cancel (optionally with a refund). Next 16 dynamic route
+(`params` is a `Promise`).
 
 ## Contents
 
@@ -13,13 +14,15 @@ cancel. Next 16 dynamic route (`params` is a `Promise`).
   `@/lib/bookings` — to this vendor; a wrong id just reads back `null`),
   then renders the booking's fields, both linked transactions via
   `TransactionStatusCard`, `CreateBalanceCheckoutButton` (only once a
-  deposit transaction exists and a balance one doesn't yet), and
-  `CancelBookingDialog` — both actions hidden once the booking is already
+  deposit transaction exists and a balance one doesn't yet),
+  `RescheduleBookingDialog`, and `CancelBookingDialog` (passed both
+  transactions so it can offer a refund field when exactly one is
+  confirmed) — every action hidden once the booking is already
   `cancelled`.
 - `page.dom.test.tsx` — the 404 path (mocks `next/navigation`'s
   `notFound` to throw, same pattern as `src/lib/admin.test.ts`), field
   rendering, and every action-visibility branch (balance-checkout
-  eligibility, cancelled hides both actions).
+  eligibility, cancelled hides every action).
 - `transaction-status-card.tsx` — one linked transaction's status badge
   (same `claimed` mint treatment as `transactions/transaction-table.tsx`),
   amount, and its `qr_payload` rendered as a QR (`qr-code-view.tsx`) — or
@@ -42,10 +45,20 @@ cancel. Next 16 dynamic route (`params` is a `Promise`).
   plain `Textarea`, not a form field — the action takes it as a direct
   argument, not `FormData`) wiring `cancelBookingAction` to a toast on
   success or an inline error, same close/keep-open shape as
-  `transactions/refund-dialog.tsx`.
+  `transactions/refund-dialog.tsx`. Takes both transactions as optional
+  props; `refundableTransaction()` only offers a refund-amount field when
+  exactly one is `confirmed` — with both confirmed (or neither), it stays
+  hidden rather than guessing which one, and the vendor can still file a
+  refund per-transaction from the transactions page's own existing action.
 - `cancel-booking-dialog.dom.test.tsx` — submits a reason, toasts and
   closes on success, keeps the dialog open with the inline error on
-  failure.
+  failure; the refund field's visibility and pass-through.
+- `reschedule-booking-dialog.tsx` — same Dialog + `useTransition` shape as
+  `cancel-booking-dialog.tsx`, prefilled with the booking's current
+  `event_date`/`balance_due_date`, wiring `rescheduleBookingAction`.
+- `reschedule-booking-dialog.dom.test.tsx` — prefilled values, submits new
+  dates, toasts and closes on success, keeps the dialog open with the
+  inline error on failure.
 
 ## Connectivity
 

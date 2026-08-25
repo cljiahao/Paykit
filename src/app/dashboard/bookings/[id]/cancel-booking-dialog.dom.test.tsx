@@ -12,6 +12,20 @@ vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 import { toast } from "sonner";
 import { CancelBookingDialog } from "./cancel-booking-dialog";
+import type { Transaction } from "@/lib/types";
+
+const CONFIRMED_DEPOSIT: Transaction = {
+  id: "tx-deposit",
+  vendor_id: "v1",
+  kit_slug: "paykit",
+  order_ref: "booking:b1:deposit",
+  amount_cents: 30000,
+  status: "confirmed",
+  qr_payload: "0002...",
+  claimed_at: "2026-08-20T00:01:00Z",
+  confirmed_at: "2026-08-20T00:02:00Z",
+  created_at: "2026-08-20T00:00:00Z",
+};
 
 beforeEach(() => {
   cancelBookingActionMock.mockReset();
@@ -65,5 +79,33 @@ describe("CancelBookingDialog", () => {
     expect(
       screen.getByRole("heading", { name: /cancel this booking/i }),
     ).toBeInTheDocument();
+  });
+
+  it("hides the refund field when no single transaction is unambiguously refundable", async () => {
+    const user = userEvent.setup();
+    render(<CancelBookingDialog bookingId="b1" />);
+    await user.click(screen.getByRole("button", { name: "Cancel booking" }));
+    expect(screen.queryByLabelText(/refund amount/i)).not.toBeInTheDocument();
+  });
+
+  it("shows a refund field for the one confirmed transaction and passes it through on submit", async () => {
+    cancelBookingActionMock.mockResolvedValue({ status: "ok" });
+    const user = userEvent.setup();
+    render(
+      <CancelBookingDialog bookingId="b1" depositTx={CONFIRMED_DEPOSIT} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Cancel booking" }));
+    await user.type(screen.getByLabelText(/refund amount/i), "150.00");
+    await user.click(
+      screen.getByRole("button", { name: /confirm cancellation/i }),
+    );
+
+    await waitFor(() =>
+      expect(cancelBookingActionMock).toHaveBeenCalledWith("b1", "", {
+        transactionId: "tx-deposit",
+        amountCents: 15000,
+      }),
+    );
   });
 });

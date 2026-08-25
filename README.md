@@ -128,7 +128,10 @@ render time (`src/lib/booking-status.ts`), not a push. The checkout-
 creation logic `POST /api/v1/checkout` used is now shared, via
 `src/lib/checkout.ts`, with the booking actions that create a deposit/
 balance checkout directly from the dashboard instead of round-tripping
-through HTTP.
+through HTTP. A booking can be rescheduled (dates change, no new status —
+a deposit already paid stays counted) or cancelled with an optional refund
+against its one unambiguously confirmed transaction, reusing the existing
+Pro-gated `refunds` ledger rather than a second mechanism.
 
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`

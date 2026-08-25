@@ -8,6 +8,20 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Bookings: a booking can now be rescheduled (`rescheduleBookingAction` —
+  updates `event_date`/`balance_due_date` directly, deposit already paid
+  stays counted, no new booking status) and cancelling one can optionally
+  file a refund against its confirmed deposit or balance transaction
+  (reuses the existing Pro-gated `refunds` ledger, not a new mechanism).
+
+### Fixed
+
+- `cancelBookingAction` silently no-op'd on a non-owned or stale booking id
+  (RLS filters the `UPDATE` to zero rows, which returns `error: null`) but
+  still logged a `cancel_booking` audit row claiming success. Now reads the
+  booking first under RLS and returns "not found" instead of logging a
+  cancellation that never happened.
+
 - Bookings: deposit-now, balance-later checkout for event-cart vendors
   (weddings, private events), instead of a one-shot transaction. A new
   `bookings` table links up to two `transactions` rows (deposit, then

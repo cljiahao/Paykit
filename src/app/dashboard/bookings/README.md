@@ -14,9 +14,8 @@ bearer-secret `/api/v1/checkout/{id}/confirm` API).
 Reminders are dashboard-badge-only this round: this repo has no cron or
 push-notification infra (see `AGENTS.md`), so "balance due soon" is a
 pill computed at render time (`@/lib/booking-status`'s `balanceDueBadge`),
-not a push. Rescheduling (deposit-carries-forward), widening refunds onto
-a cancelled booking, and any OCR/earnings-report tie-in are explicitly out
-of scope — see the product roadmap doc's own tiering.
+not a push. Any OCR/earnings-report tie-in is explicitly out of scope —
+see the product roadmap doc's own tiering.
 
 ## Contents
 
@@ -30,14 +29,26 @@ of scope — see the product roadmap doc's own tiering.
   there's no separate "retry deposit checkout" action). `createBalanceCheckoutAction(bookingId)`
   — same shape for the balance leg (`order_ref: booking:<id>:balance`),
   only when a deposit checkout exists and a balance one doesn't yet.
-  `cancelBookingAction(bookingId, reason?)` — sets `status = 'cancelled'`
-  only (never touches either linked transaction's own status — a cancelled
+  `cancelBookingAction(bookingId, reason?, refund?)` — reads the booking
+  first under RLS (a stale/not-owned id can't reach `recordAudit` claiming
+  a cancellation that never happened — RLS silently no-ops an `UPDATE` on
+  a filtered-out row instead of erroring), then sets `status = 'cancelled'`
+  (never touches either linked transaction's own status — a cancelled
   booking doesn't retroactively unclaim/unconfirm a payment that already
-  happened) and records the reason via `recordAudit()` (`app/admin/
-actions.ts`) since `bookings` itself has no reason column.
-- `actions.test.ts` — unit coverage for all three actions, including the
-  deposit-checkout-failure compensating delete and every ownership/guard
-  branch (malformed id, missing deposit, balance already created).
+  happened); `refund` optionally inserts into the existing Pro-gated
+  `refunds` table against a given transaction id, reusing
+  `issueRefundAction`'s own RLS enforcement rather than a second one — a
+  failed refund insert doesn't undo the cancellation, just gets flagged in
+  the result and the audit detail. `rescheduleBookingAction(bookingId,
+eventDate, balanceDueDate)` — same read-then-write ownership check,
+  updates the dates directly (no new booking status — a `'rescheduled'`
+  state would conflict with `sync_booking_status()`'s trigger logic, and a
+  deposit already paid should keep counting).
+- `actions.test.ts` — unit coverage for all four actions, including the
+  deposit-checkout-failure compensating delete, every ownership/guard
+  branch (malformed id, missing deposit, balance already created, booking
+  not found/not owned, already cancelled), and the refund pass-through/
+  failure paths.
 - `page.tsx` — `BookingsPage()` (server): `listBookings(vendorId)` +
   `BookingTable` + `NewBookingDialog`.
 - `page.dom.test.tsx` — awaits the async server component directly (same
@@ -62,8 +73,8 @@ config-form.tsx`'s label-preset wiring) — the deposit+balance-must-equal-
 - `new-booking-dialog.dom.test.tsx` — open/submit/close-on-success, the
   balance auto-derivation and its touched-lock, and the inline error path.
 - `[id]/` — the per-booking detail page: both linked transactions'
-  status/QR, "Create balance checkout" once eligible, and cancel (own
-  README).
+  status/QR, "Create balance checkout" once eligible, reschedule, and
+  cancel (optionally with a refund) (own README).
 
 ## Connectivity
 
