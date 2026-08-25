@@ -105,6 +105,13 @@ export async function createBookingAction(
     };
   }
 
+  await recordAudit(user.id, "create_booking", booking.id, {
+    event_date: parsed.data.event_date,
+    total_amount_cents: parsed.data.total_amount_cents,
+    deposit_amount_cents: parsed.data.deposit_amount_cents,
+    balance_amount_cents: parsed.data.balance_amount_cents,
+  });
+
   revalidatePath("/dashboard/bookings");
   return { status: "ok" };
 }
@@ -170,6 +177,10 @@ export async function createBalanceCheckoutAction(
     );
     return { status: "error", message: "Could not link the balance checkout." };
   }
+
+  await recordAudit(user.id, "create_balance_checkout", booking.id, {
+    amount_cents: booking.balance_amount_cents,
+  });
 
   revalidatePath(`/dashboard/bookings/${booking.id}`);
   revalidatePath("/dashboard/bookings");
