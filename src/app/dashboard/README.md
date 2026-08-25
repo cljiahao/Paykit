@@ -37,7 +37,7 @@ plan })` client component: composes `@merqo/ui`'s `DashboardNav`/
   `AccountMenu` for the sticky header row (burger + inline links + account
   dropdown) instead of hand-rolling it. Owns only paykit-specific bits: the
   wordmark, `LINKS` (`Dashboard`/`Payment setup`/`Transactions`/`Bookings`/
-  `Stats`, active-route highlighting via `isActive`/`usePathname`), the 2-tier
+  `Stats`/`Earnings`, active-route highlighting via `isActive`/`usePathname`), the 2-tier
   (free/pro) `TierBadge` (ported from qkit's 3-tier badge, flattened), and
   thin throw-adapting wrappers around `submitFeedbackAction`/
   `submitSupportMessageAction` (both return a `{success, error}` result;
@@ -140,6 +140,8 @@ className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
   linked transactions' status/QR, a "Create balance checkout" action, and
   cancel (own README).
 - `stats/` — revenue-by-day chart, free for every vendor (own README).
+- `reports/earnings/` — accrual-aware yearly revenue by month + by booking,
+  CSV export, free for every vendor same as `stats/` (own README).
 - `plan/` — current tier, usage, the live admin-tunable Pro price, and the
   Pro upsell (`UpgradeCta` — a button that files a Pro-upgrade request via
   `requestProUpgradeAction` and shows toast feedback; own README).
@@ -151,9 +153,10 @@ className="mx-auto max-w-2xl space-y-6">` (not `<main>` — the layout's
 
 `layout.tsx` gates every route under `/dashboard` and renders
 `dashboard-nav.tsx` around `{children}`; `dashboard-nav.tsx` links out to
-`config/`, `transactions/`, `bookings/`, `stats/`, `plan/`, `profile/` — the
-dashboard's sub-routes for payment setup, transaction history, event
-bookings, revenue stats, billing, and account respectively.
+`config/`, `transactions/`, `bookings/`, `stats/`, `reports/earnings/`,
+`plan/`, `profile/` — the dashboard's sub-routes for payment setup,
+transaction history, event bookings, revenue stats, the earnings report,
+billing, and account respectively.
 
 `dashboard-nav.dom.test.tsx`'s account-menu-order test now expects a
 "Theme · System" entry, matching `@merqo/ui` v0.19.0's collapsed theme

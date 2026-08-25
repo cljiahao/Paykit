@@ -51,6 +51,16 @@ amountCents})`: the one `transactions`-insert-plus-render-the-checkout-view
 - `revenue-report.ts` — `aggregateRevenueByDay`: pure aggregation of
   confirmed transactions into per-day totals + counts (`DailyRevenue`:
   `{date, cents, count}`) for the Stats page's chart and its stat-tile row.
+- `earnings-report.ts` — `buildEarningsReport(transactions, bookings,
+year)`: pure, accrual-aware yearly revenue for the Earnings report page —
+  tags each confirmed transaction by its linked booking's `event_date` (not
+  its own `created_at`), falls back to `created_at` for a transaction with
+  no linked booking rather than dropping it, and collapses a booking's
+  deposit + balance transactions into one line.
+- `earnings-csv.ts` — `earningsReportToCsv`: CSV serialization for the
+  above, escaping a leading `=`/`+`/`-`/`@` (CSV formula injection) on
+  `customer_name` — real vendor-entered text, not app-generated, the one
+  field in the report that needs it.
 - `usage.ts` — `shouldNudgePro`/`PRO_NUDGE_THRESHOLD`: friction-based
   Free→Pro nudge (not a hard cap — Free tier has no transaction-volume
   cap, see root `AGENTS.md`).

@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Earnings report (`/dashboard/reports/earnings`, free for every vendor):
+  accrual-aware yearly revenue, tagged by a linked booking's `event_date`
+  rather than claim/confirm date, with a monthly breakdown, a per-booking
+  line table, and CSV export. Revenue only, never a computed profit figure
+  or a Form-B-ready submission — paykit never sees a vendor's own costs.
+
 - Bookings: `createBookingAction`/`createBalanceCheckoutAction` now log to
   the admin audit trail on success (`create_booking`/
   `create_balance_checkout`) — paykit already logged `set_vendor_plan`/

@@ -17,6 +17,7 @@ const LINKS = [
   { href: "/dashboard/transactions", label: "Transactions" },
   { href: "/dashboard/bookings", label: "Bookings" },
   { href: "/dashboard/stats", label: "Stats" },
+  { href: "/dashboard/reports/earnings", label: "Earnings" },
 ];
 
 function isActive(path: string, href: string): boolean {
