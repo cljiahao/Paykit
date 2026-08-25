@@ -26,9 +26,14 @@ see the product roadmap doc's own tiering.
   `transaction_id` back via the service-role client, since
   `deposit_transaction_id` is excluded from the vendor's own column-scoped
   grant; deletes the booking row again if the checkout itself fails, since
-  there's no separate "retry deposit checkout" action). `createBalanceCheckoutAction(bookingId)`
+  there's no separate "retry deposit checkout" action; logs `create_booking`
+  via `recordAudit()` only on real success). `createBalanceCheckoutAction(bookingId)`
   — same shape for the balance leg (`order_ref: booking:<id>:balance`),
-  only when a deposit checkout exists and a balance one doesn't yet.
+  only when a deposit checkout exists and a balance one doesn't yet, logs
+  `create_balance_checkout`. The bearer-secret `/api/v1/checkout/{id}/
+{claim,confirm,unclaim}` routes stay deliberately unlogged — they
+  authenticate via `verifyKitAuth` (per-kit secret), never resolve an
+  `auth.users` id, so there's no safe actor to attribute a row to yet.
   `cancelBookingAction(bookingId, reason?, refund?)` — reads the booking
   first under RLS (a stale/not-owned id can't reach `recordAudit` claiming
   a cancellation that never happened — RLS silently no-ops an `UPDATE` on

@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Bookings: `createBookingAction`/`createBalanceCheckoutAction` now log to
+  the admin audit trail on success (`create_booking`/
+  `create_balance_checkout`) — paykit already logged `set_vendor_plan`/
+  `set_pricing`/`cancel_booking`/`record_refund`, this closes the two real
+  gaps. The bearer-secret claim/confirm/unclaim routes stay out of scope —
+  they have no `auth.users` actor to attribute a row to.
+
 - Bookings: a booking can now be rescheduled (`rescheduleBookingAction` —
   updates `event_date`/`balance_due_date` directly, deposit already paid
   stays counted, no new booking status) and cancelling one can optionally

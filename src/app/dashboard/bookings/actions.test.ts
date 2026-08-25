@@ -128,10 +128,16 @@ describe("createBookingAction", () => {
       orderRef: "booking:b1:deposit",
       amountCents: 30000,
     });
+    expect(recordAuditMock).toHaveBeenCalledWith("v1", "create_booking", "b1", {
+      event_date: "2026-12-01",
+      total_amount_cents: 100000,
+      deposit_amount_cents: 30000,
+      balance_amount_cents: 70000,
+    });
     expect(revalidatePath).toHaveBeenCalledWith("/dashboard/bookings");
   });
 
-  it("rejects invalid input without inserting", async () => {
+  it("rejects invalid input without inserting or logging", async () => {
     const { createBookingAction } = await import("./actions");
     const result = await createBookingAction(
       { status: "idle" },
@@ -139,6 +145,7 @@ describe("createBookingAction", () => {
     );
     expect(result.status).toBe("error");
     expect(insertSingleMock).not.toHaveBeenCalled();
+    expect(recordAuditMock).not.toHaveBeenCalled();
   });
 
   it("rejects when deposit + balance don't add up to the total", async () => {
@@ -151,7 +158,7 @@ describe("createBookingAction", () => {
     expect(insertSingleMock).not.toHaveBeenCalled();
   });
 
-  it("returns an error when the booking insert fails", async () => {
+  it("returns an error when the booking insert fails, without logging", async () => {
     insertSingleMock.mockResolvedValue({
       data: null,
       error: { message: "connection reset" },
@@ -163,9 +170,10 @@ describe("createBookingAction", () => {
     );
     expect(result.status).toBe("error");
     expect(createCheckoutMock).not.toHaveBeenCalled();
+    expect(recordAuditMock).not.toHaveBeenCalled();
   });
 
-  it("deletes the booking and surfaces an error when the deposit checkout fails", async () => {
+  it("deletes the booking and surfaces an error when the deposit checkout fails, without logging", async () => {
     createCheckoutMock.mockResolvedValue({
       ok: false,
       status: 422,
@@ -178,6 +186,7 @@ describe("createBookingAction", () => {
     );
     expect(result.status).toBe("error");
     expect(serviceDeleteMock).toHaveBeenCalled();
+    expect(recordAuditMock).not.toHaveBeenCalled();
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 });
@@ -200,15 +209,22 @@ describe("createBalanceCheckoutAction", () => {
       amountCents: 70000,
     });
     expect(serviceUpdateEqMock).toHaveBeenCalled();
+    expect(recordAuditMock).toHaveBeenCalledWith(
+      "v1",
+      "create_balance_checkout",
+      "b1",
+      { amount_cents: 70000 },
+    );
     expect(revalidatePath).toHaveBeenCalledWith("/dashboard/bookings/b1");
     expect(revalidatePath).toHaveBeenCalledWith("/dashboard/bookings");
   });
 
-  it("rejects a malformed booking id", async () => {
+  it("rejects a malformed booking id without logging", async () => {
     const { createBalanceCheckoutAction } = await import("./actions");
     const result = await createBalanceCheckoutAction("not-a-uuid");
     expect(result.status).toBe("error");
     expect(createCheckoutMock).not.toHaveBeenCalled();
+    expect(recordAuditMock).not.toHaveBeenCalled();
   });
 
   it("errors when the booking has no deposit transaction yet", async () => {
@@ -225,6 +241,7 @@ describe("createBalanceCheckoutAction", () => {
     const result = await createBalanceCheckoutAction(VALID_BOOKING_ID);
     expect(result.status).toBe("error");
     expect(createCheckoutMock).not.toHaveBeenCalled();
+    expect(recordAuditMock).not.toHaveBeenCalled();
   });
 
   it("errors when the balance checkout already exists", async () => {
