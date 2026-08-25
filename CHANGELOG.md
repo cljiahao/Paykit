@@ -8,6 +8,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Server-side error tracking (`src/instrumentation.ts`, `@sentry/nextjs`),
+  activating only when `SENTRY_DSN` is set — safe to leave unset in
+  dev/preview, the SDK no-ops with no dsn. No dependency on today's
+  outage/error data being centrally visible before this.
+
+- Logging on every failed bearer-secret auth attempt (`kit-auth.ts`'s
+  `verifyKitAuth`): a missing/malformed header, an unknown `kit_slug`, or a
+  secret mismatch each now log a warning with the `kit_slug` when
+  resolvable — never the secret itself. Previously silent, so a
+  probing/brute-force pattern against the bearer scheme would have gone
+  unnoticed.
+
 - Rate limiting on the bearer-secret `/api/v1/*` surface (`paykit.rate_limits`,
   migration 0012, ported from qkit's own DB-backed fixed-window limiter):
   checkout/claim/confirm/unclaim each cap at 60 requests/60s per
