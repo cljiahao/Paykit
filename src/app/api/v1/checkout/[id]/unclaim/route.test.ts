@@ -5,11 +5,13 @@ const {
   verifyKitAuthMock,
   readMaybeSingle,
   updateSingle,
+  auditInsert,
   createServiceClientMock,
 } = vi.hoisted(() => ({
   verifyKitAuthMock: vi.fn(),
   readMaybeSingle: vi.fn(),
   updateSingle: vi.fn(),
+  auditInsert: vi.fn(),
   createServiceClientMock: vi.fn(),
 }));
 
@@ -40,6 +42,7 @@ function fakeSupabase() {
           eq: () => ({ select: () => ({ single: updateSingle }) }),
         }),
       }),
+      insert: auditInsert,
     }),
   };
 }
@@ -52,6 +55,7 @@ beforeEach(() => {
     data: { ...ROW, status: "pending", claimed_at: null },
     error: null,
   });
+  auditInsert.mockReset().mockResolvedValue({ error: null });
 });
 
 function req() {
@@ -71,9 +75,15 @@ describe("POST /api/v1/checkout/[id]/unclaim", () => {
     const json = await res.json();
     expect(json.status).toBe("pending");
     expect(json.claimed_at).toBeNull();
+    expect(auditInsert).toHaveBeenCalledWith({
+      transaction_id: TX_ID,
+      kit_slug: "qkit",
+      action: "unclaimed",
+      detail: null,
+    });
   });
 
-  it("is idempotent on an already-pending transaction (no update call)", async () => {
+  it("is idempotent on an already-pending transaction (no update call, no audit row)", async () => {
     readMaybeSingle.mockResolvedValue({
       data: { ...ROW, status: "pending", claimed_at: null },
       error: null,
@@ -83,9 +93,10 @@ describe("POST /api/v1/checkout/[id]/unclaim", () => {
     const json = await res.json();
     expect(json.status).toBe("pending");
     expect(updateSingle).not.toHaveBeenCalled();
+    expect(auditInsert).not.toHaveBeenCalled();
   });
 
-  it("never reverts a confirmed transaction (no-op, still confirmed)", async () => {
+  it("never reverts a confirmed transaction (no-op, still confirmed, no audit row)", async () => {
     readMaybeSingle.mockResolvedValue({
       data: {
         ...ROW,
@@ -99,6 +110,7 @@ describe("POST /api/v1/checkout/[id]/unclaim", () => {
     const json = await res.json();
     expect(json.status).toBe("confirmed");
     expect(updateSingle).not.toHaveBeenCalled();
+    expect(auditInsert).not.toHaveBeenCalled();
   });
 
   it("401s when unauthorized", async () => {
@@ -149,6 +161,7 @@ describe("POST /api/v1/checkout/[id]/unclaim", () => {
     const json = await res.json();
     expect(json.status).toBe("confirmed");
     expect(readMaybeSingle).toHaveBeenCalledTimes(2);
+    expect(auditInsert).not.toHaveBeenCalled();
   });
 
   it("row was deleted between the read and the conditional update: recheck 404s", async () => {

@@ -8,6 +8,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Payment-lifecycle audit trail (`paykit.payment_audit`, migration 0011):
+  every real state transition on the bearer-secret checkout API — checkout
+  created, claimed, confirmed, unclaimed — now writes an immutable,
+  kit-attributed row, closing the gap where the entire payment lifecycle
+  had no record beyond `transactions.status` (a single column, overwritten
+  in place, previously fully mutable by the service-role client). A
+  no-op/idempotent request (already-claimed, lost a race, etc.) writes
+  nothing. Kept as its own table rather than overloading `admin_audit`'s
+  human-actor (`admin_id not null`) semantics, since every writer here is a
+  bearer-secret-authenticated kit, never a signed-in session.
+
 - Earnings report (`/dashboard/reports/earnings`, free for every vendor):
   accrual-aware yearly revenue, tagged by a linked booking's `event_date`
   rather than claim/confirm date, with a monthly breakdown, a per-booking

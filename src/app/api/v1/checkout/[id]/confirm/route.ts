@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/server";
 import { verifyKitAuth } from "@/lib/kit-auth";
 import { confirmTransition, type TxStatus } from "@/lib/tx-state";
 import { toStatusResponse, uuidSchema } from "@/lib/api-schemas";
+import { recordPaymentAudit } from "@/lib/payment-audit";
 
 export async function POST(
   request: Request,
@@ -57,5 +58,6 @@ export async function POST(
     return NextResponse.json(toStatusResponse(recheck));
   }
 
+  await recordPaymentAudit(supabase, id, auth.kitSlug, "confirmed");
   return NextResponse.json(toStatusResponse(updated));
 }

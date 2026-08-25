@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { getProvider } from "@/lib/payments/provider";
+import { recordPaymentAudit } from "@/lib/payment-audit";
 import type { VendorPaymentConfig } from "@/lib/types";
 
 export type CreateCheckoutInput = {
@@ -82,6 +83,8 @@ export async function createCheckout({
   // hits the unique constraint (0007_paykit_checkout_idempotency.sql) rather
   // than creating a duplicate pending transaction; re-read and return the
   // transaction the first call already created.
+  // isFreshInsert: only a genuinely new checkout gets an audit row.
+  const isFreshInsert = !insertError && !!inserted;
   let tx = inserted;
   if (insertError?.code === "23505") {
     const { data: existing, error: existingError } = await supabase
@@ -104,6 +107,10 @@ export async function createCheckout({
   }
   if (!tx) {
     return { ok: false, status: 503, error: "Could not create checkout" };
+  }
+
+  if (isFreshInsert) {
+    await recordPaymentAudit(supabase, tx.id, kitSlug, "checkout_created");
   }
 
   if (view.type === "qr") {

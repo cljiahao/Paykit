@@ -18,6 +18,8 @@ tables, RLS policies, RPCs, and grants, applied in order.
 - `0009_paykit_admin_audit_immutable.sql` — revokes `UPDATE`/`DELETE` on `admin_audit` from `service_role` (kept to `SELECT`/`INSERT`) — the app only ever inserts, so this closes off tampering at the grant level, independent of RLS (which never binds `service_role`).
 - `0010_paykit_bookings.sql` — `bookings` (deposit-now/balance-later event-cart bookings), linking up to two `transactions` rows by id (`deposit_transaction_id`/`balance_transaction_id`). `sync_booking_status()` is an `after update of status on transactions` trigger that flips a linked booking to `deposit_paid`/`fully_paid` once its transaction(s) confirm, regardless of which path (dashboard or bearer-secret API) did the confirming. RLS mirrors `vendor_payment_config_own`; the two transaction-id columns are excluded from the vendor's own `INSERT`/`UPDATE` grant (same instinct as `plan` in 0001) since the policy only checks `vendor_id`, not that the linked transaction is actually this vendor's own.
 
+- `0011_paykit_payment_audit.sql` — `payment_audit`, an immutable (grant-level `UPDATE`/`DELETE` revoked from `service_role`, same treatment as `0009`) audit trail for the payment-lifecycle API (`checkout_created`/`claimed`/`confirmed`/`unclaimed`), attributed by `kit_slug` rather than a human `auth.users` actor — kept as its own table rather than widening `admin_audit`'s `admin_id not null` semantics, since the bearer-secret routes have no signed-in session.
+
 ## Parent
 
 See the repo root [README.md](../../README.md) for the full layout.

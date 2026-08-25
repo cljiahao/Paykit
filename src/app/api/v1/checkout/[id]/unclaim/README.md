@@ -13,3 +13,6 @@ back so the caller can detect "too late to undo."
 
 Response shape is the same `TransactionStatusResponse` `claim`/`confirm`
 already return (`src/lib/api-schemas.ts`'s `toStatusResponse`).
+
+A real (non-idempotent) unclaim writes an `unclaimed` `payment_audit` row
+(`@/lib/payment-audit`).

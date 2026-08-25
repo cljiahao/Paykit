@@ -29,6 +29,9 @@ _permits_.
     or write the other's.
   - **`anon` is locked out** of everything except the cross-kit checkout
     API's own service-role path — no direct table access.
+  - **`payment_audit` is append-only** (migration `0011`) from creation,
+    same treatment as `admin_audit`; A/B each read only their own
+    transaction's rows.
   - **Booking ownership** — A reads/inserts/cancels only its own
     `bookings` row (an update targeting B's booking id affects 0 rows);
     inserting one for B's `vendor_id` throws. `deposit_transaction_id`/
