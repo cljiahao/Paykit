@@ -4,6 +4,7 @@ import { verifyKitAuth } from "@/lib/kit-auth";
 import { confirmTransition, type TxStatus } from "@/lib/tx-state";
 import { toStatusResponse, uuidSchema } from "@/lib/api-schemas";
 import { recordPaymentAudit } from "@/lib/payment-audit";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export async function POST(
   request: Request,
@@ -13,6 +14,17 @@ export async function POST(
   if (!auth)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const supabase = await createServiceClient();
+  const ip = clientIp(request.headers);
+  const allowed = await rateLimit(
+    supabase,
+    `confirm:${auth.kitSlug}:${ip}`,
+    60,
+    60,
+  );
+  if (!allowed)
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+
   const { id } = await params;
   if (!uuidSchema.safeParse(id).success) {
     return NextResponse.json(
@@ -20,7 +32,6 @@ export async function POST(
       { status: 400 },
     );
   }
-  const supabase = await createServiceClient();
 
   const { data: current, error: readError } = await supabase
     .from("transactions")
