@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `kit_api_keys.last_used_at` (migration 0013), touched on every
+  successful bearer-secret auth. Closes a real gap: rotating a calling
+  kit's secret had no way to confirm the new one was actually picked up,
+  or that a stale/never-deployed row was safe to clean up. New
+  `docs/SECRET_ROTATION.md` documents today's real rotation process
+  honestly — a hard cutover, no dual-secret grace window exists.
+
 - Server-side error tracking (`src/instrumentation.ts`, `@sentry/nextjs`),
   activating only when `SENTRY_DSN` is set — safe to leave unset in
   dev/preview, the SDK no-ops with no dsn. No dependency on today's

@@ -90,7 +90,9 @@ year)`: pure, accrual-aware yearly revenue for the Earnings report page —
   Every failure mode (missing/malformed header, unknown `kit_slug`, secret
   mismatch) logs a warning with the `kit_slug` when resolvable — never the
   secret itself, real risk was zero visibility into a probing/brute-force
-  pattern.
+  pattern. A successful auth also touches `kit_api_keys.last_used_at`
+  (best-effort, never blocking) — see `docs/SECRET_ROTATION.md` for how
+  that's used.
 - `rate-limit.ts` — `clientIp`/`rateLimit`: DB-backed fixed-window limiter,
   ported from qkit's own `src/lib/rate-limit.ts`. Every `/api/v1/*` route
   calls it right after auth, keyed by `${action}:${kitSlug}:${ip}` — fails

@@ -21,6 +21,8 @@ tables, RLS policies, RPCs, and grants, applied in order.
 - `0011_paykit_payment_audit.sql` — `payment_audit`, an immutable (grant-level `UPDATE`/`DELETE` revoked from `service_role`, same treatment as `0009`) audit trail for the payment-lifecycle API (`checkout_created`/`claimed`/`confirmed`/`unclaimed`), attributed by `kit_slug` rather than a human `auth.users` actor — kept as its own table rather than widening `admin_audit`'s `admin_id not null` semantics, since the bearer-secret routes have no signed-in session.
 - `0012_paykit_rate_limit.sql` — `rate_limits` + `check_rate_limit()`, a DB-backed fixed-window limiter ported from qkit's own `0017_rate_limit.sql`/`0036_rate_limit_cleanup.sql` (index-backed probabilistic cleanup, not an unindexed `DELETE` on every call). `EXECUTE` granted to `service_role` only — paykit's `/api/v1/*` surface is server-to-server, unlike qkit's client-callable RPC.
 
+- `0013_paykit_kit_key_last_used.sql` — adds `kit_api_keys.last_used_at` (nullable, touched on every successful `verifyKitAuth` call) — see `docs/SECRET_ROTATION.md` for what it's for.
+
 ## Parent
 
 See the repo root [README.md](../../README.md) for the full layout.

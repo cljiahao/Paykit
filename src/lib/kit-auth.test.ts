@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { hashApiKey } from "./kit-auth";
 
-const { maybeSingleMock, createServiceClientMock } = vi.hoisted(() => ({
-  maybeSingleMock: vi.fn(),
-  createServiceClientMock: vi.fn(),
-}));
+const { maybeSingleMock, updateEqMock, createServiceClientMock } = vi.hoisted(
+  () => ({
+    maybeSingleMock: vi.fn(),
+    updateEqMock: vi.fn(),
+    createServiceClientMock: vi.fn(),
+  }),
+);
 
 vi.mock("@/lib/supabase/server", () => ({
   createServiceClient: createServiceClientMock,
@@ -12,9 +15,11 @@ vi.mock("@/lib/supabase/server", () => ({
 
 beforeEach(async () => {
   maybeSingleMock.mockReset();
+  updateEqMock.mockReset().mockResolvedValue({ error: null });
   createServiceClientMock.mockReset().mockResolvedValue({
     from: () => ({
       select: () => ({ eq: () => ({ maybeSingle: maybeSingleMock }) }),
+      update: () => ({ eq: updateEqMock }),
     }),
   });
 });
@@ -72,6 +77,35 @@ describe("verifyKitAuth", () => {
       data: { secret_hash: hashApiKey("s3cret") },
       error: null,
     });
+    const { verifyKitAuth } = await import("./kit-auth");
+    expect(await verifyKitAuth(req("Bearer qkit:s3cret"))).toEqual({
+      kitSlug: "qkit",
+    });
+  });
+
+  it("touches last_used_at for the kit_slug on a successful auth", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { secret_hash: hashApiKey("s3cret") },
+      error: null,
+    });
+    const { verifyKitAuth } = await import("./kit-auth");
+    await verifyKitAuth(req("Bearer qkit:s3cret"));
+    expect(updateEqMock).toHaveBeenCalledWith("kit_slug", "qkit");
+  });
+
+  it("does not touch last_used_at when auth fails", async () => {
+    maybeSingleMock.mockResolvedValue({ data: null, error: null });
+    const { verifyKitAuth } = await import("./kit-auth");
+    await verifyKitAuth(req("Bearer qkit:s3cret"));
+    expect(updateEqMock).not.toHaveBeenCalled();
+  });
+
+  it("still returns success even when the last_used_at write fails", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { secret_hash: hashApiKey("s3cret") },
+      error: null,
+    });
+    updateEqMock.mockResolvedValue({ error: { message: "connection reset" } });
     const { verifyKitAuth } = await import("./kit-auth");
     expect(await verifyKitAuth(req("Bearer qkit:s3cret"))).toEqual({
       kitSlug: "qkit",
