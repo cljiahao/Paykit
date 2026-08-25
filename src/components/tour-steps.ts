@@ -40,9 +40,21 @@ const DESKTOP: TourStep[] = [
       "Every checkout shows up here. When a customer pays, confirm it once you've checked the money actually landed.",
   },
   {
+    element: sel("nav-bookings"),
+    title: "Bookings",
+    description:
+      "Taking a deposit now and the rest later — for weddings, events, or anything booked in advance? Track the deposit and balance here, with reschedule and cancel built in.",
+  },
+  {
     element: sel("nav-stats"),
     title: "Stats",
     description: "Track your revenue and transaction volume over time.",
+  },
+  {
+    element: sel("nav-earnings"),
+    title: "Earnings report",
+    description:
+      "A revenue breakdown by month, tagged to the actual event date rather than when it was paid — export it as CSV whenever you need it for your own records.",
   },
   {
     element: sel("nav-account"),

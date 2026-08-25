@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import { tourSteps } from "./tour-steps";
 
 describe("tourSteps", () => {
-  it("returns 6 steps on desktop, 3 on mobile", () => {
-    expect(tourSteps(false)).toHaveLength(6);
+  it("returns 8 steps on desktop, 3 on mobile", () => {
+    expect(tourSteps(false)).toHaveLength(8);
     expect(tourSteps(true)).toHaveLength(3);
   });
 
@@ -38,7 +38,9 @@ describe("tourSteps", () => {
       '[data-tour="tx-count"]',
       '[data-tour="nav-config"]',
       '[data-tour="nav-transactions"]',
+      '[data-tour="nav-bookings"]',
       '[data-tour="nav-stats"]',
+      '[data-tour="nav-earnings"]',
       '[data-tour="nav-account"]',
       '[data-tour="tour-replay"]',
     ]);
@@ -46,5 +48,17 @@ describe("tourSteps", () => {
     const mobile = tourSteps(true).map((s) => s.element);
     expect(mobile).toContain('[data-tour="nav-menu"]');
     expect(mobile).not.toContain('[data-tour="nav-config"]');
+  });
+
+  it("covers Bookings and Earnings, both live nav items with no tour step until now", () => {
+    const steps = tourSteps(false);
+    const bookings = steps.find(
+      (s) => s.element === '[data-tour="nav-bookings"]',
+    );
+    const earnings = steps.find(
+      (s) => s.element === '[data-tour="nav-earnings"]',
+    );
+    expect(bookings?.description).toMatch(/deposit|balance/i);
+    expect(earnings?.description).toMatch(/revenue|earnings|report/i);
   });
 });
