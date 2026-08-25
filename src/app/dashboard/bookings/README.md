@@ -40,7 +40,7 @@ see the product roadmap doc's own tiering.
   `issueRefundAction`'s own RLS enforcement rather than a second one — a
   failed refund insert doesn't undo the cancellation, just gets flagged in
   the result and the audit detail. `rescheduleBookingAction(bookingId,
-  eventDate, balanceDueDate)` — same read-then-write ownership check,
+eventDate, balanceDueDate)` — same read-then-write ownership check,
   updates the dates directly (no new booking status — a `'rescheduled'`
   state would conflict with `sync_booking_status()`'s trigger logic, and a
   deposit already paid should keep counting).

@@ -15,8 +15,10 @@ larger clusters; everything else sits flat here.
   `vendorPaymentConfigInputSchema` (discriminated union over `kind`,
   paynow/pointer), `issueRefundInputSchema`, `createBookingInputSchema`
   (deposit + balance must add up to the total; balance due date must be on
-  or before the event date), `cancelBookingInputSchema`,
-  `createBalanceCheckoutInputSchema`, profile/password/social-links
+  or before the event date), `cancelBookingInputSchema` (optional refund
+  transaction id + amount, both-or-neither), `createBalanceCheckoutInputSchema`,
+  `rescheduleBookingInputSchema` (same balance-due-before-event-date rule as
+  `createBookingInputSchema`), profile/password/social-links
   schemas, `feedbackSchema`, `supportMessageSchema` +
   `SUPPORT_CATEGORY_LABELS`.
 - `api-schemas.ts` — Zod contracts for the `/api/v1/*` HTTP surface
