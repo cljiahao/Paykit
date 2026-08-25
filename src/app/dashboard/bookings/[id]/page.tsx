@@ -8,6 +8,7 @@ import { TransactionStatusCard } from "./transaction-status-card";
 import { CreateBalanceCheckoutButton } from "./create-balance-checkout-button";
 import { CancelBookingDialog } from "./cancel-booking-dialog";
 import { RescheduleBookingDialog } from "./reschedule-booking-dialog";
+import { PrintBookingButton } from "./print-booking-button";
 
 export default async function BookingDetailPage({
   params,
@@ -45,7 +46,10 @@ export default async function BookingDetailPage({
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <BookingStatusBadge status={booking.status} />
+          <div className="flex items-center gap-2">
+            <BookingStatusBadge status={booking.status} />
+            <PrintBookingButton />
+          </div>
           <BalanceDueIndicator booking={booking} />
         </div>
       </div>
@@ -71,7 +75,7 @@ export default async function BookingDetailPage({
       </div>
 
       {booking.status !== "cancelled" && (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 print:hidden">
           {canCreateBalanceCheckout && (
             <CreateBalanceCheckoutButton bookingId={booking.id} />
           )}

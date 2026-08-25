@@ -42,7 +42,9 @@ every failed bearer-auth attempt is now logged (`kit-auth.ts`) with the
 `SENTRY_DSN` is set. `kit_api_keys.last_used_at` now tracks when a
 calling kit's secret was last actually used, and
 `docs/SECRET_ROTATION.md` documents the real (hard-cutover, no grace
-window) rotation process.
+window) rotation process. A booking's own detail page can now be printed
+as a customer-facing summary (`bookings/[id]/print-booking-button.tsx`) —
+a view over existing data, not a new invoice/receipt subsystem.
 
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on
