@@ -30,7 +30,9 @@ pointer for a vendor's transaction. Bearer-secret authenticated
   (vendor confirmed receipt). Every real transition here (including this
   route's own `checkout_created`) writes a `payment_audit` row via
   `@/lib/payment-audit`'s `recordPaymentAudit` — a no-op/idempotent request
-  writes nothing, see `src/lib/README.md`.
+  writes nothing, see `src/lib/README.md`. Every route here (this one
+  included) is also rate-limited (`@/lib/rate-limit`, 60 requests/60s per
+  `kit_slug`+IP) right after auth, before any DB read.
 
 ## Parent
 

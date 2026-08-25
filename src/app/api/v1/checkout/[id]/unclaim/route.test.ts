@@ -6,18 +6,24 @@ const {
   readMaybeSingle,
   updateSingle,
   auditInsert,
+  rateLimitMock,
   createServiceClientMock,
 } = vi.hoisted(() => ({
   verifyKitAuthMock: vi.fn(),
   readMaybeSingle: vi.fn(),
   updateSingle: vi.fn(),
   auditInsert: vi.fn(),
+  rateLimitMock: vi.fn(),
   createServiceClientMock: vi.fn(),
 }));
 
 vi.mock("@/lib/kit-auth", () => ({ verifyKitAuth: verifyKitAuthMock }));
 vi.mock("@/lib/supabase/server", () => ({
   createServiceClient: createServiceClientMock,
+}));
+vi.mock("@/lib/rate-limit", () => ({
+  clientIp: () => "203.0.113.5",
+  rateLimit: rateLimitMock,
 }));
 
 const TX_ID = "22222222-2222-2222-2222-222222222222";
@@ -56,6 +62,7 @@ beforeEach(() => {
     error: null,
   });
   auditInsert.mockReset().mockResolvedValue({ error: null });
+  rateLimitMock.mockReset().mockResolvedValue(true);
 });
 
 function req() {
@@ -116,6 +123,13 @@ describe("POST /api/v1/checkout/[id]/unclaim", () => {
   it("401s when unauthorized", async () => {
     verifyKitAuthMock.mockResolvedValue(null);
     expect((await POST(req(), ctx())).status).toBe(401);
+  });
+
+  it("429s when the rate limit is exceeded, without querying the DB", async () => {
+    rateLimitMock.mockResolvedValue(false);
+    const res = await POST(req(), ctx());
+    expect(res.status).toBe(429);
+    expect(readMaybeSingle).not.toHaveBeenCalled();
   });
 
   it("404s for an unknown transaction", async () => {

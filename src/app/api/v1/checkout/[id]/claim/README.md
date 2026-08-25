@@ -10,7 +10,8 @@ Idempotent: already-`claimed`/`confirmed` is a no-op, echoing the current
 status back.
 
 A real (non-idempotent) claim writes a `claimed` `payment_audit` row
-(`@/lib/payment-audit`).
+(`@/lib/payment-audit`). Rate-limited (`@/lib/rate-limit`, 60/60s per
+`kit_slug`+IP) right after auth.
 
 Response shape is the shared `TransactionStatusResponse`
 (`src/lib/api-schemas.ts`'s `toStatusResponse`).

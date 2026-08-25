@@ -1,6 +1,6 @@
 -- RLS cross-vendor isolation — pgTAP, run with `supabase test db`.
 begin;
-select plan(57);
+select plan(59);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 -- Vendor A: free plan, UEN config. Vendor B: pro plan, mobile config.
@@ -71,6 +71,7 @@ select ok((select relrowsecurity from pg_class where oid = 'paykit.feedback'::re
 select ok((select relrowsecurity from pg_class where oid = 'paykit.vendor_prefs'::regclass), 'RLS on vendor_prefs');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.bookings'::regclass), 'RLS on bookings');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.payment_audit'::regclass), 'RLS on payment_audit');
+select ok((select relrowsecurity from pg_class where oid = 'paykit.rate_limits'::regclass), 'RLS on rate_limits');
 
 -- 0009_paykit_admin_audit_immutable.sql: service_role can still append audit
 -- rows (the app's only write path — recordAudit() in
@@ -89,6 +90,12 @@ select ok(has_table_privilege('service_role', 'paykit.payment_audit', 'INSERT'),
   'service_role can INSERT payment_audit');
 select ok(not has_table_privilege('service_role', 'paykit.payment_audit', 'UPDATE'),
   'service_role cannot UPDATE payment_audit (revoked in 0011)');
+
+-- 0012_paykit_rate_limit.sql: server-to-server only — EXECUTE granted to
+-- service_role, not to authenticated/anon (unlike qkit's own limiter, which
+-- backs a client-callable RPC).
+select ok(has_function_privilege('service_role', 'paykit.check_rate_limit(text, int, int)', 'EXECUTE'),
+  'service_role can EXECUTE check_rate_limit');
 
 -- ── Act as Vendor A ────────────────────────────────────────────────────────
 set local role authenticated;

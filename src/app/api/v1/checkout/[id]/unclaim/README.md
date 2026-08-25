@@ -15,4 +15,5 @@ Response shape is the same `TransactionStatusResponse` `claim`/`confirm`
 already return (`src/lib/api-schemas.ts`'s `toStatusResponse`).
 
 A real (non-idempotent) unclaim writes an `unclaimed` `payment_audit` row
-(`@/lib/payment-audit`).
+(`@/lib/payment-audit`). Rate-limited (`@/lib/rate-limit`, 60/60s per
+`kit_slug`+IP) right after auth.

@@ -87,6 +87,11 @@ year)`: pure, accrual-aware yearly revenue for the Earnings report page —
   the same generated client type.
 - `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
   for calling kits, checked on every `/api/v1/*` route before any DB access.
+- `rate-limit.ts` — `clientIp`/`rateLimit`: DB-backed fixed-window limiter,
+  ported from qkit's own `src/lib/rate-limit.ts`. Every `/api/v1/*` route
+  calls it right after auth, keyed by `${action}:${kitSlug}:${ip}` — fails
+  open on limiter errors (an infra hiccup never blocks a real calling
+  kit).
 - `tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: upserts
   `vendor_prefs.tour_seen_at = now()`. A plain (non-`"use server"`) module
   so `src/app/dashboard/page.tsx` can call it directly during its own

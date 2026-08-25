@@ -32,7 +32,10 @@ append-only at the grant level (`service_role` can no longer `UPDATE`/
 payment-lifecycle API (checkout/claim/confirm/unclaim) has its own
 counterpart, `payment_audit` (`src/lib/payment-audit.ts`), attributed by
 `kit_slug` rather than a human `auth.users` actor — see
-`src/app/api/v1/checkout/README.md`.
+`src/app/api/v1/checkout/README.md`. The same surface is also rate-limited
+(`src/lib/rate-limit.ts`, ported from qkit's own DB-backed fixed-window
+limiter, 60 requests/60s per `kit_slug`+IP), closing a real gap where a
+leaked or misbehaving kit secret could hammer any endpoint unbounded.
 
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on

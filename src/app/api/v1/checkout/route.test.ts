@@ -7,6 +7,7 @@ const {
   insertSingle,
   existingSingle,
   auditInsert,
+  rateLimitMock,
   createServiceClientMock,
 } = vi.hoisted(() => ({
   verifyKitAuthMock: vi.fn(),
@@ -14,12 +15,17 @@ const {
   insertSingle: vi.fn(),
   existingSingle: vi.fn(),
   auditInsert: vi.fn(),
+  rateLimitMock: vi.fn(),
   createServiceClientMock: vi.fn(),
 }));
 
 vi.mock("@/lib/kit-auth", () => ({ verifyKitAuth: verifyKitAuthMock }));
 vi.mock("@/lib/supabase/server", () => ({
   createServiceClient: createServiceClientMock,
+}));
+vi.mock("@/lib/rate-limit", () => ({
+  clientIp: () => "203.0.113.5",
+  rateLimit: rateLimitMock,
 }));
 
 function fakeSupabase() {
@@ -70,6 +76,7 @@ beforeEach(() => {
     error: null,
   });
   existingSingle.mockReset().mockResolvedValue({ data: null, error: null });
+  rateLimitMock.mockReset().mockResolvedValue(true);
 });
 
 function req(body: unknown, authorization = "Bearer qkit:secret") {
@@ -199,6 +206,19 @@ describe("POST /api/v1/checkout", () => {
       }),
     );
     expect(res.status).toBe(401);
+  });
+
+  it("429s when the rate limit is exceeded", async () => {
+    rateLimitMock.mockResolvedValue(false);
+    const res = await POST(
+      req({
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+        order_ref: "A-001",
+      }),
+    );
+    expect(res.status).toBe(429);
+    expect(insertSingle).not.toHaveBeenCalled();
   });
 
   it("422s when the vendor has no PayNow config", async () => {

@@ -11,7 +11,8 @@ current status back. Once `confirmed`, a transaction never transitions
 again (see the sibling `unclaim` route's own note on this).
 
 A real (non-idempotent) confirm writes a `confirmed` `payment_audit` row
-(`@/lib/payment-audit`).
+(`@/lib/payment-audit`). Rate-limited (`@/lib/rate-limit`, 60/60s per
+`kit_slug`+IP) right after auth.
 
 Response shape is the shared `TransactionStatusResponse`
 (`src/lib/api-schemas.ts`'s `toStatusResponse`).

@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Rate limiting on the bearer-secret `/api/v1/*` surface (`paykit.rate_limits`,
+  migration 0012, ported from qkit's own DB-backed fixed-window limiter):
+  checkout/claim/confirm/unclaim each cap at 60 requests/60s per
+  `kit_slug`+IP, closing a real gap — a leaked or misbehaving kit secret
+  could previously hammer any endpoint unbounded. Fails open on limiter
+  errors, same as qkit's own.
+
 - Payment-lifecycle audit trail (`paykit.payment_audit`, migration 0011):
   every real state transition on the bearer-secret checkout API — checkout
   created, claimed, confirmed, unclaimed — now writes an immutable,
