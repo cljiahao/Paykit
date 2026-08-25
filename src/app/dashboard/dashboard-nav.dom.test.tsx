@@ -52,6 +52,10 @@ describe("DashboardNav", () => {
       "href",
       "/dashboard/stats",
     );
+    expect(screen.getByRole("link", { name: "Earnings" })).toHaveAttribute(
+      "href",
+      "/dashboard/reports/earnings",
+    );
   });
 
   it("exposes data-tour anchors for the onboarding tour", () => {
