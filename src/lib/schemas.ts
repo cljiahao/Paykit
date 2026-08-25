@@ -153,15 +153,32 @@ export const createBookingInputSchema = z
   });
 export type CreateBookingInput = z.infer<typeof createBookingInputSchema>;
 
-export const cancelBookingInputSchema = z.object({
-  booking_id: z.string().uuid("Invalid booking"),
-  reason: z
-    .string()
-    .trim()
-    .max(500, "Reason is too long")
-    .optional()
-    .or(z.literal("")),
-});
+export const cancelBookingInputSchema = z
+  .object({
+    booking_id: z.string().uuid("Invalid booking"),
+    reason: z
+      .string()
+      .trim()
+      .max(500, "Reason is too long")
+      .optional()
+      .or(z.literal("")),
+    refund_transaction_id: z.string().uuid("Invalid transaction").optional(),
+    refund_amount_cents: z.coerce
+      .number({ invalid_type_error: "Enter a valid refund amount." })
+      .int("Enter a valid refund amount.")
+      .positive("Enter a valid refund amount.")
+      .max(PG_INT4_MAX, "Amount is too large.")
+      .optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (Boolean(v.refund_transaction_id) !== Boolean(v.refund_amount_cents)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide both a refund transaction and amount, or neither",
+        path: ["refund_amount_cents"],
+      });
+    }
+  });
 export type CancelBookingInput = z.infer<typeof cancelBookingInputSchema>;
 
 export const createBalanceCheckoutInputSchema = z.object({
@@ -169,6 +186,25 @@ export const createBalanceCheckoutInputSchema = z.object({
 });
 export type CreateBalanceCheckoutInput = z.infer<
   typeof createBalanceCheckoutInputSchema
+>;
+
+export const rescheduleBookingInputSchema = z
+  .object({
+    booking_id: z.string().uuid("Invalid booking"),
+    event_date: isoDate,
+    balance_due_date: isoDate,
+  })
+  .superRefine((v, ctx) => {
+    if (v.balance_due_date > v.event_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Balance due date must be on or before the event date",
+        path: ["balance_due_date"],
+      });
+    }
+  });
+export type RescheduleBookingInput = z.infer<
+  typeof rescheduleBookingInputSchema
 >;
 
 // ── Profile settings (dashboard/profile) ─────────────────────────────────

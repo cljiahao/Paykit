@@ -116,9 +116,13 @@ method-byo-design.md`. `payee_name`/`uen`/`mobile` apply only to
 amount_cents + balance_amount_cents = total_amount_cents` CHECK constraint
   enforces the split adds up. Reminders are dashboard-badge-only (no
   cron/notification infra exists in this repo, see `src/lib/booking-
-status.ts`) — not a push. Rescheduling (deposit-carries-forward) is
-  explicitly out of scope; cancelling never touches either linked
-  transaction's own status.
+status.ts`) — not a push. `rescheduleBookingAction` updates `event_date`/
+  `balance_due_date` directly on the same booking (deposit-carries-forward —
+  no new status value, since a `'rescheduled'` state would conflict with
+  `sync_booking_status()`'s trigger logic). `cancelBookingAction` optionally
+  files a refund against a linked transaction (reuses `refunds`, the same
+  Pro/confirmed/ownership `with check` as `issueRefundAction`) but on its
+  own never touches either linked transaction's own status.
 - `refunds` (Pro only): bookkeeping ledger row against a `confirmed`
   transaction — no real money movement.
 - `pricing` (single row, `id` pinned to 1): the Pro price shown on the

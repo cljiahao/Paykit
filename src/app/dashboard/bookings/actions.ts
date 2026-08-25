@@ -8,6 +8,7 @@ import {
   createBookingInputSchema,
   cancelBookingInputSchema,
   createBalanceCheckoutInputSchema,
+  rescheduleBookingInputSchema,
 } from "@/lib/schemas";
 import { recordAudit } from "@/app/admin/actions";
 
@@ -175,15 +176,24 @@ export async function createBalanceCheckoutAction(
   return { status: "ok" };
 }
 
+// A booking a vendor cancels or reschedules may have had its deposit (or,
+// rarer, its balance) already confirmed — this refunds that specific
+// transaction, reusing `refunds`' own Pro/confirmed/ownership `with check`
+// (see `issueRefundAction`) rather than a second enforcement path.
+type BookingRefund = { transactionId: string; amountCents: number };
+
 export async function cancelBookingAction(
   bookingId: string,
   reason?: string,
+  refund?: BookingRefund,
 ): Promise<BookingActionState> {
   const { supabase, user } = await getVendorSession();
 
   const parsed = cancelBookingInputSchema.safeParse({
     booking_id: bookingId,
     reason: reason ?? "",
+    refund_transaction_id: refund?.transactionId,
+    refund_amount_cents: refund?.amountCents,
   });
   if (!parsed.success) {
     return {
@@ -192,17 +202,122 @@ export async function cancelBookingAction(
     };
   }
 
-  const { error } = await supabase
+  // Read-then-write under RLS: an UPDATE on a booking that RLS filters out
+  // (not this vendor's, or doesn't exist) returns `error: null` with zero
+  // rows affected, not an error — a `.maybeSingle()` read first turns a
+  // silent no-op into a real "not found", so a forged/stale id can't reach
+  // `recordAudit` claiming a cancellation that never happened.
+  const { data: booking, error: readError } = await supabase
+    .from("bookings")
+    .select("id, status, deposit_transaction_id, balance_transaction_id")
+    .eq("id", parsed.data.booking_id)
+    .maybeSingle();
+  if (readError || !booking) {
+    return { status: "error", message: "Booking not found" };
+  }
+  if (booking.status === "cancelled") {
+    return { status: "ok" };
+  }
+
+  const { error: updateError } = await supabase
     .from("bookings")
     .update({ status: "cancelled" })
     .eq("id", parsed.data.booking_id);
-  if (error) {
-    console.error("cancelBookingAction failed", error.message);
+  if (updateError) {
+    console.error("cancelBookingAction failed", updateError.message);
     return { status: "error", message: "Could not cancel booking." };
+  }
+
+  let refundRecorded: boolean | null = null;
+  if (parsed.data.refund_transaction_id && parsed.data.refund_amount_cents) {
+    const { error: refundError } = await supabase.from("refunds").insert({
+      transaction_id: parsed.data.refund_transaction_id,
+      refunded_amount_cents: parsed.data.refund_amount_cents,
+      reason: parsed.data.reason || null,
+      created_by: user.id,
+    });
+    refundRecorded = !refundError;
+    if (refundError) {
+      console.error(
+        "cancelBookingAction: refund insert failed",
+        refundError.message,
+      );
+    }
   }
 
   await recordAudit(user.id, "cancel_booking", parsed.data.booking_id, {
     reason: parsed.data.reason || null,
+    refund_transaction_id: parsed.data.refund_transaction_id ?? null,
+    refund_amount_cents: parsed.data.refund_amount_cents ?? null,
+    refund_recorded: refundRecorded,
+  });
+
+  revalidatePath(`/dashboard/bookings/${parsed.data.booking_id}`);
+  revalidatePath("/dashboard/bookings");
+  return refundRecorded === false
+    ? {
+        status: "ok",
+        message:
+          "Booking cancelled, but the refund could not be recorded — check the transaction is confirmed and you're on Pro.",
+      }
+    : { status: "ok" };
+}
+
+export async function rescheduleBookingAction(
+  bookingId: string,
+  eventDate: string,
+  balanceDueDate: string,
+): Promise<BookingActionState> {
+  const { supabase, user } = await getVendorSession();
+
+  const parsed = rescheduleBookingInputSchema.safeParse({
+    booking_id: bookingId,
+    event_date: eventDate,
+    balance_due_date: balanceDueDate,
+  });
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
+  const { data: booking, error: readError } = await supabase
+    .from("bookings")
+    .select("id, status, event_date, balance_due_date")
+    .eq("id", parsed.data.booking_id)
+    .maybeSingle();
+  if (readError || !booking) {
+    return { status: "error", message: "Booking not found" };
+  }
+  if (booking.status === "cancelled") {
+    return {
+      status: "error",
+      message: "Cannot reschedule a cancelled booking.",
+    };
+  }
+
+  // No new `status` value for "rescheduled" — the booking stays whatever
+  // payment state it's already in (deposit already paid keeps counting),
+  // avoiding a conflict with `sync_booking_status()`'s trigger, which only
+  // knows about the deposit/balance/cancelled states.
+  const { error: updateError } = await supabase
+    .from("bookings")
+    .update({
+      event_date: parsed.data.event_date,
+      balance_due_date: parsed.data.balance_due_date,
+    })
+    .eq("id", parsed.data.booking_id);
+  if (updateError) {
+    console.error("rescheduleBookingAction failed", updateError.message);
+    return { status: "error", message: "Could not reschedule booking." };
+  }
+
+  await recordAudit(user.id, "reschedule_booking", parsed.data.booking_id, {
+    previous_event_date: booking.event_date,
+    previous_balance_due_date: booking.balance_due_date,
+    new_event_date: parsed.data.event_date,
+    new_balance_due_date: parsed.data.balance_due_date,
   });
 
   revalidatePath(`/dashboard/bookings/${parsed.data.booking_id}`);

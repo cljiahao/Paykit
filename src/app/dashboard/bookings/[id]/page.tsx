@@ -7,6 +7,7 @@ import { BookingStatusBadge, BalanceDueIndicator } from "../booking-badges";
 import { TransactionStatusCard } from "./transaction-status-card";
 import { CreateBalanceCheckoutButton } from "./create-balance-checkout-button";
 import { CancelBookingDialog } from "./cancel-booking-dialog";
+import { RescheduleBookingDialog } from "./reschedule-booking-dialog";
 
 export default async function BookingDetailPage({
   params,
@@ -74,7 +75,16 @@ export default async function BookingDetailPage({
           {canCreateBalanceCheckout && (
             <CreateBalanceCheckoutButton bookingId={booking.id} />
           )}
-          <CancelBookingDialog bookingId={booking.id} />
+          <RescheduleBookingDialog
+            bookingId={booking.id}
+            eventDate={booking.event_date}
+            balanceDueDate={booking.balance_due_date}
+          />
+          <CancelBookingDialog
+            bookingId={booking.id}
+            depositTx={depositTx}
+            balanceTx={balanceTx}
+          />
         </div>
       )}
     </div>
