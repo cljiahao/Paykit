@@ -225,9 +225,19 @@ export interface Database {
         Relationships: [];
       };
       kit_api_keys: {
-        Row: { kit_slug: string; secret_hash: string; created_at: string };
-        Insert: { kit_slug: string; secret_hash: string; created_at?: string };
-        Update: { secret_hash?: string };
+        Row: {
+          kit_slug: string;
+          secret_hash: string;
+          created_at: string;
+          last_used_at: string | null;
+        };
+        Insert: {
+          kit_slug: string;
+          secret_hash: string;
+          created_at?: string;
+          last_used_at?: string | null;
+        };
+        Update: { secret_hash?: string; last_used_at?: string | null };
         Relationships: [];
       };
       feedback: {

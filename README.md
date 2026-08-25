@@ -39,7 +39,10 @@ leaked or misbehaving kit secret could hammer any endpoint unbounded, and
 every failed bearer-auth attempt is now logged (`kit-auth.ts`) with the
 `kit_slug` when resolvable, never the secret. Server-side error tracking
 (`src/instrumentation.ts`, `@sentry/nextjs`) activates only when
-`SENTRY_DSN` is set.
+`SENTRY_DSN` is set. `kit_api_keys.last_used_at` now tracks when a
+calling kit's secret was last actually used, and
+`docs/SECRET_ROTATION.md` documents the real (hard-cutover, no grace
+window) rotation process.
 
 In production, the Supabase auth cookie is scoped to `.merqo.io`
 (`NEXT_PUBLIC_AUTH_COOKIE_DOMAIN`, `src/lib/supabase/`), so signing in on
