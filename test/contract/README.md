@@ -10,13 +10,16 @@ the actual JSON wire shape a calling kit depends on.
 
 ## Contents
 
-- `paykit-api.contract.test.ts` — checkout create/claim/confirm/status and
-  the vendor-config `GET`/`POST` responses against their sample fixtures.
+- `paykit-api.contract.test.ts` — checkout create/claim/confirm/status, the
+  vendor-config `GET`/`POST`, and the booking-status `GET` responses against
+  their sample fixtures.
 - `checkout-response.sample.json` — a saved example `POST /api/v1/checkout`
   response.
 - `transaction-status.sample.json` — a saved example `GET /api/v1/checkout/{id}`
   response.
 - `vendor-config.sample.json` — a saved example vendor-config response.
+- `booking-status.sample.json` — a saved example
+  `GET /api/v1/bookings/{booking_id}` response.
 - `merqo-metrics.contract.test.ts` — asserts `computePaykitMetrics`'s output
   satisfies merqo hub's own `metricsPayloadSchema` (hand-copied here since
   cross-repo runtime imports aren't available — this test is what catches a

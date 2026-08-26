@@ -58,6 +58,7 @@ No `test:e2e` — this kit's testing surface (per its design spec) is Unit
 src/app/                          — app router (dashboard, login, API routes)
 src/app/api/v1/checkout/          — POST /api/v1/checkout, GET/POST /api/v1/checkout/{id}[/claim|/confirm]
 src/app/api/v1/vendors/           — GET/POST /api/v1/vendors/{vendor_id}/config
+src/app/api/v1/bookings/          — GET /api/v1/bookings/{booking_id}
 src/app/dashboard/                — vendor dashboard (config, transactions, stats)
 src/proxy.ts                      — Supabase session refresh + /dashboard guard (Next 16)
 src/lib/supabase/                 — browser / server / service clients + mw helper (schema=paykit)
@@ -274,5 +275,14 @@ entry carries a real sha256 as of the 2026-08-01 husky migration's
   config write, for qkit's own "quick add PayNow details" dashboard UI).
   qkit's checkout flow itself completed its own cutover to
   `POST /api/v1/checkout` (see "What paykit is" above).
+- **Booking-status read for qkit's booth dashboard (2026-08-26):** qkit
+  event-mode booths now store a vendor-pasted `paykit_booking_id` on their
+  own `booths` row (vendor already owns both sides; no lookup/matching by
+  name/phone — a prior fuzzy-match design was rejected as a cross-tenant
+  leak risk). `GET /api/v1/bookings/{booking_id}` exposes that booking's
+  live status read-only, same bearer-kit-auth/service-role pattern as the
+  vendor-config route above, and — like every other `/api/v1/*` route —
+  trusts the calling kit server-to-server rather than verifying vendor
+  ownership of the booking.
 
 <!-- [[post-harness]] — reserved for trace capture and meta-harness integration -->

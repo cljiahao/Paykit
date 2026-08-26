@@ -5,6 +5,7 @@ import {
   checkoutResponseSchema,
   transactionStatusResponseSchema,
   vendorConfigResponseSchema,
+  bookingStatusResponseSchema,
 } from "@/lib/api-schemas";
 
 function loadSample(name: string) {
@@ -41,6 +42,13 @@ describe("paykit /api/v1 contract", () => {
     // it, since the full-config fields are optional in the schema.
     const parsed = vendorConfigResponseSchema.safeParse(
       loadSample("vendor-config.sample.json"),
+    );
+    expect(parsed.success, JSON.stringify(parsed.error?.format())).toBe(true);
+  });
+
+  it("GET /api/v1/bookings/{booking_id} response satisfies bookingStatusResponseSchema", () => {
+    const parsed = bookingStatusResponseSchema.safeParse(
+      loadSample("booking-status.sample.json"),
     );
     expect(parsed.success, JSON.stringify(parsed.error?.format())).toBe(true);
   });

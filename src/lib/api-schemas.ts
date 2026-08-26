@@ -46,6 +46,23 @@ export type TransactionStatusResponse = z.infer<
   typeof transactionStatusResponseSchema
 >;
 
+export const bookingStatusResponseSchema = z.object({
+  booking_id: z.string().uuid(),
+  status: z.enum([
+    "pending_deposit",
+    "deposit_paid",
+    "fully_paid",
+    "cancelled",
+  ]),
+  event_date: z.string(),
+  deposit_amount_cents: z.number().int().positive(),
+  balance_amount_cents: z.number().int().positive(),
+  total_amount_cents: z.number().int().positive(),
+  deposit_confirmed: z.boolean(),
+  balance_confirmed: z.boolean(),
+});
+export type BookingStatusResponse = z.infer<typeof bookingStatusResponseSchema>;
+
 export const vendorConfigResponseSchema = z.object({
   has_config: z.boolean(),
   display_name: z.string().nullable(),
