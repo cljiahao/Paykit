@@ -18,8 +18,9 @@ figure-tile helper used by the overview and vendors screens.
   `dashboard/transactions/actions.ts`) can append an `admin_audit` row too
   — see `admin_audit`'s own retention/immutability notes in the repo-root
   `AGENTS.md`.
-- `admin-nav.tsx` — `AdminNav` client component: the Overview/Vendors tab
-  bar, highlighting the active section by path.
+- `activity/`
+- `admin-nav.tsx` — `AdminNav` client component: the Overview/Vendors/Activity
+  tab bar, highlighting the active section by path.
 - `layout.tsx` — `AdminLayout`: gates every `/admin` route with
   `requireAdmin()`, renders the header (wordmark, Admin badge, sign-out) and
   `AdminNav`.
@@ -38,10 +39,12 @@ figure-tile helper used by the overview and vendors screens.
 
 ## Connectivity
 
-`vendors/` is the one admin section linked from `admin-nav.tsx`'s tab bar
-(alongside this folder's own `page.tsx` for Overview); both render inside
-`layout.tsx`'s gated shell. `vendors/page.tsx` pulls `actions.ts` for the
-Server Action its `VendorPlanToggle` client component calls.
+`vendors/` and `activity/` are the admin sections linked from
+`admin-nav.tsx`'s tab bar (alongside this folder's own `page.tsx` for
+Overview); all render inside `layout.tsx`'s gated shell. `vendors/page.tsx`
+pulls `actions.ts` for the Server Action its `VendorPlanToggle` client
+component calls. `activity/page.tsx` pulls `admin-data.ts`'s `auditLog()`
+(read-only — no Server Action of its own).
 
 ## Parent
 

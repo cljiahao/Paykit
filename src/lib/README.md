@@ -23,7 +23,8 @@ larger clusters; everything else sits flat here.
   `SUPPORT_CATEGORY_LABELS`.
 - `api-schemas.ts` — Zod contracts for the `/api/v1/*` HTTP surface
   (request bodies, discriminated response shapes) plus the shared
-  `uuidSchema` path-param validator.
+  `uuidSchema` path-param validator, including
+  `bookingStatusResponseSchema` for `GET /api/v1/bookings/{id}`.
 - `tx-state.ts` — pure `claimTransition`/`unclaimTransition`/
   `confirmTransition`: the pending→claimed→confirmed state machine, plus
   the claimed→pending undo. All three are idempotent by design (a no-op
@@ -114,12 +115,13 @@ year)`: pure, accrual-aware yearly revenue for the Earnings report page —
   and `requireAdmin()`: the `/admin` route/Server-Action gate, 404ing signed-
   out and non-admin callers alike so the route's existence is never revealed.
 - `admin-data.ts` — `platformTotals()`, `recentActivity(limit)`,
-  `listVendors()`, `getAdminPricing()`: service-role, cross-vendor reads for
-  the admin console (RLS-exempt by design — the console spans every
-  vendor). Vendor identity is resolved to email via `listAllUsers()`, since
-  `payee_name` is null for `kind='pointer'` config rows. `getAdminPricing`
-  is a thin `getPricing` (`@/lib/pricing`) call against a fresh
-  service-role client.
+  `listVendors()`, `getAdminPricing()`, `auditLog(limit)`: service-role,
+  cross-vendor reads for the admin console (RLS-exempt by design — the
+  console spans every vendor). Vendor/admin identity is resolved to email
+  via `listAllUsers()`, since `payee_name` is null for `kind='pointer'`
+  config rows (and `admin_audit.admin_id` is any `auth.users` id, not
+  necessarily an `admins` member). `getAdminPricing` is a thin `getPricing`
+  (`@/lib/pricing`) call against a fresh service-role client.
 - `list-all-users.ts` — `listAllUsers(supabase)`: paginates
   `supabase.auth.admin.listUsers()` (1000/page, capped at 50 pages) so a
   lookup doesn't silently drop vendors past the first 1000 auth users. Ported

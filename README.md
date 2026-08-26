@@ -25,11 +25,11 @@ of 2026-08-19 — see `globals.css`'s own header comment; `src/lib/brand-icon.ts
 ImageResponse-generated favicon/apple-touch-icon carries the same rebrand.
 
 `admin_audit`'s coverage now extends past the `/admin` console: a vendor's
-own refund (`issueRefundAction`) is recorded too, and merqo's own
+own refund (`issueRefundAction`) is recorded too, merqo's own
 `POST /api/merqo/vendor-provision` push-provisioning call is logged under a
-`merqo_system` actor sentinel (see `src/app/api/merqo/vendor-provision/README.md`)
-so it's distinguishable in the admin Activity tab from a vendor-initiated
-action. The table is
+`merqo_system` actor sentinel (see `src/app/api/merqo/vendor-provision/README.md`),
+it's now readable via the `/admin/activity` tab (`@merqo/ui`'s shared
+`AuditLogTable` — see `src/app/admin/activity/README.md`), and the table is
 append-only at the grant level (`service_role` can no longer `UPDATE`/
 `DELETE` it, only `SELECT`/`INSERT`) — see `src/app/admin/README.md` and
 `AGENTS.md`'s data model section for the retention policy. The
@@ -161,7 +161,11 @@ closing the last two real gaps in that coverage. An accrual-aware
 earnings report (`/dashboard/reports/earnings`, free for every vendor) —
 revenue by month and by booking, tagged by event date rather than
 claim/confirm date, CSV export — rounds out the event-cart bookings
-feature set.
+feature set. A calling kit whose own vendor already knows their booking's
+id (they created it here) can read its live status read-only via
+`GET /api/v1/bookings/{booking_id}` — bearer-secret authenticated, same
+trust model as every other `/api/v1/*` route — see
+`src/app/api/v1/bookings/[booking_id]/README.md`.
 
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`

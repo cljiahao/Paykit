@@ -19,6 +19,7 @@ import {
   recentActivity,
   listVendors,
   getAdminPricing,
+  auditLog,
 } from "@/lib/admin-data";
 
 function builder(data: unknown, error: unknown = null) {
@@ -221,6 +222,67 @@ describe("admin-data", () => {
     it("throws when a read errors", async () => {
       fromMock.mockReturnValueOnce(builder(null, { message: "boom" }));
       await expect(listVendors()).rejects.toThrow("listVendors");
+    });
+  });
+
+  describe("auditLog", () => {
+    it("resolves admin email onto each row, most recent first", async () => {
+      mockTables({
+        admin_audit: [
+          {
+            id: "a1",
+            admin_id: "v1",
+            action: "set_vendor_plan",
+            target_id: "v2",
+            detail: { plan: "pro" },
+            created_at: "2026-07-02T00:00:00Z",
+          },
+        ],
+      });
+
+      const rows = await auditLog();
+
+      expect(rows).toEqual([
+        {
+          id: "a1",
+          admin_id: "v1",
+          email: "vendor1@x.com",
+          action: "set_vendor_plan",
+          target_id: "v2",
+          detail: { plan: "pro" },
+          created_at: "2026-07-02T00:00:00Z",
+        },
+      ]);
+    });
+
+    it("resolves a missing auth user to a null email", async () => {
+      mockTables({
+        admin_audit: [
+          {
+            id: "a1",
+            admin_id: "unknown",
+            action: "set_pricing",
+            target_id: null,
+            detail: null,
+            created_at: "2026-07-02T00:00:00Z",
+          },
+        ],
+      });
+
+      const rows = await auditLog();
+
+      expect(rows[0].email).toBeNull();
+    });
+
+    it("returns an empty list when there are no rows", async () => {
+      mockTables({ admin_audit: [] });
+      const rows = await auditLog();
+      expect(rows).toEqual([]);
+    });
+
+    it("throws when the read errors", async () => {
+      fromMock.mockReturnValueOnce(builder(null, { message: "boom" }));
+      await expect(auditLog()).rejects.toThrow("auditLog");
     });
   });
 
