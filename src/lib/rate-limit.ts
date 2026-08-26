@@ -1,5 +1,10 @@
 import type { createServiceClient } from "@/lib/supabase/server";
 
+/** Every `/api/v1/checkout*` route shares this per-route fixed-window limit. */
+export const PER_ROUTE_LIMIT = 60;
+/** Window length (seconds) the limit above applies over. */
+export const PER_ROUTE_WINDOW_SECONDS = 60;
+
 /**
  * Resolve a best-effort client IP from request headers: the first hop of
  * `x-forwarded-for`, else `x-real-ip`, else the literal "unknown". This is NOT

@@ -6,15 +6,29 @@ import { ElevatedCard } from "@/components/elevated-card";
 export function Stat({
   label,
   value,
+  caption,
+  delta,
+  deltaTooltip,
   className,
 }: {
   label: string;
   value: string | number;
+  caption?: string;
+  /** Period-over-period delta, e.g. `pctChange(current, prior)`. Null renders no pill. */
+  delta?: number | null;
+  deltaTooltip?: string;
   className?: string;
 }) {
   return (
     <ElevatedCard className={cn("p-4", className)}>
-      <StatTile label={label} value={String(value)} />
+      <StatTile
+        label={label}
+        value={String(value)}
+        caption={caption}
+        delta={delta}
+        deltaSize="xs"
+        deltaTooltip={deltaTooltip}
+      />
     </ElevatedCard>
   );
 }

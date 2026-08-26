@@ -3,7 +3,12 @@ import { verifyKitAuth } from "@/lib/kit-auth";
 import { checkoutRequestSchema } from "@/lib/api-schemas";
 import { createCheckout } from "@/lib/checkout";
 import { createServiceClient } from "@/lib/supabase/server";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import {
+  clientIp,
+  rateLimit,
+  PER_ROUTE_LIMIT,
+  PER_ROUTE_WINDOW_SECONDS,
+} from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   const auth = await verifyKitAuth(request);
@@ -14,8 +19,8 @@ export async function POST(request: Request) {
   const allowed = await rateLimit(
     await createServiceClient(),
     `checkout:${auth.kitSlug}:${ip}`,
-    60,
-    60,
+    PER_ROUTE_LIMIT,
+    PER_ROUTE_WINDOW_SECONDS,
   );
   if (!allowed)
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });

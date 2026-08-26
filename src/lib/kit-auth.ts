@@ -1,45 +1,72 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { createServiceClient } from "@/lib/supabase/server";
+import { clientIp } from "@/lib/rate-limit";
 
 export function hashApiKey(secret: string): string {
   return createHash("sha256").update(secret, "utf8").digest("hex");
 }
 
+type ServiceClient = Awaited<ReturnType<typeof createServiceClient>>;
+
+/**
+ * Best-effort append of one auth_failures row — never throws, never blocks
+ * the caller. verifyKitAuth's real job is to authenticate a request, not to
+ * guarantee an audit write; a degraded logging path must never turn into a
+ * false-negative auth failure.
+ */
+async function logAuthFailure(
+  supabase: ServiceClient,
+  kitSlug: string | null,
+  reason: string,
+  ip: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("auth_failures")
+    .insert({ kit_slug: kitSlug, reason, ip });
+  if (error) console.error("auth_failures insert failed", error.message);
+}
+
 export async function verifyKitAuth(
   request: Request,
 ): Promise<{ kitSlug: string } | null> {
+  const supabase = await createServiceClient();
+  const ip = clientIp(request.headers);
+
   const header = request.headers.get("authorization") ?? "";
   const prefix = "Bearer ";
   if (!header.startsWith(prefix)) {
-    console.warn(
-      "paykit: verifyKitAuth failed — missing/malformed Authorization header",
-    );
+    const reason = "missing/malformed Authorization header";
+    console.warn(`paykit: verifyKitAuth failed — ${reason}`);
+    await logAuthFailure(supabase, null, reason, ip);
     return null;
   }
 
   const token = header.slice(prefix.length);
   const sep = token.indexOf(":");
   if (sep <= 0) {
-    console.warn("paykit: verifyKitAuth failed — malformed bearer token");
+    const reason = "malformed bearer token";
+    console.warn(`paykit: verifyKitAuth failed — ${reason}`);
+    await logAuthFailure(supabase, null, reason, ip);
     return null;
   }
   const kitSlug = token.slice(0, sep);
   const secret = token.slice(sep + 1);
   if (!kitSlug || !secret) {
-    console.warn("paykit: verifyKitAuth failed — malformed bearer token");
+    const reason = "malformed bearer token";
+    console.warn(`paykit: verifyKitAuth failed — ${reason}`);
+    await logAuthFailure(supabase, null, reason, ip);
     return null;
   }
 
-  const supabase = await createServiceClient();
   const { data, error } = await supabase
     .from("kit_api_keys")
     .select("secret_hash")
     .eq("kit_slug", kitSlug)
     .maybeSingle();
   if (error || !data) {
-    console.warn(
-      `paykit: verifyKitAuth failed — unknown kit_slug "${kitSlug}"`,
-    );
+    const reason = "unknown kit_slug";
+    console.warn(`paykit: verifyKitAuth failed — ${reason} "${kitSlug}"`);
+    await logAuthFailure(supabase, kitSlug, reason, ip);
     return null;
   }
 
@@ -48,9 +75,11 @@ export async function verifyKitAuth(
   const ok =
     provided.length === expected.length && timingSafeEqual(provided, expected);
   if (!ok) {
+    const reason = "secret mismatch";
     console.warn(
-      `paykit: verifyKitAuth failed — secret mismatch for kit_slug "${kitSlug}"`,
+      `paykit: verifyKitAuth failed — ${reason} for kit_slug "${kitSlug}"`,
     );
+    await logAuthFailure(supabase, kitSlug, reason, ip);
     return null;
   }
 

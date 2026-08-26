@@ -40,8 +40,15 @@ counterpart, `payment_audit` (`src/lib/payment-audit.ts`), attributed by
 (`src/lib/rate-limit.ts`, ported from qkit's own DB-backed fixed-window
 limiter, 60 requests/60s per `kit_slug`+IP), closing a real gap where a
 leaked or misbehaving kit secret could hammer any endpoint unbounded, and
-every failed bearer-auth attempt is now logged (`kit-auth.ts`) with the
-`kit_slug` when resolvable, never the secret. Server-side error tracking
+every failed bearer-auth attempt is now logged (`kit-auth.ts`), both to the
+console and durably to `paykit.auth_failures`, with the
+`kit_slug` when resolvable, never the secret — surfaced on the admin
+Overview as a 24h failed-auth count alongside rate-limit pressure. Every
+vendor also gets a per-vendor health triage (`attention`/`stuck`/`quiet`/
+`new`/`healthy`, `src/lib/vendor-health.ts`) shown on `/admin/vendors`,
+gated on refund-rate anomalies and confirmed-transaction recency; the
+Overview also gained a 30-day refund stat and 7d/30d trend deltas on
+revenue/volume. Server-side error tracking
 (`src/instrumentation.ts`, `@sentry/nextjs`) activates only when
 `SENTRY_DSN` is set. `kit_api_keys.last_used_at` now tracks when a
 calling kit's secret was last actually used, and
@@ -89,7 +96,7 @@ are pinned exact at `16.2.12` (not `^16.2.12`) — `16.3.1`'s Turbopack build
 stops emitting `.next/next-server.js.nft.json`, which breaks every Vercel
 deploy; revisit the pin once that's fixed upstream. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.21.1, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.22.1, `package.json`;
 kit-family consistency;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
 wiring as thin adapters over the shared components). The dashboard nav's
