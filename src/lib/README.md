@@ -23,7 +23,8 @@ larger clusters; everything else sits flat here.
   `SUPPORT_CATEGORY_LABELS`.
 - `api-schemas.ts` — Zod contracts for the `/api/v1/*` HTTP surface
   (request bodies, discriminated response shapes) plus the shared
-  `uuidSchema` path-param validator.
+  `uuidSchema` path-param validator, including
+  `bookingStatusResponseSchema` for `GET /api/v1/bookings/{id}`.
 - `tx-state.ts` — pure `claimTransition`/`unclaimTransition`/
   `confirmTransition`: the pending→claimed→confirmed state machine, plus
   the claimed→pending undo. All three are idempotent by design (a no-op
