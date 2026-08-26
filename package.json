@@ -19,7 +19,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@merqo/ui": "github:cljiahao/merqo-ui#dcd353fd58971be5818f09dd0cf866b34d418fc2",
+    "@merqo/ui": "github:cljiahao/merqo-ui#v0.22.1",
     "@sentry/nextjs": "10.71.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.48.0",
