@@ -159,7 +159,11 @@ closing the last two real gaps in that coverage. An accrual-aware
 earnings report (`/dashboard/reports/earnings`, free for every vendor) —
 revenue by month and by booking, tagged by event date rather than
 claim/confirm date, CSV export — rounds out the event-cart bookings
-feature set.
+feature set. A calling kit whose own vendor already knows their booking's
+id (they created it here) can read its live status read-only via
+`GET /api/v1/bookings/{booking_id}` — bearer-secret authenticated, same
+trust model as every other `/api/v1/*` route — see
+`src/app/api/v1/bookings/[booking_id]/README.md`.
 
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`

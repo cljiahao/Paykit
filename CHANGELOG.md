@@ -11,6 +11,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Admin `/admin/activity` tab rendering `admin_audit` via `@merqo/ui`'s
   shared `AuditLogTable` — the reference `recordAudit()` implementation had
   no viewer of its own until now.
+- `GET /api/v1/bookings/{booking_id}` — read-only booking status (deposit/
+  balance amounts, event date, and whether each linked transaction is
+  confirmed), bearer-kit-auth same as the existing vendor-config route.
+  Lets a calling kit (starting with qkit) show a booking's live paykit
+  status inline on its own dashboard, once a vendor pastes their own
+  `paykit_booking_id` into that kit's booth settings.
 - `GET /api/merqo/metrics` — merqo hub's cross-kit health/revenue dashboard
   polls this the same way it already does for qkit and loopkit; paykit had
   no implementation until now, so it silently never appeared there. Maps
