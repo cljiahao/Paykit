@@ -25,9 +25,11 @@ of 2026-08-19 — see `globals.css`'s own header comment; `src/lib/brand-icon.ts
 ImageResponse-generated favicon/apple-touch-icon carries the same rebrand.
 
 `admin_audit`'s coverage now extends past the `/admin` console: a vendor's
-own refund (`issueRefundAction`) is recorded too, it's now readable via the
-`/admin/activity` tab (`@merqo/ui`'s shared `AuditLogTable` — see
-`src/app/admin/activity/README.md`), and the table is
+own refund (`issueRefundAction`) is recorded too, merqo's own
+`POST /api/merqo/vendor-provision` push-provisioning call is logged under a
+`merqo_system` actor sentinel (see `src/app/api/merqo/vendor-provision/README.md`),
+it's now readable via the `/admin/activity` tab (`@merqo/ui`'s shared
+`AuditLogTable` — see `src/app/admin/activity/README.md`), and the table is
 append-only at the grant level (`service_role` can no longer `UPDATE`/
 `DELETE` it, only `SELECT`/`INSERT`) — see `src/app/admin/README.md` and
 `AGENTS.md`'s data model section for the retention policy. The

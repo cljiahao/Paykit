@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `POST /api/merqo/vendor-provision` now logs a `paykit.admin_audit` row via
+  `recordAudit()` before responding (`action: "merqo_vendor_provision"`,
+  `admin_id`/`target_id` both the vendor's own id, `detail.actor:
+"merqo_system"`) — closes a gap where merqo-initiated vendor provisioning
+  went completely unlogged, matching loopkit's existing sentinel convention
+  for a merqo-attributed action with no real signed-in admin behind it.
 - Admin `/admin/activity` tab rendering `admin_audit` via `@merqo/ui`'s
   shared `AuditLogTable` — the reference `recordAudit()` implementation had
   no viewer of its own until now.
