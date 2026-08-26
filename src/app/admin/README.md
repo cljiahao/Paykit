@@ -18,19 +18,7 @@ figure-tile helper used by the overview and vendors screens.
   `dashboard/transactions/actions.ts`) can append an `admin_audit` row too
   — see `admin_audit`'s own retention/immutability notes in the repo-root
   `AGENTS.md`.
-- `activity/` — the Activity tab: `page.tsx` (`AdminActivityPage`) reads the
-  100 most recent `admin_audit` rows via `auditLog()` (`admin-data.ts`) and
-  maps each to `@merqo/ui`'s `AuditLogEntry` shape (actor resolved to email
-  the same way `page.tsx`'s own recent-activity feed resolves a vendor,
-  falling back to the raw `admin_id`; `detail`'s jsonb rendered as a flat
-  `key: value` list). `activity-section.tsx` (`ActivitySection`, client
-  component — mirrors why `pricing-section.tsx` is one) renders those
-  entries with `AuditLogTable`, mapping the real action strings written by
-  `recordAudit()` call sites (`set_vendor_plan`, `set_pricing`,
-  `record_refund`, `create_booking`, `create_balance_checkout`,
-  `cancel_booking`, `reschedule_booking`) to human-readable labels —
-  `formatAction` is a function prop, so it can't cross the server/client
-  boundary via `page.tsx` directly.
+- `activity/`
 - `admin-nav.tsx` — `AdminNav` client component: the Overview/Vendors/Activity
   tab bar, highlighting the active section by path.
 - `layout.tsx` — `AdminLayout`: gates every `/admin` route with
