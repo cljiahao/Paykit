@@ -1,10 +1,34 @@
 import Link from "next/link";
+import { DataTable, type DataTableColumn } from "@merqo/ui";
 import { getVendorSession } from "@/lib/vendor-session";
 import { listTransactions } from "@/lib/transactions";
 import { listBookings } from "@/lib/bookings";
-import { buildEarningsReport } from "@/lib/earnings-report";
+import {
+  buildEarningsReport,
+  type EarningsMonth,
+  type EarningsLine,
+} from "@/lib/earnings-report";
 import { formatCents } from "@/lib/utils";
 import { DownloadCsvButton } from "./download-csv-button";
+
+const monthColumns: DataTableColumn<EarningsMonth>[] = [
+  { header: "Month", cell: (m) => m.month },
+  {
+    header: "Revenue",
+    cell: (m) => formatCents(m.revenue_cents),
+    className: "text-right",
+  },
+];
+
+const lineColumns: DataTableColumn<EarningsLine>[] = [
+  { header: "Date", cell: (line) => line.event_date },
+  { header: "Customer", cell: (line) => line.label },
+  {
+    header: "Revenue",
+    cell: (line) => formatCents(line.revenue_cents),
+    className: "text-right",
+  },
+];
 
 function parseYear(raw: string | string[] | undefined): number {
   const currentYear = new Date().getUTCFullYear();
@@ -71,48 +95,20 @@ export default async function EarningsReportPage({
       </div>
 
       <div className="rounded-xl border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <th className="p-3">Month</th>
-              <th className="p-3 text-right">Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            {report.months.map((m) => (
-              <tr key={m.month} className="border-b last:border-0">
-                <td className="p-3">{m.month}</td>
-                <td className="p-3 text-right">
-                  {formatCents(m.revenue_cents)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <DataTable
+          rows={report.months}
+          columns={monthColumns}
+          getRowKey={(m) => m.month}
+        />
       </div>
 
       {report.lines.length > 0 && (
         <div className="rounded-xl border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <th className="p-3">Date</th>
-                <th className="p-3">Customer</th>
-                <th className="p-3 text-right">Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {report.lines.map((line) => (
-                <tr key={line.key} className="border-b last:border-0">
-                  <td className="p-3">{line.event_date}</td>
-                  <td className="p-3">{line.label}</td>
-                  <td className="p-3 text-right">
-                    {formatCents(line.revenue_cents)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DataTable
+            rows={report.lines}
+            columns={lineColumns}
+            getRowKey={(line) => line.key}
+          />
         </div>
       )}
     </div>

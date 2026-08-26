@@ -9,9 +9,10 @@ status, plan, transaction count, and a Free/Pro plan toggle.
 
 - `page.tsx` — `AdminVendorsPage`: fetches `listVendors()` (pre-sorted
   most-urgent status first) and renders the vendor table
-  (`ElevatedCard`-wrapped) — vendor email with `payee_name`/`label` as a
-  muted subline, a `VendorStatusBadge` status column, plan badge,
-  transaction count, joined date, and a `VendorPlanToggle` action column.
+  (`ElevatedCard`-wrapped, via `@merqo/ui`'s shared `DataTable`) — vendor
+  email with `payee_name`/`label` as a muted subline, a `VendorStatusBadge`
+  status column, plan badge, transaction count, joined date, and a
+  `VendorPlanToggle` action column.
 - `vendor-status.tsx` — `VendorStatusBadge`: wraps `@merqo/ui`'s shared
   `StatusBadge` with a `Record<VendorStatus, StatusBadgeConfig>` built from
   paykit's own theme-aware brand tokens (`destructive`/`primary`/`muted`/
