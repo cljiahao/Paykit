@@ -14,4 +14,19 @@ describe("Stat", () => {
     render(<Stat label="Transactions" value={128} />);
     expect(screen.getByText("128")).toBeInTheDocument();
   });
+
+  it("renders a caption when given one", () => {
+    render(<Stat label="Refunds · 30d" value={3} caption="$99.00" />);
+    expect(screen.getByText("$99.00")).toBeInTheDocument();
+  });
+
+  it("renders an up delta pill", () => {
+    render(<Stat label="Confirmed · 7d" value={12} delta={20} />);
+    expect(screen.getByText("20%")).toBeInTheDocument();
+  });
+
+  it("renders no delta pill when delta is null", () => {
+    render(<Stat label="Confirmed · 7d" value={12} delta={null} />);
+    expect(screen.queryByText("%", { exact: false })).not.toBeInTheDocument();
+  });
 });

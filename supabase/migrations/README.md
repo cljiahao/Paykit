@@ -22,6 +22,7 @@ tables, RLS policies, RPCs, and grants, applied in order.
 - `0012_paykit_rate_limit.sql` — `rate_limits` + `check_rate_limit()`, a DB-backed fixed-window limiter ported from qkit's own `0017_rate_limit.sql`/`0036_rate_limit_cleanup.sql` (index-backed probabilistic cleanup, not an unindexed `DELETE` on every call). `EXECUTE` granted to `service_role` only — paykit's `/api/v1/*` surface is server-to-server, unlike qkit's client-callable RPC.
 
 - `0013_paykit_kit_key_last_used.sql` — adds `kit_api_keys.last_used_at` (nullable, touched on every successful `verifyKitAuth` call) — see `docs/SECRET_ROTATION.md` for what it's for.
+- `0014_paykit_auth_failures.sql` — `auth_failures`, logging every failed `verifyKitAuth` call (`kit_slug` nullable — an unknown/malformed attempt has none — `reason`, `ip`, `created_at`). Same immutable-from-creation shape as `payment_audit`/`admin_audit`: no RLS policies (service-role only), and only `select`/`insert` ever granted (no `update`/`delete` to revoke later, unlike `0009`/`0011`'s after-the-fact tightening). Backs the admin Overview's Security stat block (`securityStats()` in `src/lib/admin-data.ts`).
 
 ## Parent
 

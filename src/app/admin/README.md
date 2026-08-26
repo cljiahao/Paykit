@@ -25,16 +25,21 @@ figure-tile helper used by the overview and vendors screens.
   `requireAdmin()`, renders the header (wordmark, Admin badge, sign-out) and
   `AdminNav`.
 - `page.tsx` — `AdminOverviewPage`: platform-wide stat tiles (vendors by
-  plan, transactions by status, confirmed volume), a recent cross-vendor
-  activity feed (`ElevatedCard`-wrapped), and a Pricing section
-  (`PricingSection`) for editing the live Pro price.
+  plan, transactions by status, confirmed volume with 7d/30d deltas, and a
+  trailing-30d refund count/volume tile), a Security stat block (failed
+  bearer-auth attempts and rate-limited kits, both trailing 24h — see
+  `securityStats()` in `@/lib/admin-data`), a recent cross-vendor activity
+  feed (`ElevatedCard`-wrapped), and a Pricing section (`PricingSection`)
+  for editing the live Pro price.
 - `pricing-section.tsx` — `PricingSection`: client component wrapping
   `@merqo/ui`'s `PricingForm` with paykit's single `monthly_cents` field,
   wiring `setPricing` (`onSave`) and the `sonner` toast convention every
   other paykit form already uses.
 - `stat.tsx` — `Stat`: a small labeled-value tile (`ElevatedCard`-based,
-  wrapping `@merqo/ui`'s shared `StatTile` for the label/value content)
-  used on the admin overview page.
+  wrapping `@merqo/ui`'s shared `StatTile`) used on the admin overview page
+  — label/value plus optional `caption` and a period-over-period `delta`/
+  `deltaTooltip` pill (`deltaSize="xs"`, matching loopkit's own `StatTile`
+  wrapper convention).
 - `vendors/`
 
 ## Connectivity

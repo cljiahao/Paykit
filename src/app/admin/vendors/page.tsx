@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { ElevatedCard } from "@/components/elevated-card";
 import { VendorPlanToggle } from "@/app/admin/vendors/vendor-plan-toggle";
+import { VendorStatusBadge } from "@/app/admin/vendors/vendor-status";
 
 export const revalidate = 0;
 
@@ -27,7 +28,8 @@ export default async function AdminVendorsPage() {
         </p>
         <h1 className="text-3xl font-bold tracking-tight">Vendors</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every vendor with a payment config, across every kit.
+          Every vendor with a payment config, across every kit — most urgent
+          first.
         </p>
       </div>
 
@@ -41,6 +43,7 @@ export default async function AdminVendorsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Vendor</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Plan</TableHead>
                 <TableHead className="text-right">Transactions</TableHead>
                 <TableHead>Joined</TableHead>
@@ -57,6 +60,9 @@ export default async function AdminVendorsPage() {
                         {v.payee_name ?? v.label}
                       </p>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <VendorStatusBadge status={v.status} />
                   </TableCell>
                   <TableCell>
                     {v.plan === "pro" ? (

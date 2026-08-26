@@ -4,7 +4,12 @@ import { verifyKitAuth } from "@/lib/kit-auth";
 import { claimTransition, type TxStatus } from "@/lib/tx-state";
 import { toStatusResponse, uuidSchema } from "@/lib/api-schemas";
 import { recordPaymentAudit } from "@/lib/payment-audit";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import {
+  clientIp,
+  rateLimit,
+  PER_ROUTE_LIMIT,
+  PER_ROUTE_WINDOW_SECONDS,
+} from "@/lib/rate-limit";
 
 export async function POST(
   request: Request,
@@ -19,8 +24,8 @@ export async function POST(
   const allowed = await rateLimit(
     supabase,
     `claim:${auth.kitSlug}:${ip}`,
-    60,
-    60,
+    PER_ROUTE_LIMIT,
+    PER_ROUTE_WINDOW_SECONDS,
   );
   if (!allowed)
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });

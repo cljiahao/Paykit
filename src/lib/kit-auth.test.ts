@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { hashApiKey } from "./kit-auth";
 
-const { maybeSingleMock, updateEqMock, createServiceClientMock } = vi.hoisted(
-  () => ({
+const { maybeSingleMock, updateEqMock, insertMock, createServiceClientMock } =
+  vi.hoisted(() => ({
     maybeSingleMock: vi.fn(),
     updateEqMock: vi.fn(),
+    insertMock: vi.fn(),
     createServiceClientMock: vi.fn(),
-  }),
-);
+  }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createServiceClient: createServiceClientMock,
@@ -16,18 +16,21 @@ vi.mock("@/lib/supabase/server", () => ({
 beforeEach(async () => {
   maybeSingleMock.mockReset();
   updateEqMock.mockReset().mockResolvedValue({ error: null });
+  insertMock.mockReset().mockResolvedValue({ error: null });
   createServiceClientMock.mockReset().mockResolvedValue({
     from: () => ({
       select: () => ({ eq: () => ({ maybeSingle: maybeSingleMock }) }),
       update: () => ({ eq: updateEqMock }),
+      insert: insertMock,
     }),
   });
 });
 
-function req(authorization?: string) {
-  return new Request("http://localhost/api/v1/checkout", {
-    headers: authorization ? { authorization } : {},
-  });
+function req(authorization?: string, ip?: string) {
+  const headers: Record<string, string> = {};
+  if (authorization) headers.authorization = authorization;
+  if (ip) headers["x-forwarded-for"] = ip;
+  return new Request("http://localhost/api/v1/checkout", { headers });
 }
 
 describe("hashApiKey", () => {
@@ -164,6 +167,69 @@ describe("verifyKitAuth", () => {
       const { verifyKitAuth } = await import("./kit-auth");
       await verifyKitAuth(req("Bearer qkit:s3cret"));
       expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("auth_failures persistence", () => {
+    it("inserts a null-kit_slug row with the ip for a missing Authorization header", async () => {
+      const { verifyKitAuth } = await import("./kit-auth");
+      await verifyKitAuth(req(undefined, "203.0.113.5"));
+      expect(insertMock).toHaveBeenCalledWith({
+        kit_slug: null,
+        reason: "missing/malformed Authorization header",
+        ip: "203.0.113.5",
+      });
+    });
+
+    it("inserts a null-kit_slug row for a malformed bearer token", async () => {
+      const { verifyKitAuth } = await import("./kit-auth");
+      await verifyKitAuth(req("Bearer justasecret"));
+      expect(insertMock).toHaveBeenCalledWith({
+        kit_slug: null,
+        reason: "malformed bearer token",
+        ip: "unknown",
+      });
+    });
+
+    it("inserts the kit_slug for an unknown kit_slug", async () => {
+      maybeSingleMock.mockResolvedValue({ data: null, error: null });
+      const { verifyKitAuth } = await import("./kit-auth");
+      await verifyKitAuth(req("Bearer ghostkit:s3cret"));
+      expect(insertMock).toHaveBeenCalledWith({
+        kit_slug: "ghostkit",
+        reason: "unknown kit_slug",
+        ip: "unknown",
+      });
+    });
+
+    it("inserts the kit_slug for a secret mismatch", async () => {
+      maybeSingleMock.mockResolvedValue({
+        data: { secret_hash: hashApiKey("different-secret") },
+        error: null,
+      });
+      const { verifyKitAuth } = await import("./kit-auth");
+      await verifyKitAuth(req("Bearer qkit:s3cret"));
+      expect(insertMock).toHaveBeenCalledWith({
+        kit_slug: "qkit",
+        reason: "secret mismatch",
+        ip: "unknown",
+      });
+    });
+
+    it("does not insert anything on a successful auth", async () => {
+      maybeSingleMock.mockResolvedValue({
+        data: { secret_hash: hashApiKey("s3cret") },
+        error: null,
+      });
+      const { verifyKitAuth } = await import("./kit-auth");
+      await verifyKitAuth(req("Bearer qkit:s3cret"));
+      expect(insertMock).not.toHaveBeenCalled();
+    });
+
+    it("still returns null (never throws) when the auth_failures insert itself fails", async () => {
+      insertMock.mockResolvedValue({ error: { message: "connection reset" } });
+      const { verifyKitAuth } = await import("./kit-auth");
+      expect(await verifyKitAuth(req())).toBeNull();
     });
   });
 });

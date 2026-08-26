@@ -10,7 +10,10 @@ larger clusters; everything else sits flat here.
 
 - `types.ts` — hand-maintained DB types (`Transaction`, `VendorPaymentConfig`,
   `TxStatus`, `VendorPlan`, `PaymentConfigKind`, `Booking`, `BookingStatus`,
-  `SocialLinks`, …), kept in sync with `supabase/migrations/` by hand.
+  `SocialLinks`, `AuthFailure`, …), kept in sync with `supabase/migrations/`
+  by hand. Also carries a hand-written `rate_limits` table type (the table
+  existed since `0012` but had no generated-type entry until now, needed to
+  query it from `admin-data.ts`'s `securityStats()`).
 - `schemas.ts` — Zod input schemas for every form/action boundary:
   `vendorPaymentConfigInputSchema` (discriminated union over `kind`,
   paynow/pointer), `issueRefundInputSchema`, `createBookingInputSchema`
@@ -91,14 +94,28 @@ year)`: pure, accrual-aware yearly revenue for the Earnings report page —
   Every failure mode (missing/malformed header, unknown `kit_slug`, secret
   mismatch) logs a warning with the `kit_slug` when resolvable — never the
   secret itself, real risk was zero visibility into a probing/brute-force
-  pattern. A successful auth also touches `kit_api_keys.last_used_at`
-  (best-effort, never blocking) — see `docs/SECRET_ROTATION.md` for how
-  that's used.
+  pattern — and now also appends a best-effort `auth_failures` row (same
+  reason string, plus the caller's IP via `rate-limit.ts`'s `clientIp`) so
+  that history is durable, not just console output. A successful auth also
+  touches `kit_api_keys.last_used_at` (best-effort, never blocking) — see
+  `docs/SECRET_ROTATION.md` for how that's used.
 - `rate-limit.ts` — `clientIp`/`rateLimit`: DB-backed fixed-window limiter,
-  ported from qkit's own `src/lib/rate-limit.ts`. Every `/api/v1/*` route
-  calls it right after auth, keyed by `${action}:${kitSlug}:${ip}` — fails
-  open on limiter errors (an infra hiccup never blocks a real calling
-  kit).
+  ported from qkit's own `src/lib/rate-limit.ts`. Every `/api/v1/checkout*`
+  route calls it right after auth, keyed by `${action}:${kitSlug}:${ip}` —
+  fails open on limiter errors (an infra hiccup never blocks a real calling
+  kit). `PER_ROUTE_LIMIT`/`PER_ROUTE_WINDOW_SECONDS` (60 req/60s) are the
+  one shared constant every route call site passes, and what
+  `admin-data.ts`'s `securityStats()` checks `rate_limits.count` against.
+- `vendor-health.ts` — `vendorStatus`/`buildVendorHealth`/`statusRank`: pure
+  per-vendor triage classification (`attention`/`stuck`/`quiet`/`new`/
+  `healthy`, first-match-wins, most-urgent first), adapted from qkit's own
+  `admin-vendor-health.ts` status vocabulary/rank convention to paykit's own
+  signals — a refund-rate anomaly in the trailing 30 days (≥3 refunds, or a
+  refund/confirmed ratio over 20% once there's a ≥5-transaction sample),
+  whether a payment config has ever produced a confirmed transaction, and
+  confirmed-transaction recency. No DB access, no clock reads — takes
+  rolled-up `VendorLite`/`TransactionLite`/`RefundLite` rows plus `nowMs`.
+  Backs the admin Vendors table's status column and sort order.
 - `tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: upserts
   `vendor_prefs.tour_seen_at = now()`. A plain (non-`"use server"`) module
   so `src/app/dashboard/page.tsx` can call it directly during its own
@@ -115,13 +132,24 @@ year)`: pure, accrual-aware yearly revenue for the Earnings report page —
   and `requireAdmin()`: the `/admin` route/Server-Action gate, 404ing signed-
   out and non-admin callers alike so the route's existence is never revealed.
 - `admin-data.ts` — `platformTotals()`, `recentActivity(limit)`,
-  `listVendors()`, `getAdminPricing()`, `auditLog(limit)`: service-role,
-  cross-vendor reads for the admin console (RLS-exempt by design — the
-  console spans every vendor). Vendor/admin identity is resolved to email
-  via `listAllUsers()`, since `payee_name` is null for `kind='pointer'`
-  config rows (and `admin_audit.admin_id` is any `auth.users` id, not
-  necessarily an `admins` member). `getAdminPricing` is a thin `getPricing`
-  (`@/lib/pricing`) call against a fresh service-role client.
+  `listVendors()`, `getAdminPricing()`, `auditLog(limit)`, `securityStats()`:
+  service-role, cross-vendor reads for the admin console (RLS-exempt by
+  design — the console spans every vendor). Vendor/admin identity is
+  resolved to email via `listAllUsers()`, since `payee_name` is null for
+  `kind='pointer'` config rows (and `admin_audit.admin_id` is any
+  `auth.users` id, not necessarily an `admins` member). `getAdminPricing` is
+  a thin `getPricing` (`@/lib/pricing`) call against a fresh service-role
+  client. `platformTotals` now also reads `refunds` for trailing-30-day
+  refund count/volume, and reports windowed confirmed-transaction/-volume
+  figures (7d and 30d, each with its prior-period counterpart for a
+  `pctChange` delta). `listVendors` now rolls `vendor-health.ts`'s
+  `buildVendorHealth` over `vendor_payment_config`/`transactions`/`refunds`
+  to attach each row's triage `status`, sorted most-urgent first
+  (`statusRank`), ties keeping the newest signup on top.
+  `securityStats()` reads `auth_failures` (count in the trailing 24h) and
+  `rate_limits` (distinct `kit_slug`s — parsed from the `key` column's
+  `${route}:${kitSlug}:${ip}` shape — with a window at or above
+  `rate-limit.ts`'s `PER_ROUTE_LIMIT` in the trailing 24h).
 - `list-all-users.ts` — `listAllUsers(supabase)`: paginates
   `supabase.auth.admin.listUsers()` (1000/page, capped at 50 pages) so a
   lookup doesn't silently drop vendors past the first 1000 auth users. Ported
@@ -195,9 +223,13 @@ configs)`: pure two-step lookup (email → auth user → that user's
   imports aren't available).
 - `utils.ts` — `cn()` (clsx + tailwind-merge), shared form label/error
   Tailwind class constants, `formatCents()` (integer cents -> SGD currency
-  string), and `formatDate()` (a `date`-column "YYYY-MM-DD" string ->
-  display date, parsed/formatted with an explicit UTC anchor so it never
-  shifts by a day depending on the server's runtime timezone).
+  string), `formatDate()` (a `date`-column "YYYY-MM-DD" string -> display
+  date, parsed/formatted with an explicit UTC anchor so it never shifts by
+  a day depending on the server's runtime timezone), `MS_PER_HOUR`/
+  `MS_PER_DAY` (rolling-window stats cutoffs, ported from qkit's own
+  `utils.ts`), and `pctChange(current, prior)` (period-over-period percent
+  change, null when there's no prior period — backs the Overview page's new
+  `StatTile` deltas).
 
 ## Connectivity
 

@@ -11,6 +11,16 @@ vi.mock("@/lib/admin-data", () => ({
     transactions: 120,
     confirmed_transactions: 90,
     confirmed_volume_cents: 456700,
+    confirmed_7d: 12,
+    confirmed_prev_7d: 8,
+    confirmed_volume_cents_30d: 250000,
+    confirmed_volume_cents_prev_30d: 200000,
+    refund_count_30d: 3,
+    refund_volume_cents_30d: 9900,
+  })),
+  securityStats: vi.fn(async () => ({
+    failed_auth_24h: 5,
+    rate_limited_kits_24h: 1,
   })),
   recentActivity: vi.fn(async () => [
     {
@@ -57,10 +67,27 @@ describe("AdminOverviewPage", () => {
     expect(screen.getByText("Overview")).toBeInTheDocument();
     expect(screen.getByText("4")).toBeInTheDocument();
     expect(screen.getByText("120")).toBeInTheDocument();
-    expect(screen.getByText("90")).toBeInTheDocument();
     expect(screen.getByText("kopitiam@example.com")).toBeInTheDocument();
     expect(screen.getByText("bakery@example.com")).toBeInTheDocument();
     expect(screen.getByText("qkit")).toBeInTheDocument();
+  });
+
+  it("renders windowed confirmed/volume deltas and the refund stat", async () => {
+    render(await AdminOverviewPage());
+    expect(screen.getByText("Confirmed · 7d")).toBeInTheDocument();
+    expect(screen.getByText("12")).toBeInTheDocument();
+    expect(screen.getByText("Confirmed volume · 30d")).toBeInTheDocument();
+    expect(screen.getByText("Refunds · 30d")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("$99.00")).toBeInTheDocument();
+  });
+
+  it("renders the Security stat block", async () => {
+    render(await AdminOverviewPage());
+    expect(screen.getByText("Security")).toBeInTheDocument();
+    expect(screen.getByText("Failed auth · 24h")).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("Rate-limited kits · 24h")).toBeInTheDocument();
   });
 
   it("renders the Pricing section", async () => {

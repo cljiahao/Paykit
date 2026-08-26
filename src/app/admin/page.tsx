@@ -3,11 +3,12 @@ import {
   platformTotals,
   recentActivity,
   getAdminPricing,
+  securityStats,
 } from "@/lib/admin-data";
 import { Stat } from "@/app/admin/stat";
 import { Badge } from "@/components/ui/badge";
 import { ElevatedCard } from "@/components/elevated-card";
-import { formatCents } from "@/lib/utils";
+import { formatCents, pctChange } from "@/lib/utils";
 import { PricingSection } from "./pricing-section";
 
 export const revalidate = 0;
@@ -15,10 +16,11 @@ export const revalidate = 0;
 export default async function AdminOverviewPage() {
   await requireAdmin();
 
-  const [totals, activity, pricing] = await Promise.all([
+  const [totals, activity, pricing, security] = await Promise.all([
     platformTotals(),
     recentActivity(15),
     getAdminPricing(),
+    securityStats(),
   ]);
 
   return (
@@ -35,12 +37,40 @@ export default async function AdminOverviewPage() {
         <Stat label="Free plan" value={totals.free_vendors} />
         <Stat label="Pro plan" value={totals.pro_vendors} />
         <Stat label="Transactions" value={totals.transactions} />
-        <Stat label="Confirmed" value={totals.confirmed_transactions} />
         <Stat
-          label="Confirmed volume"
-          value={formatCents(totals.confirmed_volume_cents)}
+          label="Confirmed · 7d"
+          value={totals.confirmed_7d}
+          delta={pctChange(totals.confirmed_7d, totals.confirmed_prev_7d)}
+          deltaTooltip="vs. the prior 7 days"
+        />
+        <Stat
+          label="Confirmed volume · 30d"
+          value={formatCents(totals.confirmed_volume_cents_30d)}
+          delta={pctChange(
+            totals.confirmed_volume_cents_30d,
+            totals.confirmed_volume_cents_prev_30d,
+          )}
+          deltaTooltip="vs. the prior 30 days"
+        />
+        <Stat
+          label="Refunds · 30d"
+          value={totals.refund_count_30d}
+          caption={formatCents(totals.refund_volume_cents_30d)}
         />
       </div>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          Security
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <Stat label="Failed auth · 24h" value={security.failed_auth_24h} />
+          <Stat
+            label="Rate-limited kits · 24h"
+            value={security.rate_limited_kits_24h}
+          />
+        </div>
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
