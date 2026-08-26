@@ -1,7 +1,12 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { listAllUsers } from "@/lib/list-all-users";
 import { getPricing, type PricingConfig } from "@/lib/pricing";
-import type { PaymentConfigKind, TxStatus, VendorPlan } from "@/lib/types";
+import type {
+  Json,
+  PaymentConfigKind,
+  TxStatus,
+  VendorPlan,
+} from "@/lib/types";
 
 type ServiceClient = Awaited<ReturnType<typeof createServiceClient>>;
 
@@ -21,6 +26,16 @@ export type ActivityRow = {
   kit_slug: string;
   amount_cents: number;
   status: TxStatus;
+  created_at: string;
+};
+
+export type AuditLogRow = {
+  id: string;
+  admin_id: string;
+  email: string | null;
+  action: string;
+  target_id: string | null;
+  detail: Json;
   created_at: string;
 };
 
@@ -135,6 +150,33 @@ export async function listVendors(): Promise<VendorRow[]> {
       created_at: v.created_at,
     }))
     .sort((a, b) => (a.email ?? "").localeCompare(b.email ?? ""));
+}
+
+/**
+ * Most recent `admin_audit` rows across every admin- and vendor-initiated
+ * action, identity resolved to email the same way `recentActivity` resolves
+ * a vendor — `admin_id` is any `auth.users` id (see `recordAudit`'s own
+ * comment), not necessarily an `admins` member.
+ */
+export async function auditLog(limit = 100): Promise<AuditLogRow[]> {
+  const supabase = await createServiceClient();
+  const { data, error } = await supabase
+    .from("admin_audit")
+    .select("id, admin_id, action, target_id, detail, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`auditLog: ${error.message}`);
+
+  const emails = await emailByUserId(supabase);
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    admin_id: row.admin_id,
+    email: emails.get(row.admin_id) ?? null,
+    action: row.action,
+    target_id: row.target_id,
+    detail: row.detail,
+    created_at: row.created_at,
+  }));
 }
 
 /** The single pricing row, read with the service-role client (admin console). */

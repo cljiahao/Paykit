@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const TABS = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/vendors", label: "Vendors" },
+  { href: "/admin/activity", label: "Activity" },
 ];
 
 /** Admin section tabs. Overview matches exactly; others match by prefix. */
