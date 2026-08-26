@@ -40,8 +40,15 @@ counterpart, `payment_audit` (`src/lib/payment-audit.ts`), attributed by
 (`src/lib/rate-limit.ts`, ported from qkit's own DB-backed fixed-window
 limiter, 60 requests/60s per `kit_slug`+IP), closing a real gap where a
 leaked or misbehaving kit secret could hammer any endpoint unbounded, and
-every failed bearer-auth attempt is now logged (`kit-auth.ts`) with the
-`kit_slug` when resolvable, never the secret. Server-side error tracking
+every failed bearer-auth attempt is now logged (`kit-auth.ts`), both to the
+console and durably to `paykit.auth_failures`, with the
+`kit_slug` when resolvable, never the secret — surfaced on the admin
+Overview as a 24h failed-auth count alongside rate-limit pressure. Every
+vendor also gets a per-vendor health triage (`attention`/`stuck`/`quiet`/
+`new`/`healthy`, `src/lib/vendor-health.ts`) shown on `/admin/vendors`,
+gated on refund-rate anomalies and confirmed-transaction recency; the
+Overview also gained a 30-day refund stat and 7d/30d trend deltas on
+revenue/volume. Server-side error tracking
 (`src/instrumentation.ts`, `@sentry/nextjs`) activates only when
 `SENTRY_DSN` is set. `kit_api_keys.last_used_at` now tracks when a
 calling kit's secret was last actually used, and
