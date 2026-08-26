@@ -141,6 +141,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Onboarding tour copy: no more em dashes, and two new steps
   (Transactions, Stats) covering ground the tour skipped before. The
   first step now shows an example transaction preview.
+- Bumped `@merqo/ui` to v0.21.0: `TransactionStatusBadge` now renders
+  through the new shared `StatusBadge` (dot + uppercase bordered-pill,
+  extracted from qkit's own `OrderStatusBadge`) instead of wrapping
+  shadcn's `Badge` with a variant + one-off className. Every `TxStatus`
+  value now gets an explicit `{label, className}` entry in the
+  `text-{token} border-{token}/35 bg-{token}/12` pattern — `claimed` keeps
+  its brand mint accent, `pending` uses the neutral `secondary` token,
+  `confirmed` uses `primary`. Labels are unchanged (raw lowercase status
+  strings).
 - Bumped `@merqo/ui` to v0.20.0: the admin overview's `Stat` tile now wraps
   the new shared `StatTile` content instead of a fully local
   implementation — no visible change, paykit's own `ElevatedCard` shell is
