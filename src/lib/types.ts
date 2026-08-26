@@ -122,6 +122,14 @@ export type PaymentAudit = {
   created_at: string;
 };
 
+export type AuthFailure = {
+  id: string;
+  kit_slug: string | null;
+  reason: string;
+  ip: string | null;
+  created_at: string;
+};
+
 export interface Database {
   paykit: {
     Tables: {
@@ -320,6 +328,30 @@ export interface Database {
         Update: {
           detail?: Json;
         };
+        Relationships: [];
+      };
+      auth_failures: {
+        Row: AuthFailure;
+        Insert: {
+          id?: string;
+          kit_slug?: string | null;
+          reason: string;
+          ip?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          reason?: string;
+        };
+        Relationships: [];
+      };
+      rate_limits: {
+        Row: { key: string; window_start: string; count: number };
+        Insert: {
+          key: string;
+          window_start: string;
+          count?: number;
+        };
+        Update: { count?: number };
         Relationships: [];
       };
     };
