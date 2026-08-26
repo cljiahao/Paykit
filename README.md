@@ -69,7 +69,8 @@ own steps spotlight a nav link), `/dashboard`'s own server render
 part of the request, as defense-in-depth. The tour's first step now shows
 an example transaction preview, and its copy no longer uses em dashes; the
 preview's status pill renders the real `TransactionStatusBadge` component
-(`src/app/dashboard/transactions/transaction-status-badge.tsx`) instead of
+(`src/app/dashboard/transactions/transaction-status-badge.tsx`, now built
+on `@merqo/ui`'s shared `StatusBadge` dot+pill shape) instead of
 a hand-copied color, so it can't drift from what the real badge looks like;
 see `../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
 (workspace root, cross-kit spec). The tour now also covers Bookings and
