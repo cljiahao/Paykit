@@ -26,6 +26,7 @@ being silently dropped.
   renders `buildEarningsReport()`'s (`@/lib/earnings-report`) result — a
   total-revenue tile, a 12-month table, a per-booking-or-checkout line
   table (hidden when empty), prev/next-year links, and `DownloadCsvButton`.
+  Both tables render via `@merqo/ui`'s shared `DataTable`.
 - `download-csv-button.tsx` — `DownloadCsvButton({report})`, client:
   builds the CSV via `@/lib/earnings-csv`'s `earningsReportToCsv()`
   entirely client-side (the report data is already on the page, non-secret,

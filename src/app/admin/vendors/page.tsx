@@ -1,18 +1,52 @@
+import { DataTable, type DataTableColumn } from "@merqo/ui";
 import { requireAdmin } from "@/lib/admin";
-import { listVendors } from "@/lib/admin-data";
+import { listVendors, type VendorRow } from "@/lib/admin-data";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ElevatedCard } from "@/components/elevated-card";
 import { VendorPlanToggle } from "@/app/admin/vendors/vendor-plan-toggle";
 
 export const revalidate = 0;
+
+const columns: DataTableColumn<VendorRow>[] = [
+  {
+    header: "Vendor",
+    cell: (v) => (
+      <>
+        <p className="font-medium">{v.email ?? "—"}</p>
+        {(v.payee_name || v.label) && (
+          <p className="text-xs text-muted-foreground">
+            {v.payee_name ?? v.label}
+          </p>
+        )}
+      </>
+    ),
+  },
+  {
+    header: "Plan",
+    cell: (v) =>
+      v.plan === "pro" ? (
+        <Badge variant="default">Pro</Badge>
+      ) : (
+        <Badge variant="outline">Free</Badge>
+      ),
+  },
+  {
+    header: "Transactions",
+    cell: (v) => v.transaction_count,
+    className: "text-right tabular-nums",
+  },
+  {
+    header: "Joined",
+    cell: (v) => new Date(v.created_at).toLocaleDateString("en-SG"),
+  },
+  {
+    header: "Action",
+    cell: (v) => (
+      <VendorPlanToggle vendorId={v.vendor_id} email={v.email} plan={v.plan} />
+    ),
+    className: "text-right",
+  },
+];
 
 export default async function AdminVendorsPage() {
   await requireAdmin();
@@ -37,51 +71,11 @@ export default async function AdminVendorsPage() {
         </p>
       ) : (
         <ElevatedCard className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Vendor</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead className="text-right">Transactions</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {vendors.map((v) => (
-                <TableRow key={v.vendor_id}>
-                  <TableCell>
-                    <p className="font-medium">{v.email ?? "—"}</p>
-                    {(v.payee_name || v.label) && (
-                      <p className="text-xs text-muted-foreground">
-                        {v.payee_name ?? v.label}
-                      </p>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {v.plan === "pro" ? (
-                      <Badge variant="default">Pro</Badge>
-                    ) : (
-                      <Badge variant="outline">Free</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {v.transaction_count}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(v.created_at).toLocaleDateString("en-SG")}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <VendorPlanToggle
-                      vendorId={v.vendor_id}
-                      email={v.email}
-                      plan={v.plan}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            rows={vendors}
+            columns={columns}
+            getRowKey={(v) => v.vendor_id}
+          />
         </ElevatedCard>
       )}
     </main>
