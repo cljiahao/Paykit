@@ -6,6 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped `@merqo/ui` to v0.22.0 and migrated the earnings report's
+  monthly/per-booking tables and the admin vendors table onto its new
+  shared `DataTable` component, replacing a hand-rolled `<table>` and the
+  shadcn `Table` primitives respectively — same columns, cell content, and
+  empty-state copy, rendering-mechanism swap only.
+
 ### Added
 
 - Per-vendor triage status on the admin Vendors table (`attention`/`stuck`/
