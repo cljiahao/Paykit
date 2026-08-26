@@ -20,7 +20,10 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("@merqo/ui", () => ({ DashboardTour: mocks.SharedDashboardTour }));
+vi.mock("@merqo/ui", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@merqo/ui")>();
+  return { ...actual, DashboardTour: mocks.SharedDashboardTour };
+});
 vi.mock("@/app/dashboard/tour-actions", () => ({
   markTourSeen: mocks.markTourSeen,
 }));

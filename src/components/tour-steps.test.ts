@@ -28,7 +28,7 @@ describe("tourSteps", () => {
 
   it("renders the real TransactionStatusBadge markup for the example, not a hand-copied color", () => {
     const description = tourSteps(false)[0].description;
-    expect(description).toContain("bg-mint/15");
+    expect(description).toContain("text-mint");
     expect(description).not.toContain('class="tour-example-pill"');
   });
 

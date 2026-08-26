@@ -21,13 +21,15 @@ ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
 - `transaction-status-badge.tsx` — `TransactionStatusBadge({ status })`: a
   pure presentational component (extracted from `transaction-table.tsx` so
   `src/components/tour-steps.ts` can render the real thing instead of a
-  hand-copied color). Gives `claimed` its own `bg-mint/15 text-mint
-ring-mint/30` treatment instead of falling into the shadcn `secondary`
-  variant it'd otherwise share with `pending` — `claimed` is the one status
-  that actually needs the vendor's attention (customer says they've paid,
-  waiting on vendor confirmation), so it shouldn't look inert.
+  hand-copied color), now a thin wrapper around `@merqo/ui`'s shared
+  `StatusBadge` (the dot + uppercase bordered-pill chip qkit's
+  `OrderStatusBadge` originated) instead of shadcn's `Badge`. `claimed` keeps
+  its own `text-mint border-mint/35 bg-mint/12` treatment instead of falling
+  into a `pending`/`confirmed`-shared tone — it's the one status that
+  actually needs the vendor's attention (customer says they've paid, waiting
+  on vendor confirmation), so it shouldn't look inert.
 - `transaction-status-badge.test.tsx` — asserts `claimed` gets the mint
-  accent and `confirmed` doesn't.
+  accent and `pending`/`confirmed` don't.
 - `refund-dialog.tsx` — Pro-only dialog: calls `issueRefundAction` to file a
   refund against a `confirmed` transaction (bookkeeping only — no real
   money movement, see `AGENTS.md`'s data model). The amount field is

@@ -23,7 +23,10 @@ sits flat here.
   finishes, so a mid-tour refresh can't re-trigger it), and can be replayed
   from any page (navigates back to `/dashboard` first if needed).
 - `dashboard-tour.dom.test.tsx` — RTL tests for the tour's auto-run,
-  mark-seen, and cross-page replay behavior.
+  mark-seen, and cross-page replay behavior. Its `@merqo/ui` mock only
+  stubs `DashboardTour` (via `importOriginal`) — it must keep the real
+  `StatusBadge` export, since `tour-steps.ts`'s example badge renders
+  through it at module load time.
 - `tour-steps.ts` — `tourSteps(isMobile)`: pure step config (element
   selector + title + description) for the dashboard tour, kept free of any
   `driver.js` import so it's unit-testable. The first step's description

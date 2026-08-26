@@ -4,16 +4,21 @@ import { createElement } from "react";
 import { TransactionStatusBadge } from "./transaction-status-badge";
 
 describe("TransactionStatusBadge", () => {
-  it("gives claimed the mint accent, not confirmed/pending's plain badge", () => {
+  it("gives claimed the mint accent, not confirmed/pending's tone", () => {
     const claimed = renderToStaticMarkup(
       createElement(TransactionStatusBadge, { status: "claimed" }),
     );
-    expect(claimed).toContain("bg-mint/15");
+    expect(claimed).toContain("text-mint");
     expect(claimed).toContain("claimed");
 
     const confirmed = renderToStaticMarkup(
       createElement(TransactionStatusBadge, { status: "confirmed" }),
     );
-    expect(confirmed).not.toContain("bg-mint/15");
+    expect(confirmed).not.toContain("text-mint");
+
+    const pending = renderToStaticMarkup(
+      createElement(TransactionStatusBadge, { status: "pending" }),
+    );
+    expect(pending).not.toContain("text-mint");
   });
 });

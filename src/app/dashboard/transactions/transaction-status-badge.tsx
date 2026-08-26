@@ -1,21 +1,23 @@
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { StatusBadge } from "@merqo/ui";
 import type { TxStatus } from "@/lib/types";
 
-// `claimed` gets the brand mint accent instead of shadcn's Badge
-// `default`/`secondary` pair, since it's the one status needing the
+// `claimed` keeps the brand mint accent — it's the one status needing the
 // vendor's attention right now (pending→claimed→confirmed, `@/lib/tx-state`).
-const STATUS_BADGE_CLASS: Partial<Record<TxStatus, string>> = {
-  claimed: "bg-mint/15 text-mint ring-1 ring-mint/30",
+const STATUS_CONFIG: Record<TxStatus, { label: string; className: string }> = {
+  pending: {
+    label: "pending",
+    className: "text-secondary border-secondary/35 bg-secondary/12",
+  },
+  claimed: {
+    label: "claimed",
+    className: "text-mint border-mint/35 bg-mint/12",
+  },
+  confirmed: {
+    label: "confirmed",
+    className: "text-primary border-primary/35 bg-primary/12",
+  },
 };
 
 export function TransactionStatusBadge({ status }: { status: TxStatus }) {
-  return (
-    <Badge
-      variant={status === "confirmed" ? "default" : "secondary"}
-      className={cn(STATUS_BADGE_CLASS[status])}
-    >
-      {status}
-    </Badge>
-  );
+  return <StatusBadge status={status} config={STATUS_CONFIG} />;
 }
