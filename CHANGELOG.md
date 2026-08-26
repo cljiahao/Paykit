@@ -16,6 +16,26 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Per-vendor triage status on the admin Vendors table (`attention`/`stuck`/
+  `quiet`/`new`/`healthy`, most-urgent first) — `src/lib/vendor-health.ts`
+  adapts qkit's own `admin-vendor-health.ts` status vocabulary/rank
+  convention to paykit's own signals: a refund-rate anomaly in the trailing
+  30 days (≥3 refunds, or >20% of confirmed transactions refunded once
+  there's a ≥5-transaction sample), whether a payment config has ever
+  produced a confirmed transaction, and confirmed-transaction recency.
+  Rendered via `@merqo/ui`'s shared `StatusBadge` (bumped `@merqo/ui` to a
+  post-v0.21.0 commit that adds it, fixing a TS2742 declaration-emit issue
+  the tagged v0.21.0 release hits under some `node_modules` layouts).
+- Refund count/volume (trailing 30 days) and windowed 7d/30d trend deltas
+  on the admin Overview's confirmed-transaction/-volume stats — this page
+  previously had no delta anywhere, unlike every sibling kit's Overview.
+- `paykit.auth_failures` (migration 0014): every failed `verifyKitAuth`
+  call now appends a best-effort row (`kit_slug` when resolvable, `reason`,
+  `ip`, never the secret) instead of only a `console.warn` — a leaked or
+  misbehaving kit secret previously left zero durable trail. Surfaced on
+  the admin Overview's new Security stat block alongside rate-limit
+  pressure (`paykit.rate_limits` windows at or above the shared per-route
+  limit, grouped by `kit_slug`, trailing 24h).
 - `POST /api/merqo/vendor-provision` now logs a `paykit.admin_audit` row via
   `recordAudit()` before responding (`action: "merqo_vendor_provision"`,
   `admin_id`/`target_id` both the vendor's own id, `detail.actor:

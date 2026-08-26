@@ -4,6 +4,7 @@ import { listVendors, type VendorRow } from "@/lib/admin-data";
 import { Badge } from "@/components/ui/badge";
 import { ElevatedCard } from "@/components/elevated-card";
 import { VendorPlanToggle } from "@/app/admin/vendors/vendor-plan-toggle";
+import { VendorStatusBadge } from "@/app/admin/vendors/vendor-status";
 
 export const revalidate = 0;
 
@@ -20,6 +21,10 @@ const columns: DataTableColumn<VendorRow>[] = [
         )}
       </>
     ),
+  },
+  {
+    header: "Status",
+    cell: (v) => <VendorStatusBadge status={v.status} />,
   },
   {
     header: "Plan",
@@ -61,7 +66,8 @@ export default async function AdminVendorsPage() {
         </p>
         <h1 className="text-3xl font-bold tracking-tight">Vendors</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Every vendor with a payment config, across every kit.
+          Every vendor with a payment config, across every kit — most urgent
+          first.
         </p>
       </div>
 

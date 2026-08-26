@@ -26,6 +26,8 @@ vi.mock("@/lib/supabase/server", () => ({
 vi.mock("@/lib/rate-limit", () => ({
   clientIp: () => "203.0.113.5",
   rateLimit: rateLimitMock,
+  PER_ROUTE_LIMIT: 60,
+  PER_ROUTE_WINDOW_SECONDS: 60,
 }));
 
 function fakeSupabase() {

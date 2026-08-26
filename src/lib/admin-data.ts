@@ -1,6 +1,13 @@
 import { createServiceClient } from "@/lib/supabase/server";
 import { listAllUsers } from "@/lib/list-all-users";
 import { getPricing, type PricingConfig } from "@/lib/pricing";
+import {
+  buildVendorHealth,
+  statusRank,
+  type VendorStatus,
+} from "@/lib/vendor-health";
+import { PER_ROUTE_LIMIT } from "@/lib/rate-limit";
+import { MS_PER_DAY, MS_PER_HOUR } from "@/lib/utils";
 import type {
   Json,
   PaymentConfigKind,
@@ -17,6 +24,22 @@ export type PlatformTotals = {
   transactions: number;
   confirmed_transactions: number;
   confirmed_volume_cents: number;
+  /** Confirmed transactions in the trailing 7 days, and the prior 7 days (for a delta). */
+  confirmed_7d: number;
+  confirmed_prev_7d: number;
+  /** Confirmed volume in the trailing 30 days, and the prior 30 days (for a delta). */
+  confirmed_volume_cents_30d: number;
+  confirmed_volume_cents_prev_30d: number;
+  /** Refunds filed in the trailing 30 days — count and total amount. */
+  refund_count_30d: number;
+  refund_volume_cents_30d: number;
+};
+
+export type SecurityStats = {
+  /** paykit.auth_failures rows in the trailing 24 hours. */
+  failed_auth_24h: number;
+  /** Distinct kit_slugs that hit the per-route rate limit in the trailing 24 hours. */
+  rate_limited_kits_24h: number;
 };
 
 export type ActivityRow = {
@@ -48,6 +71,7 @@ export type VendorRow = {
   label: string | null;
   transaction_count: number;
   created_at: string;
+  status: VendorStatus;
 };
 
 // The admin console spans every vendor, so it reads with the service-role
@@ -66,16 +90,28 @@ async function emailByUserId(
 /** Platform-wide totals for the overview stat tiles. */
 export async function platformTotals(): Promise<PlatformTotals> {
   const supabase = await createServiceClient();
-  const [vendorsRes, txRes] = await Promise.all([
+  const [vendorsRes, txRes, refundsRes] = await Promise.all([
     supabase.from("vendor_payment_config").select("vendor_id, plan"),
-    supabase.from("transactions").select("id, status, amount_cents"),
+    supabase
+      .from("transactions")
+      .select("id, status, amount_cents, created_at, confirmed_at"),
+    supabase.from("refunds").select("refunded_amount_cents, created_at"),
   ]);
-  for (const r of [vendorsRes, txRes]) {
+  for (const r of [vendorsRes, txRes, refundsRes]) {
     if (r.error) throw new Error(`platformTotals: ${r.error.message}`);
   }
   const vendors = vendorsRes.data ?? [];
   const transactions = txRes.data ?? [];
+  const refunds = refundsRes.data ?? [];
   const confirmed = transactions.filter((t) => t.status === "confirmed");
+
+  const now = Date.now();
+  const cutoff7d = now - 7 * MS_PER_DAY;
+  const cutoff14d = now - 14 * MS_PER_DAY;
+  const cutoff30d = now - 30 * MS_PER_DAY;
+  const cutoff60d = now - 60 * MS_PER_DAY;
+  const confirmedAt = (t: (typeof confirmed)[number]) =>
+    Date.parse(t.confirmed_at ?? t.created_at);
 
   return {
     vendors: vendors.length,
@@ -87,6 +123,56 @@ export async function platformTotals(): Promise<PlatformTotals> {
       (sum, t) => sum + t.amount_cents,
       0,
     ),
+    confirmed_7d: confirmed.filter((t) => confirmedAt(t) >= cutoff7d).length,
+    confirmed_prev_7d: confirmed.filter(
+      (t) => confirmedAt(t) >= cutoff14d && confirmedAt(t) < cutoff7d,
+    ).length,
+    confirmed_volume_cents_30d: confirmed
+      .filter((t) => confirmedAt(t) >= cutoff30d)
+      .reduce((sum, t) => sum + t.amount_cents, 0),
+    confirmed_volume_cents_prev_30d: confirmed
+      .filter((t) => confirmedAt(t) >= cutoff60d && confirmedAt(t) < cutoff30d)
+      .reduce((sum, t) => sum + t.amount_cents, 0),
+    refund_count_30d: refunds.filter(
+      (r) => Date.parse(r.created_at) >= cutoff30d,
+    ).length,
+    refund_volume_cents_30d: refunds
+      .filter((r) => Date.parse(r.created_at) >= cutoff30d)
+      .reduce((sum, r) => sum + r.refunded_amount_cents, 0),
+  };
+}
+
+/**
+ * Failed bearer-auth attempts (`auth_failures`) and rate-limit pressure
+ * (`rate_limits` windows at the per-route limit), for the overview page.
+ * `key` is `${route}:${kitSlug}:${ip}` — the ip segment is whatever remains
+ * after the first two colons, safe even for a colon-bearing IPv6 address.
+ */
+export async function securityStats(): Promise<SecurityStats> {
+  const supabase = await createServiceClient();
+  const cutoff24h = new Date(Date.now() - 24 * MS_PER_HOUR).toISOString();
+
+  const [authRes, rlRes] = await Promise.all([
+    supabase
+      .from("auth_failures")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", cutoff24h),
+    supabase
+      .from("rate_limits")
+      .select("key")
+      .gte("window_start", cutoff24h)
+      .gte("count", PER_ROUTE_LIMIT),
+  ]);
+  if (authRes.error) throw new Error(`securityStats: ${authRes.error.message}`);
+  if (rlRes.error) throw new Error(`securityStats: ${rlRes.error.message}`);
+
+  const kitSlugs = new Set(
+    (rlRes.data ?? []).map((row) => row.key.split(":")[1]).filter(Boolean),
+  );
+
+  return {
+    failed_auth_24h: authRes.count ?? 0,
+    rate_limited_kits_24h: kitSlugs.size,
   };
 }
 
@@ -113,30 +199,49 @@ export async function recentActivity(limit = 15): Promise<ActivityRow[]> {
 }
 
 /**
- * Every vendor with a payment config, their transaction count, and resolved
- * email — for the admin Vendors table. Aggregation is done in TS over two
- * flat reads (vendor_payment_config, transactions) to avoid multi-join SQL,
- * matching admin-data's pattern in the sibling kits.
+ * Every vendor with a payment config, their transaction count, resolved
+ * email, and triage status — for the admin Vendors table. Aggregation is
+ * done in TS over three flat reads (vendor_payment_config, transactions,
+ * refunds) to avoid multi-join SQL, matching admin-data's pattern in the
+ * sibling kits. Sorted most-urgent first (`vendor-health.ts`'s
+ * `statusRank`), ties keeping the newest signup on top — qkit's own
+ * admin-vendors convention.
  */
 export async function listVendors(): Promise<VendorRow[]> {
   const supabase = await createServiceClient();
-  const [vendorsRes, txRes] = await Promise.all([
+  const [vendorsRes, txRes, refundsRes] = await Promise.all([
     supabase
       .from("vendor_payment_config")
       .select("vendor_id, plan, kind, payee_name, label, created_at"),
-    supabase.from("transactions").select("vendor_id"),
+    supabase
+      .from("transactions")
+      .select("id, vendor_id, status, created_at, confirmed_at"),
+    supabase.from("refunds").select("transaction_id, created_at"),
   ]);
-  for (const r of [vendorsRes, txRes]) {
+  for (const r of [vendorsRes, txRes, refundsRes]) {
     if (r.error) throw new Error(`listVendors: ${r.error.message}`);
   }
   const vendors = vendorsRes.data ?? [];
   const transactions = txRes.data ?? [];
+  const refunds = refundsRes.data ?? [];
   const emails = await emailByUserId(supabase);
 
   const txCounts = new Map<string, number>();
   for (const t of transactions) {
     txCounts.set(t.vendor_id, (txCounts.get(t.vendor_id) ?? 0) + 1);
   }
+
+  const now = Date.now();
+  const health = buildVendorHealth(
+    vendors.map((v) => ({
+      id: v.vendor_id,
+      plan: v.plan,
+      configCreatedAt: v.created_at,
+    })),
+    transactions,
+    refunds,
+    now,
+  );
 
   return vendors
     .map((v) => ({
@@ -148,8 +253,13 @@ export async function listVendors(): Promise<VendorRow[]> {
       label: v.label,
       transaction_count: txCounts.get(v.vendor_id) ?? 0,
       created_at: v.created_at,
+      status: health.get(v.vendor_id)?.status ?? "new",
     }))
-    .sort((a, b) => (a.email ?? "").localeCompare(b.email ?? ""));
+    .sort(
+      (a, b) =>
+        statusRank(a.status) - statusRank(b.status) ||
+        b.created_at.localeCompare(a.created_at),
+    );
 }
 
 /**

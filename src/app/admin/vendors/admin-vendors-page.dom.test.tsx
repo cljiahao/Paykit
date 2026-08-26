@@ -18,6 +18,7 @@ vi.mock("@/lib/admin-data", () => ({
       label: null,
       transaction_count: 12,
       created_at: "2026-07-01T00:00:00Z",
+      status: "attention",
     },
     {
       vendor_id: "v2",
@@ -28,6 +29,7 @@ vi.mock("@/lib/admin-data", () => ({
       label: "Pay with PayLah",
       transaction_count: 0,
       created_at: "2026-07-02T00:00:00Z",
+      status: "new",
     },
   ]),
 }));
@@ -45,6 +47,8 @@ describe("AdminVendorsPage", () => {
     expect(screen.getByText("Kopitiam Cart")).toBeInTheDocument();
     expect(screen.getByText("Pay with PayLah")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
+    expect(screen.getByText("Needs attention")).toBeInTheDocument();
+    expect(screen.getByText("New")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /make free/i }),
     ).toBeInTheDocument();
