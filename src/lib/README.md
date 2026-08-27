@@ -183,6 +183,15 @@ configs)`: pure two-step lookup (email → auth user → that user's
   `vendor_payment_config`) since `vendor_payment_config` has no email
   column. Ported from qkit's identically-named function. Backs
   `GET /api/merqo/vendor-status`.
+- `merqo-vendor-activity.ts` — `computeVendorActivity(config, transactions,
+refunds, nowMs)`: pure, once the caller has already resolved the vendor's
+  auth-user id. Reuses `vendor-health.ts`'s `vendorStatus` for the
+  `status` field rather than a second classification rule, and computes
+  the trailing-30d `metrics` rows (`Transactions (30d)`, `Volume (30d)`,
+  `Refund rate (30d)`) from the exact same `confirmed_at ?? created_at`
+  windowing that classification already uses, so the two never disagree.
+  `active: false` (no config row) short-circuits to empty metrics/null
+  status/null plan. Backs `GET /api/merqo/vendor-activity`.
 - `brand-icon.tsx` — `brandIcon(size)` + `BRAND_MINT`/`BRAND_INK`: the
   paykit "P" mark as a `ReactElement` for `ImageResponse`-generated icons
   (favicon, apple-touch) — hex literals, not theme tokens, since
