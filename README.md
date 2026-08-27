@@ -143,7 +143,12 @@ lookup) paginates the Supabase admin-users API properly, via the same
 truncates at the first 1000 auth users. `/api/merqo/metrics` now exists too
 — merqo hub's cross-kit health/revenue dashboard already polled it the same
 as qkit's and loopkit's, but paykit had no implementation, so it silently
-never showed up there. The landing footer matches qkit's exactly (single-row
+never showed up there. `/api/merqo/vendor-activity` (merqo hub's
+per-vendor `/admin/vendors/[email]` detail card) resolves one vendor's
+plan, triage status (reusing `src/lib/vendor-health.ts`'s existing
+`attention`/`stuck`/`quiet`/`new`/`healthy` vocabulary), and trailing-30d
+transaction/volume/refund-rate metrics by email — same bearer secret and
+email-lookup convention as `vendor-status`. The landing footer matches qkit's exactly (single-row
 wordmark/tagline/copyright/sign-in link, no CTA band above it), and the
 landing page's `BackToTop` button matches the cross-kit landing-page
 parity pass.
