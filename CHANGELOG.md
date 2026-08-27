@@ -4,7 +4,23 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.1] - 2026-08-27
+
+### Added
+
+- `GET /api/merqo/vendor-activity?email=…` — merqo hub's per-vendor detail
+  lookup backing `/admin/vendors/[email]`'s paykit card, generalizing the
+  existing `vendor-status` email-lookup convention into a richer
+  `{active, plan, status, metrics, lastActivityAt}` payload. `status`
+  reuses `src/lib/vendor-health.ts`'s existing triage classification
+  (`vendorStatus`) rather than a second rule, and the trailing-30d
+  transaction/volume/refund-rate `metrics` rows are computed from the
+  exact same `confirmed_at ?? created_at` windowing that classification
+  already uses, so the two never disagree. A vendor absent from
+  `auth.users` entirely 404s; a known vendor with no
+  `vendor_payment_config` row gets a 200 with `active: false`. See
+  `docs/business/2026-08-26-cross-kit-vendor-activity-design.md` for the
+  shared cross-kit contract every kit implements.
 
 ### Changed
 

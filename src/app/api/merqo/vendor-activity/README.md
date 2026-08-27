@@ -1,0 +1,33 @@
+# vendor-activity
+
+## Purpose
+
+`GET /api/merqo/vendor-activity?email=…` — merqo hub's per-vendor detail
+lookup, backing `/admin/vendors/[email]`'s paykit card. Bearer-secret gated
+(`bearerOk`, `MERQO_METRICS_SECRET`, the same secret `/api/merqo/metrics`
+already uses) — merqo hub is the only caller. See
+`docs/business/2026-08-26-cross-kit-vendor-activity-design.md` for the
+shared cross-kit contract every kit implements.
+
+Distinct from `/api/merqo/vendor-status`: that route is a cheap
+`{active, plan}` lookup with no per-vendor detail; this one is the richer
+`{active, plan, status, metrics, lastActivityAt}` shape merqo renders a
+whole card from.
+
+## Contents
+
+- `route.ts` — resolves the email to an auth user via `listAllUsers`
+  (paginated, `src/lib/list-all-users.ts`); 404s if no such user exists in
+  this kit at all. For a known user, reads that vendor's
+  `vendor_payment_config` row (may not exist — "known but inactive"),
+  their `transactions`, and — only if they have any transactions — the
+  `refunds` rows against those transaction ids (`refunds` has no
+  `vendor_id` column of its own), then calls `computeVendorActivity`
+  (`src/lib/merqo-vendor-activity.ts`) and returns its result as-is.
+- `route.test.ts` — auth/validation/404/200/upstream-failure cases for the
+  route above, including the "no transactions ⇒ never queries refunds"
+  short-circuit.
+
+## Parent
+
+See the repo root [README.md](../../../../../README.md) for the full layout.
