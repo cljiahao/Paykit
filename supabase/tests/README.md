@@ -42,6 +42,9 @@ _permits_.
     `deposit_transaction_id` at B's transaction gets a `permission denied`
     error, not a silent no-op, since that FK is what
     `sync_booking_status()` trusts.
+  - **`legal_check_state` is service-role-only** (migration `0015`) — RLS
+    enabled, zero policies; both `authenticated` (vendor A) and `anon`
+    are denied direct `SELECT`, matching `kit_api_keys`'s treatment.
 
   Keep `select plan(N)` in step with the number of assertions; pgTAP fails
   the run on a count mismatch.

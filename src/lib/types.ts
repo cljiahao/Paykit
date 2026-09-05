@@ -130,6 +130,12 @@ export type AuthFailure = {
   created_at: string;
 };
 
+export type LegalCheckState = {
+  email: string;
+  checked_at: string;
+  is_current: boolean;
+};
+
 export interface Database {
   paykit: {
     Tables: {
@@ -352,6 +358,19 @@ export interface Database {
           count?: number;
         };
         Update: { count?: number };
+        Relationships: [];
+      };
+      legal_check_state: {
+        Row: LegalCheckState;
+        Insert: {
+          email: string;
+          checked_at?: string;
+          is_current: boolean;
+        };
+        Update: {
+          checked_at?: string;
+          is_current?: boolean;
+        };
         Relationships: [];
       };
     };

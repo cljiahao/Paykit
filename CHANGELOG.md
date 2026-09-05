@@ -6,6 +6,24 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- Legal-document gate. `/legal/terms` and `/legal/privacy` render the shared
+  `@merqo/ui` documents (also linked from the landing footer), and a signed-in
+  vendor whose accepted terms/privacy versions are behind `@merqo/ui`'s
+  `LEGAL_VERSIONS` is bounced to a `/legal/accept` interstitial before any
+  dashboard route renders. paykit owns no acceptance record — merqo does — so
+  currency is a bearer-authed `GET /api/merqo/legal-status` call cached in a
+  new `legal_check_state` TTL table (migration `0015`, 5 min, mirroring
+  merqo's `vendor_sync_state`), and acceptance is two idempotent
+  `POST /api/merqo/legal-accept` calls (one per doc, each hashed via
+  `getLegalDocSource`). The gate fails closed: an unreachable merqo or an
+  unset `MERQO_CUSTOMER_SECRET` routes the vendor to `/legal/accept` rather
+  than past the gate. This is paykit's first kit-to-merqo outbound HTTP call
+  (`MERQO_BASE_URL`/`MERQO_CUSTOMER_SECRET` are new env vars — every existing
+  merqo-facing secret here gates the opposite, inbound, direction).
+  `@merqo/ui` bumped to `v0.23.0`.
+
 ### Fixed
 
 - `/admin/vendors` returned a 500 ("Functions cannot be passed directly to

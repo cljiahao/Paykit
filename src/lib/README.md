@@ -10,10 +10,24 @@ larger clusters; everything else sits flat here.
 
 - `types.ts` — hand-maintained DB types (`Transaction`, `VendorPaymentConfig`,
   `TxStatus`, `VendorPlan`, `PaymentConfigKind`, `Booking`, `BookingStatus`,
-  `SocialLinks`, `AuthFailure`, …), kept in sync with `supabase/migrations/`
-  by hand. Also carries a hand-written `rate_limits` table type (the table
-  existed since `0012` but had no generated-type entry until now, needed to
-  query it from `admin-data.ts`'s `securityStats()`).
+  `SocialLinks`, `AuthFailure`, `LegalCheckState`, …), kept in sync with
+  `supabase/migrations/` by hand. Also carries a hand-written `rate_limits`
+  table type (the table existed since `0012` but had no generated-type entry
+  until now, needed to query it from `admin-data.ts`'s `securityStats()`).
+- `safe-redirect.ts` — `safeRedirectPath(next, fallback)`: rejects an absolute
+  URL, a protocol-relative `//`/`/\` path, or one carrying an embedded control
+  character, falling back otherwise. The open-redirect guard for the
+  `/legal/accept` flow's `next` search param.
+- `legal-gate.ts` — `checkLegalAcceptance(email)`/
+  `requireCurrentLegalAcceptance(email)`. paykit owns no acceptance
+  record — merqo does — so currency is a bearer-authed (`MERQO_CUSTOMER_SECRET`)
+  `GET /api/merqo/legal-status` call, cached in the new `legal_check_state`
+  table (migration `0015`) for 5 minutes to keep the call off every gated
+  render. Fails closed (returns `false`/redirects to `/legal/accept`) on a
+  missing secret, an unreachable merqo, a non-2xx response, or a malformed
+  body. `requireCurrentLegalAcceptance` is a no-op when `email` is falsy (the
+  caller already handled the no-session case) and redirects a stale vendor to
+  `/legal/accept` otherwise.
 - `schemas.ts` — Zod input schemas for every form/action boundary:
   `vendorPaymentConfigInputSchema` (discriminated union over `kind`,
   paynow/pointer), `issueRefundInputSchema`, `createBookingInputSchema`
@@ -125,9 +139,14 @@ year)`: pure, accrual-aware yearly revenue for the Earnings report page —
   delegates here) is fire-and-forget and can be aborted by a hard
   navigation before it lands.
 - `vendor-session.ts` — `getVendorSession()` (dashboard auth guard,
-  redirects to `/login` on no session) and `getVendorPlan()`. Deliberately
-  **not** used by Sheet-embedded server actions (`feedback.ts`,
-  `support.ts` in `src/app/actions/`) — see that folder's README for why.
+  redirects to `/login` on no session, then bounces to `/legal/accept` via
+  `requireCurrentLegalAcceptance` — see `legal-gate.ts` above — if the
+  vendor's terms/privacy acceptance is stale) and `getVendorPlan()`.
+  `getVendorSession` is paykit's single vendor-gate entry point (every
+  dashboard page/action calls it), so the legal check lives here once
+  rather than duplicated per call site. Deliberately **not** used by
+  Sheet-embedded server actions (`feedback.ts`, `support.ts` in
+  `src/app/actions/`) — see that folder's README for why.
 - `admin.ts` — `isAdmin(userId)` (presence of a row in `admins`, RLS-gated)
   and `requireAdmin()`: the `/admin` route/Server-Action gate, 404ing signed-
   out and non-admin callers alike so the route's existence is never revealed.

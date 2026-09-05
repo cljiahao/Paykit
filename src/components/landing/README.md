@@ -46,12 +46,13 @@ file. Presentational only — no data fetching, no client state beyond the
   CTA). A standalone section, not a band inside `footer.tsx` — that stays
   CTA-free, see below.
 - `footer.tsx` — single-row site footer matching qkit's landing footer
-  exactly — `Wordmark`, tagline, copyright line, `Vendor sign in →` link.
-  No bottom call-to-action band inside the footer itself (removed to match
-  qkit, which never had one) — `closing-cta.tsx` above is a separate
-  section, not a revival of that removed footer band.
+  exactly — `Wordmark`, tagline, copyright line, `@merqo/ui`'s
+  `LegalFooterLinks` (Terms/Privacy, linking to `/legal/terms`/`/legal/privacy`),
+  `Vendor sign in →` link. No bottom call-to-action band inside the footer
+  itself (removed to match qkit, which never had one) — `closing-cta.tsx`
+  above is a separate section, not a revival of that removed footer band.
 - `footer.test.tsx` — asserts the wordmark link, tagline, copyright line,
-  and sign-in link all render.
+  sign-in link, and the Terms/Privacy links all render.
 - `back-to-top.tsx` — fixed-position scroll-to-top button (ported from qkit),
   shown past a scroll threshold.
 - `wordmark.tsx` — `Wordmark`: the "Pay**kit**" mark, mint accent on "Pay"

@@ -23,6 +23,7 @@ tables, RLS policies, RPCs, and grants, applied in order.
 
 - `0013_paykit_kit_key_last_used.sql` — adds `kit_api_keys.last_used_at` (nullable, touched on every successful `verifyKitAuth` call) — see `docs/SECRET_ROTATION.md` for what it's for.
 - `0014_paykit_auth_failures.sql` — `auth_failures`, logging every failed `verifyKitAuth` call (`kit_slug` nullable — an unknown/malformed attempt has none — `reason`, `ip`, `created_at`). Same immutable-from-creation shape as `payment_audit`/`admin_audit`: no RLS policies (service-role only), and only `select`/`insert` ever granted (no `update`/`delete` to revoke later, unlike `0009`/`0011`'s after-the-fact tightening). Backs the admin Overview's Security stat block (`securityStats()` in `src/lib/admin-data.ts`).
+- `0015_legal_check_state.sql` — `legal_check_state`, a TTL cache (`email` PK, `checked_at`, `is_current`) for "is this vendor's terms/privacy acceptance current with merqo?" — paykit owns no acceptance record itself, so `src/lib/legal-gate.ts` calls merqo's `GET /api/merqo/legal-status` and caches the result here for 5 minutes, mirroring merqo's own `vendor_sync_state` throttle. Service-role only (RLS on, zero policies), same shape as `auth_failures`.
 
 ## Parent
 
