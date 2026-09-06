@@ -8,6 +8,9 @@ for this project.
 ## Contents
 
 - `actions/` — server actions shared across routes: auth, feedback, Pro-upgrade requests, support messages.
+- `about/` — `AboutPage`, the public "Why Merqo" page: `@merqo/ui`'s
+  shared `AboutMerqo` (the qkit origin story), wrapped in this app's own
+  `Nav`/`Footer` with a link back to `/#how`. Linked from both.
 - `admin/` — Merqo-team internal admin console (`/admin`), gated by `requireAdmin()` — platform overview stats and a cross-vendor plan-management table.
 - `api/` — the cross-kit `v1` payment API (`checkout`, `vendors`) plus internal `merqo/*` provisioning routes.
 - `apple-icon.tsx` — `AppleIcon` route handler; renders `brandIcon(180)` as a 180×180 PNG for iOS home-screen touch icons.

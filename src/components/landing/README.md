@@ -8,17 +8,19 @@ file. Presentational only — no data fetching, no client state beyond the
 
 ## Contents
 
-- `nav.tsx` — sticky top nav: `Wordmark` + an `#faq` anchor link (sm+,
-  same-page hash jump to `faq.tsx`'s section) + sign-in/dashboard link.
-  Composes `@merqo/ui`'s `LandingNav` shell (v0.9.0) for the sticky
-  header/`max-w-6xl` row instead of hand-rolling it — this file now owns
-  only the `wordmark` slot (the `Wordmark` link + sr-only text) and the
-  `end` slot (FAQ button + sign-in/dashboard links), both passed straight
-  through as `ReactNode` props. Visual output is unchanged from the
-  pre-migration markup, aside from the shared shell's own `end`-row gap
-  (`gap-2 sm:gap-4`, replacing a fixed `gap-3`) — a byproduct of adopting
-  the shared component's contract, same as qkit's landing nav will pick up
-  once it migrates.
+- `nav.tsx` — sticky top nav: `Wordmark` + an `/about` link + an `#faq`
+  anchor link (sm+, same-page hash jump to `faq.tsx`'s section) +
+  sign-in/dashboard link. Composes `@merqo/ui`'s `LandingNav` shell
+  (v0.9.0) for the sticky header/`max-w-6xl` row instead of hand-rolling
+  it — this file now owns only the `wordmark` slot (the `Wordmark` link +
+  sr-only text) and the `end` slot (About link, FAQ button,
+  sign-in/dashboard links), both passed straight through as `ReactNode`
+  props. Visual output is unchanged from the pre-migration markup, aside
+  from the shared shell's own `end`-row gap (`gap-2 sm:gap-4`, replacing a
+  fixed `gap-3`) — a byproduct of adopting the shared component's
+  contract, same as qkit's landing nav will pick up once it migrates.
+- `nav.test.tsx` — asserts the About link and the Sign in/Get
+  started/Dashboard state switch.
 - `hero.tsx` — headline, stat row, CTA, and the decorative `CheckoutCard`.
 - `checkout-card.tsx` — stylized non-functional "live checkout" artifact for
   the hero (not a real scannable QR — a stand-in with a status pill using
@@ -46,13 +48,14 @@ file. Presentational only — no data fetching, no client state beyond the
   CTA). A standalone section, not a band inside `footer.tsx` — that stays
   CTA-free, see below.
 - `footer.tsx` — single-row site footer matching qkit's landing footer
-  exactly — `Wordmark`, tagline, copyright line, `@merqo/ui`'s
-  `LegalFooterLinks` (Terms/Privacy, linking to `/legal/terms`/`/legal/privacy`),
-  `Vendor sign in →` link. No bottom call-to-action band inside the footer
-  itself (removed to match qkit, which never had one) — `closing-cta.tsx`
-  above is a separate section, not a revival of that removed footer band.
+  exactly — `Wordmark`, tagline, copyright line, an `/about` link,
+  `@merqo/ui`'s `LegalFooterLinks` (Terms/Privacy, linking to
+  `/legal/terms`/`/legal/privacy`), `Vendor sign in →` link. No bottom
+  call-to-action band inside the footer itself (removed to match qkit,
+  which never had one) — `closing-cta.tsx` above is a separate section,
+  not a revival of that removed footer band.
 - `footer.test.tsx` — asserts the wordmark link, tagline, copyright line,
-  sign-in link, and the Terms/Privacy links all render.
+  sign-in link, the About link, and the Terms/Privacy links all render.
 - `back-to-top.tsx` — fixed-position scroll-to-top button (ported from qkit),
   shown past a scroll threshold.
 - `wordmark.tsx` — `Wordmark`: the "Pay**kit**" mark, mint accent on "Pay"
