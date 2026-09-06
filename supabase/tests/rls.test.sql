@@ -1,6 +1,6 @@
 -- RLS cross-vendor isolation — pgTAP, run with `supabase test db`.
 begin;
-select plan(59);
+select plan(63);
 
 -- ── Fixtures ──────────────────────────────────────────────────────────────
 -- Vendor A: free plan, UEN config. Vendor B: pro plan, mobile config.
@@ -72,6 +72,11 @@ select ok((select relrowsecurity from pg_class where oid = 'paykit.vendor_prefs'
 select ok((select relrowsecurity from pg_class where oid = 'paykit.bookings'::regclass), 'RLS on bookings');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.payment_audit'::regclass), 'RLS on payment_audit');
 select ok((select relrowsecurity from pg_class where oid = 'paykit.rate_limits'::regclass), 'RLS on rate_limits');
+select ok((select relrowsecurity from pg_class where oid = 'paykit.legal_check_state'::regclass), 'RLS on legal_check_state');
+select is(
+  (select count(*)::int from pg_policies
+   where schemaname = 'paykit' and tablename = 'legal_check_state'),
+  0, 'legal_check_state has no RLS policies (service-role-only)');
 
 -- 0009_paykit_admin_audit_immutable.sql: service_role can still append audit
 -- rows (the app's only write path — recordAudit() in
@@ -173,6 +178,10 @@ select throws_ok(
   $$ select 1 from paykit.kit_api_keys $$,
   null,
   'A (authenticated) cannot SELECT kit_api_keys at all — service-role only');
+select throws_ok(
+  $$ select 1 from paykit.legal_check_state $$,
+  null,
+  'A (authenticated) cannot SELECT legal_check_state at all — service-role only');
 
 select lives_ok(
   $$ insert into paykit.feedback (vendor_id, nps, message)
@@ -331,6 +340,10 @@ select throws_ok(
   $$ select 1 from paykit.kit_api_keys limit 1 $$,
   null,
   'anon cannot SELECT kit_api_keys');
+select throws_ok(
+  $$ select 1 from paykit.legal_check_state limit 1 $$,
+  null,
+  'anon cannot SELECT legal_check_state');
 select throws_ok(
   $$ select 1 from paykit.vendor_prefs limit 1 $$,
   null,

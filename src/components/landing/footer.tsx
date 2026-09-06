@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LegalFooterLinks } from "@merqo/ui";
 import { Wordmark } from "./wordmark";
 
 export function Footer() {
@@ -14,6 +15,7 @@ export function Footer() {
         </Link>
         <span>The Merqo family&apos;s shared vendor payment engine.</span>
         <span className="text-xs">© 2026 paykit · a Merqo kit</span>
+        <LegalFooterLinks />
         <Link href="/login" className="hover:text-foreground">
           Vendor sign in →
         </Link>

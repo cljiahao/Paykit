@@ -1,19 +1,28 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { getUserMock, redirectMock, maybeSingleMock, createServerClientMock } =
-  vi.hoisted(() => ({
-    getUserMock: vi.fn(),
-    redirectMock: vi.fn(() => {
-      throw new Error("NEXT_REDIRECT");
-    }),
-    maybeSingleMock: vi.fn(),
-    createServerClientMock: vi.fn(),
-  }));
+const {
+  getUserMock,
+  redirectMock,
+  maybeSingleMock,
+  createServerClientMock,
+  requireCurrentLegalAcceptanceMock,
+} = vi.hoisted(() => ({
+  getUserMock: vi.fn(),
+  redirectMock: vi.fn(() => {
+    throw new Error("NEXT_REDIRECT");
+  }),
+  maybeSingleMock: vi.fn(),
+  createServerClientMock: vi.fn(),
+  requireCurrentLegalAcceptanceMock: vi.fn(),
+}));
 
 vi.mock("@/lib/supabase/server", () => ({
   createServerClient: createServerClientMock,
 }));
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));
+vi.mock("@/lib/legal-gate", () => ({
+  requireCurrentLegalAcceptance: requireCurrentLegalAcceptanceMock,
+}));
 
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 
@@ -31,6 +40,7 @@ beforeEach(() => {
   getUserMock.mockReset();
   maybeSingleMock.mockReset();
   createServerClientMock.mockReset().mockResolvedValue(fakeSupabase());
+  requireCurrentLegalAcceptanceMock.mockReset().mockResolvedValue(undefined);
 });
 
 describe("getVendorSession", () => {
@@ -38,6 +48,7 @@ describe("getVendorSession", () => {
     getUserMock.mockResolvedValue({ data: { user: null } });
     await expect(getVendorSession()).rejects.toThrow("NEXT_REDIRECT");
     expect(redirectMock).toHaveBeenCalledWith("/login");
+    expect(requireCurrentLegalAcceptanceMock).not.toHaveBeenCalled();
   });
 
   it("returns the session-scoped client and user on a valid session", async () => {
@@ -49,6 +60,27 @@ describe("getVendorSession", () => {
     expect(result.user).toEqual(user);
     expect(result.supabase).toBeTruthy();
     expect(redirectMock).not.toHaveBeenCalled();
+  });
+
+  it("passes the signed-in vendor's email through the legal-acceptance gate", async () => {
+    const user = { id: "u1", email: "vendor@business.sg" };
+    getUserMock.mockResolvedValue({ data: { user } });
+
+    await getVendorSession();
+
+    expect(requireCurrentLegalAcceptanceMock).toHaveBeenCalledWith(
+      "vendor@business.sg",
+    );
+  });
+
+  it("bounces to /legal/accept when the gate redirects (stale acceptance)", async () => {
+    const user = { id: "u1", email: "vendor@business.sg" };
+    getUserMock.mockResolvedValue({ data: { user } });
+    requireCurrentLegalAcceptanceMock.mockRejectedValue(
+      new Error("NEXT_REDIRECT"),
+    );
+
+    await expect(getVendorSession()).rejects.toThrow("NEXT_REDIRECT");
   });
 });
 
