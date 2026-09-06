@@ -133,7 +133,11 @@ subtle at a glance.
 entry point — also redirects a signed-in vendor with a stale terms/privacy
 acceptance to `/legal/accept` before any dashboard page renders. paykit
 owns no acceptance record itself; merqo does (`src/app/legal/README.md`,
-`@merqo/ui` bumped to v0.23.2).
+`@merqo/ui` bumped to v0.24.0). As of `v0.24.0`,
+`TermsAcceptanceCheckbox` no longer collects a typed legal name — just
+the agree checkbox — since a plain ToS/Privacy clickwrap doesn't need a
+signatory name for evidentiary strength beyond the existing acceptance
+record.
 
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
