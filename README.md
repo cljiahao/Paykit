@@ -129,6 +129,12 @@ them to the same color, and two follow-ups that widened the gap further
 (light mode, then dark mode again) after each pass still read as too
 subtle at a glance.
 
+`getVendorSession` (`@/lib/vendor-session`) — paykit's single vendor-gate
+entry point — also redirects a signed-in vendor with a stale terms/privacy
+acceptance to `/legal/accept` before any dashboard page renders. paykit
+owns no acceptance record itself; merqo does (`src/app/legal/README.md`,
+`@merqo/ui` bumped to v0.23.2).
+
 Sign-in (`/login`) supports email+password (with a "Check your email"
 confirmation state and a real forgot-password flow) and Google OAuth. Once
 signed in, a Free-tier vendor can file a real, one-click Pro-upgrade request
