@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-09-06
+
+### Changed
+
+- Dropped the required typed legal-name field from terms/privacy
+  acceptance — a plain ToS/Privacy clickwrap doesn't need a signatory
+  name for evidentiary strength beyond the existing acceptance record
+  merqo keeps (vendor_email, auth_uid, doc_type, doc_version, ip,
+  user_agent, timestamp). `@merqo/ui` bumped to `v0.24.0`
+  (`TermsAcceptanceCheckbox` no longer takes `legalName`/
+  `onLegalNameChange`).
+
 ## [Unreleased]
 
 ### Added
@@ -22,10 +34,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   than past the gate. This is paykit's first kit-to-merqo outbound HTTP call
   (`MERQO_BASE_URL`/`MERQO_CUSTOMER_SECRET` are new env vars — every existing
   merqo-facing secret here gates the opposite, inbound, direction).
-  `@merqo/ui` bumped to `v0.23.1` — `acceptLegalTerms` now forwards the
+  `@merqo/ui` bumped to `v0.23.2` — `acceptLegalTerms` now forwards the
   vendor's submitted `legal_name` and their real `ip`/`user_agent` (read via
   `headers()`) in both `legal-accept` POST bodies, matching merqo's
-  now-required `legal_name` field.
+  now-required `legal_name` field. (`legal_name` was dropped again in
+  `0.1.2` above.)
 
 ### Fixed
 
