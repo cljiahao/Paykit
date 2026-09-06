@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2026-09-07
+
+### Added
+
+- `/about` — a public "Why Merqo" page: `@merqo/ui`'s shared
+  `AboutMerqo` origin story, linked from the landing `Nav` and `Footer`.
+  `@merqo/ui` bumped to `v0.25.0`: a pre-lawyer-review legal-wording pass
+  (no em dashes, PDPA-accurate rights language) and a "← Back" button on
+  every `/legal/*` page.
+
 ## [0.1.2] - 2026-09-06
 
 ### Changed

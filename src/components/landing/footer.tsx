@@ -15,6 +15,9 @@ export function Footer() {
         </Link>
         <span>The Merqo family&apos;s shared vendor payment engine.</span>
         <span className="text-xs">© 2026 paykit · a Merqo kit</span>
+        <Link href="/about" className="hover:text-foreground">
+          About
+        </Link>
         <LegalFooterLinks />
         <Link href="/login" className="hover:text-foreground">
           Vendor sign in →
