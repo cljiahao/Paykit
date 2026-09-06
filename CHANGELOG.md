@@ -22,7 +22,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   than past the gate. This is paykit's first kit-to-merqo outbound HTTP call
   (`MERQO_BASE_URL`/`MERQO_CUSTOMER_SECRET` are new env vars — every existing
   merqo-facing secret here gates the opposite, inbound, direction).
-  `@merqo/ui` bumped to `v0.23.0`.
+  `@merqo/ui` bumped to `v0.23.1` — `acceptLegalTerms` now forwards the
+  vendor's submitted `legal_name` and their real `ip`/`user_agent` (read via
+  `headers()`) in both `legal-accept` POST bodies, matching merqo's
+  now-required `legal_name` field.
 
 ### Fixed
 
