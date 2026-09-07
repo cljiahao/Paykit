@@ -18,6 +18,19 @@ const STATUS_CONFIG: Record<TxStatus, { label: string; className: string }> = {
   },
 };
 
+// Persistent hover hint so the claimed/confirmed distinction doesn't rely on
+// a vendor remembering the one-time tour explanation.
+const STATUS_HINT: Record<TxStatus, string> = {
+  pending: "The customer hasn't tapped \"I've paid\" yet.",
+  claimed:
+    "Customer says they've paid. Check the money actually landed, then confirm it.",
+  confirmed: "You've confirmed the money landed. This can't be undone.",
+};
+
 export function TransactionStatusBadge({ status }: { status: TxStatus }) {
-  return <StatusBadge status={status} config={STATUS_CONFIG} />;
+  return (
+    <span title={STATUS_HINT[status]}>
+      <StatusBadge status={status} config={STATUS_CONFIG} />
+    </span>
+  );
 }
