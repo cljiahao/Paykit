@@ -73,7 +73,10 @@ preview's status pill renders the real `TransactionStatusBadge` component
 on `@merqo/ui`'s shared `StatusBadge` dot+pill shape) instead of
 a hand-copied color, so it can't drift from what the real badge looks like;
 see `../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
-(workspace root, cross-kit spec). The tour now also covers Bookings and
+(workspace root, cross-kit spec). The badge itself now carries a persistent
+hover-hint (`title` attribute) explaining what `claimed`/`confirmed` mean,
+so that distinction survives past the one-time tour. The tour now also
+covers Bookings and
 Earnings, both live nav items that previously had no tour step at all.
 `@merqo/ui`'s `DashboardNav`
 (v0.10.0+) is now wired with `LinkComponent={Link}`

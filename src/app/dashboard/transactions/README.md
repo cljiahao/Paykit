@@ -27,9 +27,13 @@ ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
   its own `text-mint border-mint/35 bg-mint/12` treatment instead of falling
   into a `pending`/`confirmed`-shared tone — it's the one status that
   actually needs the vendor's attention (customer says they've paid, waiting
-  on vendor confirmation), so it shouldn't look inert.
+  on vendor confirmation), so it shouldn't look inert. Wrapped in a `<span
+title=...>` carrying a per-status hover hint (what `claimed` vs
+  `confirmed` actually means) so that distinction doesn't rely solely on a
+  vendor remembering the one-time tour explanation.
 - `transaction-status-badge.test.tsx` — asserts `claimed` gets the mint
-  accent and `pending`/`confirmed` don't.
+  accent and `pending`/`confirmed` don't, and that each status carries its
+  hover-hint text.
 - `refund-dialog.tsx` — Pro-only dialog: calls `issueRefundAction` to file a
   refund against a `confirmed` transaction (bookkeeping only — no real
   money movement, see `AGENTS.md`'s data model). The amount field is
