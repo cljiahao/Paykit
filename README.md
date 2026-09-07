@@ -169,7 +169,10 @@ parity pass.
 
 Event-cart vendors (weddings, private events) can now take a deposit now
 and bill the balance closer to the event instead of one-shot checkout —
-`/dashboard/bookings` (`src/app/dashboard/bookings/README.md`). A booking
+`/dashboard/bookings` (`src/app/dashboard/bookings/README.md`). The
+booking detail page shows the booking's own ID with a one-click copy
+button — the one value a vendor needs to paste into qkit's booth
+settings to link the two, previously only readable from the URL bar. A booking
 links up to two `transactions` rows (deposit, then later balance) by id;
 a Postgres trigger (`sync_booking_status()`,
 `supabase/migrations/0010_paykit_bookings.sql`) keeps `bookings.status`

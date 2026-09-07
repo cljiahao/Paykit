@@ -12,17 +12,25 @@ reschedule, cancel (optionally with a refund), and print a summary. Next
 - `page.tsx` — `BookingDetailPage({params})` (server): `notFound()`s on a
   missing/not-owned booking (RLS already filters `getBooking` — see
   `@/lib/bookings` — to this vendor; a wrong id just reads back `null`),
-  then renders the booking's fields, both linked transactions via
-  `TransactionStatusCard`, `CreateBalanceCheckoutButton` (only once a
-  deposit transaction exists and a balance one doesn't yet),
-  `RescheduleBookingDialog`, and `CancelBookingDialog` (passed both
-  transactions so it can offer a refund field when exactly one is
-  confirmed) — every action hidden once the booking is already
-  `cancelled`.
+  then renders the booking's own ID (with `CopyBookingIdButton`) and
+  fields, both linked transactions via `TransactionStatusCard`,
+  `CreateBalanceCheckoutButton` (only once a deposit transaction exists
+  and a balance one doesn't yet), `RescheduleBookingDialog`, and
+  `CancelBookingDialog` (passed both transactions so it can offer a
+  refund field when exactly one is confirmed) — every action hidden once
+  the booking is already `cancelled`.
 - `page.dom.test.tsx` — the 404 path (mocks `next/navigation`'s
   `notFound` to throw, same pattern as `src/lib/admin.test.ts`), field
-  rendering, and every action-visibility branch (balance-checkout
-  eligibility, cancelled hides every action).
+  rendering (including the booking ID and its copy button), and every
+  action-visibility branch (balance-checkout eligibility, cancelled hides
+  every action).
+- `copy-booking-id-button.tsx` — one-click `navigator.clipboard` copy of
+  the raw booking ID, with a toast on success. Added since the ID
+  previously had no UI surface at all (only readable from the URL bar),
+  the one manual value a vendor needs to paste into qkit's booth settings
+  to link a booking to a booth.
+- `copy-booking-id-button.dom.test.tsx` — copies to the clipboard and
+  toasts.
 - `transaction-status-card.tsx` — one linked transaction's status badge
   (same `claimed` mint treatment as `transactions/transaction-table.tsx`),
   amount, and its `qr_payload` rendered as a QR (`qr-code-view.tsx`) — or

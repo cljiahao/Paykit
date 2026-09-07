@@ -9,6 +9,7 @@ import { CreateBalanceCheckoutButton } from "./create-balance-checkout-button";
 import { CancelBookingDialog } from "./cancel-booking-dialog";
 import { RescheduleBookingDialog } from "./reschedule-booking-dialog";
 import { PrintBookingButton } from "./print-booking-button";
+import { CopyBookingIdButton } from "./copy-booking-id-button";
 
 export default async function BookingDetailPage({
   params,
@@ -56,6 +57,16 @@ export default async function BookingDetailPage({
 
       <div className="rounded-xl border p-4 text-sm">
         <dl className="grid grid-cols-2 gap-y-2">
+          <dt className="text-muted-foreground">Booking ID</dt>
+          <dd className="flex items-center gap-2">
+            <code
+              className="truncate font-mono text-xs text-muted-foreground"
+              title={booking.id}
+            >
+              {booking.id}
+            </code>
+            <CopyBookingIdButton bookingId={booking.id} />
+          </dd>
           <dt className="text-muted-foreground">Customer phone</dt>
           <dd>{booking.customer_phone ?? "—"}</dd>
           <dt className="text-muted-foreground">Total</dt>
@@ -67,6 +78,10 @@ export default async function BookingDetailPage({
           <dt className="text-muted-foreground">Balance due</dt>
           <dd>{formatDate(booking.balance_due_date)}</dd>
         </dl>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Paste the Booking ID above into a qkit event booth&rsquo;s settings to
+          show this booking&rsquo;s live deposit/balance status there.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

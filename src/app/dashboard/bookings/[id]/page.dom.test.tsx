@@ -92,6 +92,10 @@ describe("BookingDetailPage", () => {
     expect(screen.getByText("confirmed")).toBeInTheDocument();
     expect(screen.getByText("Not yet created.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /print/i })).toBeInTheDocument();
+    expect(screen.getByText("b1")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /copy booking id/i }),
+    ).toBeInTheDocument();
   });
 
   it("offers Create balance checkout once the deposit exists and balance doesn't yet", async () => {
