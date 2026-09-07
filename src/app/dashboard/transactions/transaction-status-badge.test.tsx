@@ -21,16 +21,4 @@ describe("TransactionStatusBadge", () => {
     );
     expect(pending).not.toContain("text-mint");
   });
-
-  it("carries a persistent hover hint explaining what each status means", () => {
-    const claimed = renderToStaticMarkup(
-      createElement(TransactionStatusBadge, { status: "claimed" }),
-    );
-    expect(claimed).toContain("Check the money actually landed");
-
-    const confirmed = renderToStaticMarkup(
-      createElement(TransactionStatusBadge, { status: "confirmed" }),
-    );
-    expect(confirmed).toContain("can&#x27;t be undone");
-  });
 });

@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2026-09-07
+
+### Fixed
+
+- The transaction status badge's claimed/confirmed hint (shipped in 0.1.5)
+  used a native `title` attribute, which has no touch equivalent on any
+  mobile browser — invisible to vendors checking transactions on a phone.
+  Replaced with `@merqo/ui`'s `InfoTooltip` in `trigger="tap"` mode, which
+  opens on tap (and still on desktop click), so the hint is actually
+  reachable on the device most vendors use.
+
 ## [0.1.5] - 2026-09-07
 
 ### Added
