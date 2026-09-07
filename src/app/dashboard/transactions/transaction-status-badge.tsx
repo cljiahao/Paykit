@@ -1,4 +1,4 @@
-import { StatusBadge } from "@merqo/ui";
+import { InfoTooltip, StatusBadge } from "@merqo/ui";
 import type { TxStatus } from "@/lib/types";
 
 // `claimed` keeps the brand mint accent — it's the one status needing the
@@ -18,8 +18,7 @@ const STATUS_CONFIG: Record<TxStatus, { label: string; className: string }> = {
   },
 };
 
-// Persistent hover hint so the claimed/confirmed distinction doesn't rely on
-// a vendor remembering the one-time tour explanation.
+// trigger="tap" (not InfoTooltip's "hover" default): hover has no touch equivalent, and vendors mostly check this on a phone.
 const STATUS_HINT: Record<TxStatus, string> = {
   pending: "The customer hasn't tapped \"I've paid\" yet.",
   claimed:
@@ -29,8 +28,13 @@ const STATUS_HINT: Record<TxStatus, string> = {
 
 export function TransactionStatusBadge({ status }: { status: TxStatus }) {
   return (
-    <span title={STATUS_HINT[status]}>
+    <span className="inline-flex items-center gap-1">
       <StatusBadge status={status} config={STATUS_CONFIG} />
+      <InfoTooltip
+        content={STATUS_HINT[status]}
+        ariaLabel={`What "${status}" means`}
+        trigger="tap"
+      />
     </span>
   );
 }
