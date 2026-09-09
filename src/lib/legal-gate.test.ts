@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { LEGAL_VERSIONS } from "@merqo/ui";
+import { LEGAL_VERSIONS } from "@merqo/ui/legal";
 
 vi.mock("@/lib/supabase/server", () => ({ createServiceClient: vi.fn() }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
