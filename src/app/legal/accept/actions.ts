@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { createServerClient, createServiceClient } from "@/lib/supabase/server";
 import { safeRedirectPath } from "@/lib/safe-redirect";
 import { clientIp } from "@/lib/rate-limit";
-import { getLegalDocSource, LEGAL_VERSIONS } from "@merqo/ui";
+import { getLegalDocSource, LEGAL_VERSIONS } from "@merqo/ui/legal";
 
 const DOC_TYPES = ["terms", "privacy"] as const;
 
@@ -15,7 +15,7 @@ function sha256(input: string): string {
 }
 
 function merqoBaseUrl(): string {
-  return process.env.MERQO_BASE_URL ?? "https://merqo-sg.vercel.app";
+  return process.env.MERQO_BASE_URL ?? "https://www.merqo.io";
 }
 
 /**
