@@ -130,9 +130,10 @@ app in `next-themes`' `ThemeProvider`, which `@merqo/ui`'s always-on
 account-menu Light/Dark/System control drives. See `CHANGELOG.md` for the
 latest changes, including a fix restoring card/background contrast in
 both modes after the Banknote Engrave rebrand had accidentally collapsed
-them to the same color, and two follow-ups that widened the gap further
+them to the same color, two follow-ups that widened the gap further
 (light mode, then dark mode again) after each pass still read as too
-subtle at a glance.
+subtle at a glance, and a security bump of `next` to `16.3.4` plus
+`browserslist` to `4.28.9`.
 
 `getVendorSession` (`@/lib/vendor-session`) — paykit's single vendor-gate
 entry point — also redirects a signed-in vendor with a stale terms/privacy
