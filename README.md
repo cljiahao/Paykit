@@ -132,8 +132,8 @@ latest changes, including a fix restoring card/background contrast in
 both modes after the Banknote Engrave rebrand had accidentally collapsed
 them to the same color, two follow-ups that widened the gap further
 (light mode, then dark mode again) after each pass still read as too
-subtle at a glance, and a security bump of `next` to `16.3.4` plus
-`browserslist` to `4.28.9`.
+subtle at a glance, and security bumps of `next` to `16.3.4`,
+`browserslist` to `4.28.9`, and `vitest` to `4.1.11`.
 
 `getVendorSession` (`@/lib/vendor-session`) — paykit's single vendor-gate
 entry point — also redirects a signed-in vendor with a stale terms/privacy
