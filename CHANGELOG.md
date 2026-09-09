@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-09-09
+
+### Security
+
+- Bumped `vitest` and `@vitest/coverage-v8` to `4.1.11` (from `3.2.6`).
+  Clears GHSA-82fw-gwwq-j7x9 (`@vitest/mocker` path traversal / arbitrary
+  file read, patched only in `4.1.11`). Also `fast-uri` to `4.1.4`, the `qs`
+  override to `>=6.16.0`, and `baseline-browser-mapping` to `2.11.21`,
+  clearing four high and three moderate advisories reaching in through
+  `@stryker-mutator` and `@sentry/nextjs`. The dependency audit is now clean
+  at every level. No test or config changes were needed for vitest 4.
+
 ## [0.1.7] - 2026-09-09
 
 ### Security
