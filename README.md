@@ -206,6 +206,11 @@ id (they created it here) can read its live status read-only via
 trust model as every other `/api/v1/*` route — see
 `src/app/api/v1/bookings/[booking_id]/README.md`.
 
+`@merqo/ui` bumped to v0.27.0 (2026-09-15), which adds `DashboardTours` — a
+route-matched multi-tour router for kits with more than one dashboard-page
+tour (qkit's first consumer); purely additive, this kit's own `DashboardTour`
+usage is unchanged.
+
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`
 for what's shipped since the MVP, including the "Name | Tagline" Title Case
