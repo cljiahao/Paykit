@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
 import { resolvePlanView } from "@/lib/plan-view";
 import { getPricing } from "@/lib/pricing";
-import { BackButton } from "@/components/back-button";
+import { BackButton } from "@merqo/ui";
 import { UpgradeCta } from "./upgrade-cta";
 
 export const revalidate = 0;
@@ -20,7 +21,7 @@ export default async function PlanPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <BackButton href="/dashboard" label="Dashboard" />
+        <BackButton href="/dashboard" label="Dashboard" LinkComponent={Link} />
       </div>
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">

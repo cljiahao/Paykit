@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] - 2026-09-16
+
+### Changed
+
+- `BackButton`, `ElevatedCard`, and the landing `Footer` now come from
+  `@merqo/ui` (bumped to v0.29.1) instead of a paykit-local copy — each
+  was confirmed byte-for-byte or structurally identical to qkit's/
+  loopkit's copies before promoting. `SOCIAL_LINK_FIELDS`/
+  `SocialLinksFields` stay local: paykit's own version deliberately uses
+  plain lucide glyphs instead of `@merqo/ui`'s brand-mark icons (a real,
+  documented design choice, not drift), so it wasn't migrated.
+
 ## [0.1.8] - 2026-09-09
 
 ### Security

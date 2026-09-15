@@ -7,7 +7,7 @@ import {
 } from "@/lib/admin-data";
 import { Stat } from "@/app/admin/stat";
 import { Badge } from "@/components/ui/badge";
-import { ElevatedCard } from "@/components/elevated-card";
+import { ElevatedCard } from "@merqo/ui";
 import { formatCents, pctChange } from "@/lib/utils";
 import { PricingSection } from "./pricing-section";
 

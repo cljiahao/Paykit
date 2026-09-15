@@ -28,7 +28,7 @@ route; mode is a client-side toggle on this one page.
     separate reset-password page needed.
   - `Wordmark` (`@/components/landing/wordmark`) and `GoogleMark`
     (`./google-mark`) brand the card; the card container is `ElevatedCard`
-    (`@/components/elevated-card`), matching every other kit's login page.
+    (`@merqo/ui`), matching every other kit's login page.
 - `google-mark.tsx` — `GoogleMark`: the Google "G" icon SVG, extracted out
   of `page.tsx` so it matches the shared component used across every kit's
   login page.
