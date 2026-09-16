@@ -11,7 +11,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    testTimeout: 10000,
+    // Bumped from 10s: under heavy concurrent load a real test occasionally
+    // exceeds it (Test timed out in 10000ms) with no logic change on its
+    // part, and a test that times out skips its own afterEach cleanup,
+    // leaking a stale render into whatever runs next in the same file.
+    testTimeout: 30000,
     env: {
       NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "test-publishable-anon-key",
