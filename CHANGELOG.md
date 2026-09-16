@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2026-09-16
+
+### Fixed
+
+- `/legal/terms` now shows only paykit's own Annex schedule, not every
+  sibling kit's, via `@merqo/ui`'s new per-kit `getLegalDocSource`/
+  `LegalDocument` scoping. `legal/accept/actions.ts`'s recorded
+  `doc_sha256` now hashes that same scoped content.
+
+### Changed
+
+- Bumped `@merqo/ui` to `v0.30.0`.
+
 ## [0.1.9] - 2026-09-16
 
 ### Changed
