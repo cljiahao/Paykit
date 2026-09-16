@@ -102,7 +102,7 @@ are pinned exact at `16.2.12` (not `^16.2.12`) — `16.3.1`'s Turbopack build
 stops emitting `.next/next-server.js.nft.json`, which breaks every Vercel
 deploy; revisit the pin once that's fixed upstream. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.29.1, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.29.3, `package.json`;
 kit-family consistency; `BackButton`, `ElevatedCard`, and the landing
 `Footer` joined the shared package 2026-09-16, each confirmed byte-for-byte
 or structurally identical to the other kits' copies before promoting;
@@ -212,6 +212,10 @@ trust model as every other `/api/v1/*` route — see
 route-matched multi-tour router for kits with more than one dashboard-page
 tour (qkit's first consumer); purely additive, this kit's own `DashboardTour`
 usage is unchanged.
+
+`@merqo/ui` bumped to v0.29.3 (2026-09-16) — a radix-ui lockfile re-resolve
+(v0.29.2's caret-range fix alone didn't move a sticky lockfile); no
+consumer-facing change.
 
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`
