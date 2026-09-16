@@ -9,10 +9,6 @@ sits flat here.
 
 ## Contents
 
-- `back-button.tsx` — `BackButton({ href, label })`: a shadcn
-  `Button asChild variant="ghost"` + `ArrowLeft` "leave this page" link,
-  ported from qkit. Used in place of a plain underlined `<Link>` so the
-  back-to-dashboard nav is a real hit target with hover/focus state.
 - `dashboard-tour.tsx` — `DashboardTour({ seen })`: paykit's thin wiring
   around `@merqo/ui`'s `DashboardTour` — supplies this kit's own step
   content (`tourSteps`), mark-seen server action (`markTourSeen`), and
@@ -39,11 +35,13 @@ sits flat here.
   (workspace root, cross-kit). Also covers Bookings and Earnings, both
   live nav items that had no tour step until 2026-08-25.
 - `tour-steps.test.ts` — unit tests asserting the mobile/desktop step lists.
-- `elevated-card.tsx` — `ElevatedCard({ as, className, children })`: the
-  shared raised-card container (rounded, bordered, soft shadow) used by the
-  login page, matching every other kit's login page.
 - `social-icons.tsx` — `SOCIAL_LINK_FIELDS`: the website/Instagram/
-  Facebook/TikTok field list (plain lucide glyphs, not brand-mark icons).
+  Facebook/TikTok field list (plain lucide glyphs, not brand-mark icons —
+  deliberately not `@merqo/ui`'s own version of this, which uses
+  `@icons-pack/react-simple-icons` brand marks; paykit doesn't carry that
+  dependency and these are a secondary, low-emphasis field here, not worth
+  adding one for. `BackButton` and `ElevatedCard` were promoted to
+  `@merqo/ui` 2026-09-16 since those two had no such divergence).
 - `social-links-fields.tsx` — the input-field group rendering
   `SOCIAL_LINK_FIELDS` for the profile settings page.
 

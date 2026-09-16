@@ -24,7 +24,7 @@ name/password). Built per the cross-kit
   user and are set client-side via `supabase.auth.updateUser`.
 - `page.tsx` — `ProfilePage()` (server, `revalidate = 0`): calls
   `getVendorSession()`, reads `display_name`/`avatar_url` defensively off
-  `user.user_metadata`, renders `BackButton` (`@/components/back-button`,
+  `user.user_metadata`, renders `BackButton` (`@merqo/ui`,
   replacing an earlier plain underlined `<Link>`) back to `/dashboard`, and
   renders `ProfileForm` with the vendor's id, stall name, display name,
   email, avatar URL, and social links. Content sits in a plain

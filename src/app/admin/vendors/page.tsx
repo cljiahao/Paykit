@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/admin";
 import { listVendors } from "@/lib/admin-data";
-import { ElevatedCard } from "@/components/elevated-card";
+import { ElevatedCard } from "@merqo/ui";
 import { VendorsTable } from "@/app/admin/vendors/vendors-table";
 
 export const revalidate = 0;
