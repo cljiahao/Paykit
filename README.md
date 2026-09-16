@@ -102,12 +102,17 @@ are pinned exact at `16.2.12` (not `^16.2.12`) — `16.3.1`'s Turbopack build
 stops emitting `.next/next-server.js.nft.json`, which breaks every Vercel
 deploy; revisit the pin once that's fixed upstream. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.29.3, `package.json`;
+now delegate to the shared `@merqo/ui` package (v0.30.0, `package.json`;
 kit-family consistency; `BackButton`, `ElevatedCard`, and the landing
 `Footer` joined the shared package 2026-09-16, each confirmed byte-for-byte
 or structurally identical to the other kits' copies before promoting;
 paykit keeps its own wordmark, nav links, tier badge, and feedback/support
-wiring as thin adapters over the shared components). The earnings report's
+wiring as thin adapters over the shared components). `/legal/terms` now
+renders only paykit's own Annex schedule
+(`<LegalDocument doc="terms" kit="paykit" />`), not every sibling kit's —
+previously every kit's `/legal/terms` page showed the full multi-kit annex
+since none passed kit context. `legal/accept/actions.ts`'s recorded
+`doc_sha256` hashes that same scoped content. The earnings report's
 month/line tables and the admin vendors table now render via `@merqo/ui`'s
 shared `DataTable` instead of a hand-rolled `<table>`/shadcn `Table` — same
 columns and cell content, just the shared shell. Because `DataTable` ships
