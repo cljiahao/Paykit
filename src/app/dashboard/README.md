@@ -78,7 +78,7 @@ page.tsx`/`stats/page.tsx`'s title-plus-cards structure, not a generic
 - `error.tsx` — error boundary (`"use client"`) for every `/dashboard/*`
   page's render/data errors (never its own `layout.tsx`'s — error
   boundaries don't catch errors from their own segment's layout). Branded
-  like `login/page.tsx` (`ElevatedCard` + `Wordmark`), with a "Try again"
+  like `login/page.tsx` (`@merqo/ui`'s `ElevatedCard` + `Wordmark`), with a "Try again"
   button calling `reset()`.
 - `dashboard-nav.dom.test.tsx` — RTL/jsdom tests: the inline links render
   with correct hrefs, the account-menu item order, that Sign out is a

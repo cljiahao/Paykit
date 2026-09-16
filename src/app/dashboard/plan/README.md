@@ -25,7 +25,9 @@ upgrade request comes in.
   Content sits in a plain `mx-auto max-w-2xl` div (not `<main>` — the parent
   `dashboard/layout.tsx` owns that landmark and the page-family's canonical
   `max-w-7xl` outer width); the plan card + feature list read better
-  narrower than the full dashboard width.
+  narrower than the full dashboard width. The "Dashboard" back-nav button is
+  `@merqo/ui`'s `BackButton`, passed `LinkComponent={Link}` for a
+  client-side transition (the shared component defaults to a plain `<a>`).
 - `upgrade-cta.tsx` — `UpgradeCta`: client component, "Ask us to upgrade to
   Pro" button. Calls `requestProUpgradeAction()` (`@/app/actions/plan`) in a
   transition and toasts success/failure — mirrors qkit's `UpgradeCta`
