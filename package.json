@@ -1,6 +1,6 @@
 {
   "name": "paykit",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": true,
   "packageManager": "pnpm@11.5.2",
   "engines": {
@@ -19,7 +19,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@merqo/ui": "github:cljiahao/merqo-ui#v0.29.3",
+    "@merqo/ui": "github:cljiahao/merqo-ui#v0.30.0",
     "@sentry/nextjs": "10.71.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.48.0",
