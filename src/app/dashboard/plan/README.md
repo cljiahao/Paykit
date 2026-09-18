@@ -26,8 +26,12 @@ upgrade request comes in.
   `dashboard/layout.tsx` owns that landmark and the page-family's canonical
   `max-w-7xl` outer width); the plan card + feature list read better
   narrower than the full dashboard width. The "Dashboard" back-nav button is
-  `@merqo/ui`'s `BackButton`, passed `LinkComponent={Link}` for a
-  client-side transition (the shared component defaults to a plain `<a>`).
+  `@merqo/ui`'s `BackButton`, rendered with no `LinkComponent` (defaults to
+  a plain `<a>` tag) — `LinkComponent={Link}` was removed 2026-09-19:
+  `@merqo/ui` ships package-wide `"use client"`, so passing a component
+  reference into it as a prop from this Server Component 500'd in
+  production (invisible to `next build`/jsdom tests; same bug class
+  already fixed in the sibling qkit repo, PRs #159/#160).
 - `upgrade-cta.tsx` — `UpgradeCta`: client component, "Ask us to upgrade to
   Pro" button. Calls `requestProUpgradeAction()` (`@/app/actions/plan`) in a
   transition and toasts success/failure — mirrors qkit's `UpgradeCta`
