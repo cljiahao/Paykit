@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- `/dashboard/plan`, `/dashboard/profile`, and `/dashboard/reports/earnings`
+  no longer 500. All three are Server Components that passed a function prop
+  into a `@merqo/ui` component — `LinkComponent={Link}` on `BackButton` for
+  the first two, `DataTable`'s `columns[].cell`/`getRowKey` on the earnings
+  report. `@merqo/ui` is client-bannered package-wide, so those props
+  crossed the Server → Client boundary, which Next rejects at render.
+  `BackButton`'s `LinkComponent` is optional (plain `<a>` fallback) so it's
+  dropped; the earnings tables moved into a new `earnings-tables.tsx`
+  `"use client"` wrapper taking plain rows and building its own columns,
+  mirroring `admin/vendors/vendors-table.tsx`. Same root cause as qkit's
+  own production outage.
+
 ## [0.1.10] - 2026-09-16
 
 ### Fixed

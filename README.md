@@ -222,6 +222,21 @@ usage is unchanged.
 (v0.29.2's caret-range fix alone didn't move a sticky lockfile); no
 consumer-facing change.
 
+Every `@merqo/ui` component ships as a Client Component, so a Server
+Component may pass it only serializable props — never a function, and
+never a component reference such as `LinkComponent={Link}`. Both forms
+crash at render with `Functions cannot be passed directly to Client
+Components`, and because the crash happens at request time on a dynamic
+route, `next build` does not catch it. The fix is one of two shapes: drop
+the optional prop and let the component's own fallback render (this is
+what `BackButton` on `/dashboard/plan` and `/dashboard/profile` now
+does), or move the props into a `"use client"` wrapper that owns them
+(`reports/earnings/earnings-tables.tsx` for `DataTable`'s `cell`/
+`getRowKey`, matching the existing `admin/vendors` `VendorsTable`).
+The full incident writeup lives in qkit at
+`docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
+`../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
+
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`
 for what's shipped since the MVP, including the "Name | Tagline" Title Case

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getVendorSession, getVendorPlan } from "@/lib/vendor-session";
 import { txCountThisMonth } from "@/lib/transactions";
 import { resolvePlanView } from "@/lib/plan-view";
@@ -21,7 +20,7 @@ export default async function PlanPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <BackButton href="/dashboard" label="Dashboard" LinkComponent={Link} />
+        <BackButton href="/dashboard" label="Dashboard" />
       </div>
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">

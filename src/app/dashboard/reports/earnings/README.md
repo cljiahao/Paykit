@@ -26,7 +26,17 @@ being silently dropped.
   renders `buildEarningsReport()`'s (`@/lib/earnings-report`) result — a
   total-revenue tile, a 12-month table, a per-booking-or-checkout line
   table (hidden when empty), prev/next-year links, and `DownloadCsvButton`.
-  Both tables render via `@merqo/ui`'s shared `DataTable`.
+  Both tables render via `earnings-tables.tsx`'s wrapper components, passed
+  plain row data, not `@merqo/ui`'s `DataTable` directly.
+- `earnings-tables.tsx` — `"use client"` wrapper, `EarningsMonthsTable`/
+  `EarningsLinesTable`, added 2026-09-19: builds the `DataTableColumn`
+  `cell`/`getRowKey` callbacks and renders `@merqo/ui`'s `DataTable`
+  internally. `page.tsx` can't pass those callbacks to `DataTable` itself —
+  `@merqo/ui` ships package-wide `"use client"`, so a function prop crossing
+  straight from this Server Component 500'd in production (invisible to
+  `next build`/jsdom tests). Mirrors `admin/vendors/vendors-table.tsx`'s
+  existing wrapper pattern; same bug class already fixed in the sibling
+  qkit repo (PRs #159/#160).
 - `download-csv-button.tsx` — `DownloadCsvButton({report})`, client:
   builds the CSV via `@/lib/earnings-csv`'s `earningsReportToCsv()`
   entirely client-side (the report data is already on the page, non-secret,
