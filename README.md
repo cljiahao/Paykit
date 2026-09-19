@@ -222,14 +222,28 @@ usage is unchanged.
 (v0.29.2's caret-range fix alone didn't move a sticky lockfile); no
 consumer-facing change.
 
+Every `@merqo/ui` component ships as a Client Component, so a Server
+Component may pass it only serializable props — never a function, and
+never a component reference such as `LinkComponent={Link}`. Both forms
+crash at render with `Functions cannot be passed directly to Client
+Components`, and because the crash happens at request time on a dynamic
+route, `next build` does not catch it. The fix is one of two shapes: drop
+the optional prop and let the component's own fallback render (this is
+what `BackButton` on `/dashboard/plan` and `/dashboard/profile` now
+does), or move the props into a `"use client"` wrapper that owns them
+(`reports/earnings/earnings-tables.tsx` for `DataTable`'s `cell`/
+`getRowKey`, matching the existing `admin/vendors` `VendorsTable`).
+The full incident writeup lives in qkit at
+`docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
+`../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
+
 The booking detail page's deposit/balance QR codes render through
 `@merqo/ui`'s shared `qrSvg`, generated server-side and passed down as a
 plain markup string, so `react-qr-code` no longer ships to the browser on
 that route. `react-qr-code` remains a dependency for
 `dashboard/config/payment-config-form.tsx`, whose preview payload is
 derived live from form state — `qrSvg` is async and server-only, so the
-two are complements rather than replacements. Which kit uses which
-`@merqo/ui` export is tracked in `../merqo-ui/docs/usage-matrix.md`.
+two are complements rather than replacements.
 
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`

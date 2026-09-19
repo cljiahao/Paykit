@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getVendorSession } from "@/lib/vendor-session";
 import { getOrCreateVendorProfile } from "@/lib/merqo-vendor-profile";
 import { BackButton } from "@merqo/ui";
@@ -24,7 +23,7 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 md:max-w-4xl">
       <div>
-        <BackButton href="/dashboard" label="Dashboard" LinkComponent={Link} />
+        <BackButton href="/dashboard" label="Dashboard" />
       </div>
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">

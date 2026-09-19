@@ -24,8 +24,12 @@ name/password). Built per the cross-kit
   user and are set client-side via `supabase.auth.updateUser`.
 - `page.tsx` — `ProfilePage()` (server, `revalidate = 0`): calls
   `getVendorSession()`, reads `display_name`/`avatar_url` defensively off
-  `user.user_metadata`, renders `BackButton` (`@merqo/ui`,
-  replacing an earlier plain underlined `<Link>`) back to `/dashboard`, and
+  `user.user_metadata`, renders `BackButton` (`@merqo/ui`, no
+  `LinkComponent` — defaults to a plain `<a>` tag; a `LinkComponent={Link}`
+  prop was removed 2026-09-19, since `@merqo/ui` ships package-wide
+  `"use client"` and passing a component reference into it from this
+  Server Component 500'd in production, same bug class already fixed in
+  the sibling qkit repo) back to `/dashboard`, and
   renders `ProfileForm` with the vendor's id, stall name, display name,
   email, avatar URL, and social links. Content sits in a plain
   `mx-auto max-w-2xl md:max-w-4xl` div (not `<main>` — the parent
