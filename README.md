@@ -237,6 +237,14 @@ The full incident writeup lives in qkit at
 `docs/meta/2026-09-18-social-links-backbutton-rsc-crash-aar.md`, and
 `../merqo-ui/docs/usage-matrix.md` records which kit uses which export.
 
+The booking detail page's deposit/balance QR codes render through
+`@merqo/ui`'s shared `qrSvg`, generated server-side and passed down as a
+plain markup string, so `react-qr-code` no longer ships to the browser on
+that route. `react-qr-code` remains a dependency for
+`dashboard/config/payment-config-form.tsx`, whose preview payload is
+derived live from form state — `qrSvg` is async and server-only, so the
+two are complements rather than replacements.
+
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`
 for what's shipped since the MVP, including the "Name | Tagline" Title Case

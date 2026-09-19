@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCents } from "@/lib/utils";
-import { QrCodeView } from "./qr-code-view";
 import type { Transaction, TxStatus } from "@/lib/types";
 
 // Same treatment as `dashboard/transactions/transaction-table.tsx` — `claimed`
@@ -9,12 +8,17 @@ const STATUS_BADGE_CLASS: Partial<Record<TxStatus, string>> = {
   claimed: "bg-mint/15 text-mint ring-1 ring-mint/30",
 };
 
+// `qrMarkup` is rendered by the (server) page via @merqo/ui's `qrSvg` and
+// passed down as a plain string, rather than generated here: `qrSvg` is
+// async, and an async child cannot be rendered by this page's jsdom test.
 export function TransactionStatusCard({
   label,
   transaction,
+  qrMarkup,
 }: {
   label: string;
   transaction: Transaction | null;
+  qrMarkup: string | null;
 }) {
   return (
     <div className="rounded-xl border p-4">
@@ -38,9 +42,10 @@ export function TransactionStatusCard({
               {formatCents(transaction.amount_cents)}
             </span>
           </div>
-          <div className="mt-3">
-            <QrCodeView value={transaction.qr_payload} />
-          </div>
+          <div
+            className="mt-3 w-40 [&_svg]:h-auto [&_svg]:w-full"
+            dangerouslySetInnerHTML={{ __html: qrMarkup ?? "" }}
+          />
         </>
       )}
     </div>

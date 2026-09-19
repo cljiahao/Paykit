@@ -33,17 +33,21 @@ reschedule, cancel (optionally with a refund), and print a summary. Next
   toasts.
 - `transaction-status-card.tsx` — one linked transaction's status badge
   (same `claimed` mint treatment as `transactions/transaction-table.tsx`),
-  amount, and its `qr_payload` rendered as a QR (`qr-code-view.tsx`) — or
-  "Not yet created." before the balance checkout exists. `qr_payload`
+  amount, and its `qr_payload` rendered as a QR — or
+  "Not yet created." before the balance checkout exists. The card is an
+  `async` Server Component: it `await`s `@merqo/ui`'s shared `qrSvg` and
+  embeds the returned markup, rather than shipping `react-qr-code` to the
+  browser through a client wrapper (which is what `qr-code-view.tsx` used
+  to do, deleted 2026-09-19). `qrSvg` is async and server-only, so this
+  only works where the encoded value is known at render time;
+  `config/payment-config-form.tsx` still needs `react-qr-code` because
+  its preview payload is derived live from form state. `qr_payload`
   isn't tagged with a checkout `type` in the DB, so this always renders it
   as a QR; for a `pointer`-kind BYO vendor using a payment **link** that
   still scans fine (opens the link), a BYO **QR image** vendor is the one
   real degraded case (an image URL re-encoded as a QR instead of shown as
   the image) — accepted for this round rather than widening
   `transactions`' schema to persist `type`.
-- `qr-code-view.tsx` — thin `"use client"` wrapper around `react-qr-code`'s
-  `QRCode`, same reason `config/payment-config-form.tsx` needs one: kept
-  out of the (server) detail page itself.
 - `create-balance-checkout-button.tsx` — direct-call client action
   (`useTransition`, same shape as `plan/upgrade-cta.tsx`) wiring
   `createBalanceCheckoutAction` to a toast/error.
