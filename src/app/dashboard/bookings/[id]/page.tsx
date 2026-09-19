@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { qrSvg } from "@merqo/ui";
 import { getVendorSession } from "@/lib/vendor-session";
 import { getBooking } from "@/lib/bookings";
 import { getTransaction } from "@/lib/transactions";
@@ -28,6 +29,11 @@ export default async function BookingDetailPage({
     booking.balance_transaction_id
       ? getTransaction(user.id, booking.balance_transaction_id)
       : Promise.resolve(null),
+  ]);
+
+  const [depositQr, balanceQr] = await Promise.all([
+    depositTx ? qrSvg(depositTx.qr_payload) : Promise.resolve(null),
+    balanceTx ? qrSvg(balanceTx.qr_payload) : Promise.resolve(null),
   ]);
 
   const canCreateBalanceCheckout =
@@ -85,8 +91,16 @@ export default async function BookingDetailPage({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <TransactionStatusCard label="Deposit" transaction={depositTx} />
-        <TransactionStatusCard label="Balance" transaction={balanceTx} />
+        <TransactionStatusCard
+          label="Deposit"
+          transaction={depositTx}
+          qrMarkup={depositQr}
+        />
+        <TransactionStatusCard
+          label="Balance"
+          transaction={balanceTx}
+          qrMarkup={balanceQr}
+        />
       </div>
 
       {booking.status !== "cancelled" && (

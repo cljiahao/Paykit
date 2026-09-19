@@ -83,11 +83,15 @@ describe("BookingDetailPage", () => {
     const jsx = await BookingDetailPage({
       params: Promise.resolve({ id: "b1" }),
     });
-    render(jsx);
+    const { container } = render(jsx);
 
     expect(
       screen.getByRole("heading", { name: "Jane Tan" }),
     ).toBeInTheDocument();
+    // The deposit's qr_payload is rendered server-side by @merqo/ui's qrSvg
+    // and embedded as markup; the balance transaction has none yet, so
+    // exactly one QR should be present.
+    expect(container.querySelectorAll("svg[shape-rendering]")).toHaveLength(1);
     expect(screen.getByText("Deposit paid")).toBeInTheDocument();
     expect(screen.getByText("confirmed")).toBeInTheDocument();
     expect(screen.getByText("Not yet created.")).toBeInTheDocument();

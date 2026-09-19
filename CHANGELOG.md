@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- The booking detail page's deposit/balance QR codes now render through
+  `@merqo/ui`'s shared `qrSvg` instead of a `"use client"` wrapper around
+  `react-qr-code`. The page generates the markup server-side and passes it
+  down as a plain string, so `react-qr-code` no longer ships to the browser
+  on this route and `qr-code-view.tsx` is deleted. `react-qr-code` stays a
+  dependency: `qrSvg` is async and server-only, so it cannot replace the QR
+  in `dashboard/config/payment-config-form.tsx`, whose preview payload is
+  derived live from form state. See `../merqo-ui/docs/usage-matrix.md`.
+
 ## [0.1.10] - 2026-09-16
 
 ### Fixed
