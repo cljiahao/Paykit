@@ -36,6 +36,10 @@ page. `layout.tsx` is the ancestor of every route below; `page.tsx` (the
 landing page) is the only route directly under `app/` besides the special
 Next.js files.
 
+## Shared package note
+
+`page.tsx` now imports `BackToTop` from `@merqo/ui` (v0.31.0) rather than a paykit-local copy.
+
 ## Parent
 
 [src](../README.md)

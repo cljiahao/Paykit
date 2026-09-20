@@ -78,3 +78,7 @@ through `@merqo/ui`'s `ImageUploader`, wired via
 `@/lib/image-upload-adapter`'s `uploadPaykitImage`, which writes to the
 shared `vendor-images` Storage bucket (project-wide, not paykit-local — see
 `docs/DEPLOY.md`).
+
+## Shared package note
+
+The avatar upload's resize step now calls `@merqo/ui`'s `resizeToWebp` (v0.31.0), and the social-link inputs use its shared `SocialLinksFields` (brand-mark icons, replacing paykit's local lucide-glyph copy). v0.31.1 also fixes a latent `resizeToWebp` bug: a filename with no dot used to yield the whole name as its extension.

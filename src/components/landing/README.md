@@ -70,6 +70,10 @@ Assembled by `src/app/page.tsx` in the order listed above (nav → hero →
 benefits → how-it-works → faq → closing-cta → footer → back-to-top).
 `wordmark.tsx` is also used by `dashboard-nav.tsx` outside this folder.
 
+## Shared package note
+
+`back-to-top.tsx` moved to `@merqo/ui` (v0.31.0) as `BackToTop` — it was byte-identical across four kits.
+
 ## Parent
 
 [components](../README.md)

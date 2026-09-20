@@ -88,6 +88,10 @@ call into `actions.ts`, which calls `@/lib/checkout`'s `createCheckout` (the
 same function `POST /api/v1/checkout` uses) and `@/lib/bookings`/`@/lib/
 transactions` for reads.
 
+## Shared package note
+
+`booking-table.tsx` now renders through `@merqo/ui`'s shared `DataTable` instead of a local shadcn `Table`. It became a `"use client"` module in the process, since `columns[].cell` and `getRowKey` are functions and cannot cross the Server → Client boundary — the same shape `admin/vendors/vendors-table.tsx` already used.
+
 ## Parent
 
 [dashboard](../README.md)

@@ -8,10 +8,14 @@ import { Store, KeyRound, UserRound, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ImageUploader, Section, TwoColumnSections } from "@merqo/ui";
-import { SocialLinksFields } from "@/components/social-links-fields";
+import {
+  ImageUploader,
+  Section,
+  SocialLinksFields,
+  TwoColumnSections,
+  resizeToWebp,
+} from "@merqo/ui";
 import { uploadPaykitImage } from "@/lib/image-upload-adapter";
-import { resizeToWebp } from "@/lib/image-resize";
 import { createClient } from "@/lib/supabase/client";
 import { useAsyncAction } from "@/hooks/use-async-action";
 import {

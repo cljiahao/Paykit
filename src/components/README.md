@@ -67,6 +67,10 @@ dashboard `profile/` and `plan/` pages. `landing/` is only used by
 drawers, wired to `submitFeedbackAction`/`submitSupportMessageAction` in
 `src/app/actions/`.
 
+## Shared package note
+
+`social-icons.tsx` and `social-links-fields.tsx` are gone; both now come from `@merqo/ui`. paykit had kept plain lucide glyphs rather than brand marks because it did not want the `@icons-pack/react-simple-icons` dependency. The shared package carries that dependency itself, so the reason no longer holds and paykit now matches the other four repos' brand-mark icons. Props are identical, so `profile-form.tsx` only changed its import.
+
 ## Parent
 
 [paykit](../../README.md)

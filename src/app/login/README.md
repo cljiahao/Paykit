@@ -47,6 +47,10 @@ started" links. On success it calls `router.push("/dashboard")` +
 `router.refresh()`; `/dashboard`'s `layout.tsx` (`getVendorSession()`) is
 the actual auth gate this page's happy path leads into.
 
+## Shared package note
+
+`google-mark.tsx` moved to `@merqo/ui` (v0.31.0) as `GoogleMark` — it was byte-identical in all five repos.
+
 ## Parent
 
 [paykit](../../../README.md)

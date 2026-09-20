@@ -5,7 +5,7 @@ import { Benefits } from "@/components/landing/benefits";
 import { Faq } from "@/components/landing/faq";
 import { ClosingCta } from "@/components/landing/closing-cta";
 import { Footer } from "@/components/landing/footer";
-import { BackToTop } from "@/components/landing/back-to-top";
+import { BackToTop } from "@merqo/ui";
 import { createServerClient } from "@/lib/supabase/server";
 import { getPricing } from "@/lib/pricing";
 import { formatCents } from "@/lib/utils";

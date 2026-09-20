@@ -6,7 +6,46 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped `@merqo/ui` to `v0.31.2`. v0.31.0 replaced the package-wide
+  `"use client"` banner with per-module directives, so a plain-data export
+  is a real value inside a Server Component rather than an opaque
+  client-reference stub — the root cause of the 2026-09-18 RSC crashes.
+- Adopted four primitives promoted into `@merqo/ui` v0.31.0, deleting the
+  paykit copies: `safeRedirectPath` and `resizeToWebp` (were
+  `src/lib/safe-redirect.ts` / `image-resize.ts`), `BackToTop` (was
+  `src/components/landing/back-to-top.tsx`) and `GoogleMark` (was
+  `src/app/login/google-mark.tsx`).
+- The bookings and transactions tables now render through `@merqo/ui`'s
+  shared `DataTable` instead of a local shadcn `Table`, joining the earnings
+  and admin-vendors tables. Both became `"use client"` modules, since
+  `columns[].cell` and `getRowKey` are functions that cannot cross the
+  Server → Client boundary. The Pro-only Refund column is now appended to
+  the column list rather than conditionally rendered per cell, so a Free
+  vendor's table has no empty trailing column.
+- Social-link fields now use `@merqo/ui`'s `SOCIAL_LINK_FIELDS`/
+  `SocialLinksFields` instead of a paykit-local copy. paykit had kept plain
+  lucide glyphs specifically to avoid taking on
+  `@icons-pack/react-simple-icons`; the shared package carries that
+  dependency itself, so the reason no longer holds. Visible change: the
+  social inputs show real brand marks, matching the other four repos. Props
+  are identical, so only the import moved.
+
+- The booking detail page's deposit/balance QR codes now render through
+  `@merqo/ui`'s shared `qrSvg` instead of a `"use client"` wrapper around
+  `react-qr-code`. The page generates the markup server-side and passes it
+  down as a plain string, so `react-qr-code` no longer ships to the browser
+  on this route and `qr-code-view.tsx` is deleted. `react-qr-code` stays a
+  dependency: `qrSvg` is async and server-only, so it cannot replace the QR
+  in `dashboard/config/payment-config-form.tsx`, whose preview payload is
+  derived live from form state. See `../merqo-ui/docs/usage-matrix.md`.
+
 ### Fixed
+
+- `resizeToWebp` on a filename with no dot returned the whole name as the
+  extension (a file called `photo` gave `ext: "photo"`). Fixed upstream in
+  v0.31.1 and picked up here.
 
 - `/dashboard/plan`, `/dashboard/profile`, and `/dashboard/reports/earnings`
   no longer 500. All three are Server Components that passed a function prop
@@ -20,16 +59,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   mirroring `admin/vendors/vendors-table.tsx`. Same root cause as qkit's
   own production outage.
 
-### Changed
+### Note
 
-- The booking detail page's deposit/balance QR codes now render through
-  `@merqo/ui`'s shared `qrSvg` instead of a `"use client"` wrapper around
-  `react-qr-code`. The page generates the markup server-side and passes it
-  down as a plain string, so `react-qr-code` no longer ships to the browser
-  on this route and `qr-code-view.tsx` is deleted. `react-qr-code` stays a
-  dependency: `qrSvg` is async and server-only, so it cannot replace the QR
-  in `dashboard/config/payment-config-form.tsx`, whose preview payload is
-  derived live from form state. See `../merqo-ui/docs/usage-matrix.md`.
+- The deposit/balance/refund amount fields in the bookings dialogs keep
+  their raw `type="number"` inputs rather than adopting `MoneyInput`, for
+  the same reason stockkit's unit-cost fields do: they parse and validate
+  on submit, and `MoneyInput` is cents-based with commit-on-blur.
 
 ## [0.1.10] - 2026-09-16
 
