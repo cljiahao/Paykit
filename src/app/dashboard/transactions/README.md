@@ -82,6 +82,10 @@ transactions via `@/lib/vendor-session` and `@/lib/transactions`, and
 renders `transaction-table.tsx`, which renders `refund-dialog.tsx` for Pro
 vendors — that dialog calls `issueRefundAction` in `actions.ts`.
 
+## Shared package note
+
+`transaction-table.tsx` now renders through `@merqo/ui`'s shared `DataTable` instead of a local shadcn `Table`, and is a `"use client"` module for the same reason as `bookings/booking-table.tsx`. The Pro-only Refund column is appended to the column list rather than conditionally rendered per cell, so a Free vendor's table has no empty trailing column.
+
 ## Parent
 
 [dashboard](../README.md)

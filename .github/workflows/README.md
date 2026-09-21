@@ -14,7 +14,11 @@ secret scan, dependency audit).
   a changed-line coverage gate via `diff-cover` against `origin/main`,
   failing under 80%); `db` ("db (migrations + pgTAP RLS)"); `build` ("build
   (next build)" — `pnpm build` with dummy Supabase env vars); `mutation`
-  ("mutation (changed lib)" — Stryker against changed `src/lib` files);
+  ("mutation (changed lib)" — Stryker against changed `src/lib` files,
+  passing `--diff-filter=d` so deleted paths are dropped: a PR that only
+  removes lib files, e.g. code promoted into `@merqo/ui` with its tests,
+  would otherwise hand Stryker paths that no longer exist and fail with
+  "No tests were executed");
   `changelog` (PR-only — if `src/` changed, `CHANGELOG.md` must also be in
   the PR diff; skippable via `skip-changelog`); `readme-freshness` (PR-only
   — if a folder's files changed, that folder's `README.md` must also be in

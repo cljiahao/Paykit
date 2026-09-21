@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ImageUploader } from "@merqo/ui";
 import { uploadPaykitImage } from "@/lib/image-upload-adapter";
-import { resizeToWebp } from "@/lib/image-resize";
+import { resizeToWebp } from "@merqo/ui";
 import { buildPayNowPayload } from "@/lib/payments/paynow";
 import { isHttpUrl } from "@/lib/schemas";
 import { saveConfigAction, type SaveConfigState } from "./actions";

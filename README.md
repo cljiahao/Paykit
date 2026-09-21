@@ -245,6 +245,21 @@ that route. `react-qr-code` remains a dependency for
 derived live from form state — `qrSvg` is async and server-only, so the
 two are complements rather than replacements.
 
+`@merqo/ui` bumped to v0.31.2 (2026-09-19). v0.31.0 replaced the
+package-wide `"use client"` banner with per-module directives, so a
+plain-data export is a real value inside a Server Component rather than an
+opaque client-reference stub — the root cause of the 2026-09-18 RSC
+crashes. It also promoted four modules paykit had its own copy of:
+`safeRedirectPath`, `resizeToWebp`, `BackToTop` and `GoogleMark`. The
+bookings and transactions tables joined the earnings and admin-vendors
+tables on the shared `DataTable`, and the social-link inputs now use the
+shared `SocialLinksFields` — paykit had kept plain lucide glyphs to avoid
+the `@icons-pack/react-simple-icons` dependency, but the shared package
+carries it, so those fields now show real brand marks like every other
+repo. v0.31.1 fixes a latent `resizeToWebp` bug where a dotless filename
+yielded the whole name as its extension. Which repo uses which shared
+export is tracked in `../merqo-ui/docs/usage-matrix.md`.
+
 See `AGENTS.md` for stack, commands, data model, rules, and the AI
 harness/CI setup (templateCentral-based); `CHANGELOG.md`
 for what's shipped since the MVP, including the "Name | Tagline" Title Case

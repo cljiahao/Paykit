@@ -265,6 +265,10 @@ Consumed throughout `src/app/` (route handlers, Server Actions, dashboard
 pages) and `src/components/`. `payments/` and `supabase/` are the two
 subfolders with their own concerns — see their READMEs.
 
+## Shared package note
+
+`safe-redirect.ts` and `image-resize.ts` moved to `@merqo/ui` (v0.31.0) — both were duplicated across all five repos. Import `safeRedirectPath` and `resizeToWebp` from `@merqo/ui` instead.
+
 ## Parent
 
 [paykit](../../README.md)

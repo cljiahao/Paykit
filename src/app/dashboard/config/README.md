@@ -46,6 +46,10 @@ own BYO payment link/QR image, and saves it as their `vendor_payment_config`.
 - `actions.test.ts` — unit coverage for both config kinds, validation
   failures, and the insert-vs-update branch.
 
+## Shared package note
+
+The BYO payment-QR upload's resize step now calls `@merqo/ui`'s `resizeToWebp` (v0.31.0). `payment-config-form.tsx` still renders its live preview QR with `react-qr-code`, not `qrSvg` — the preview payload is derived from form state, and `qrSvg` is async and server-only.
+
 ## Parent
 
 [dashboard](../README.md)
