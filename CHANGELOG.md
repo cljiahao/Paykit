@@ -6,6 +6,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- Bumped `@merqo/ui` to `v0.31.3`: where a browser cannot encode WebP,
+  `canvas.toBlob` silently returns a PNG, which `resizeToWebp` had
+  mislabelled `image/webp`. A PNG of a photo is several times larger than a
+  JPEG, so image uploads on such browsers were stored larger than intended.
+  It now falls back to JPEG and labels the result truthfully.
+- `resizeToWebp` on a filename with no dot returned the whole name as the
+  extension (a file called `photo` gave `ext: "photo"`). Fixed upstream in
+  v0.31.1 and picked up here.
+
+- `/dashboard/plan`, `/dashboard/profile`, and `/dashboard/reports/earnings`
+  no longer 500. All three are Server Components that passed a function prop
+  into a `@merqo/ui` component — `LinkComponent={Link}` on `BackButton` for
+  the first two, `DataTable`'s `columns[].cell`/`getRowKey` on the earnings
+  report. `@merqo/ui` is client-bannered package-wide, so those props
+  crossed the Server → Client boundary, which Next rejects at render.
+  `BackButton`'s `LinkComponent` is optional (plain `<a>` fallback) so it's
+  dropped; the earnings tables moved into a new `earnings-tables.tsx`
+  `"use client"` wrapper taking plain rows and building its own columns,
+  mirroring `admin/vendors/vendors-table.tsx`. Same root cause as qkit's
+  own production outage.
+
 ### Changed
 
 - Bumped `@merqo/ui` to `v0.31.2`. v0.31.0 replaced the package-wide
@@ -40,24 +63,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   dependency: `qrSvg` is async and server-only, so it cannot replace the QR
   in `dashboard/config/payment-config-form.tsx`, whose preview payload is
   derived live from form state. See `../merqo-ui/docs/usage-matrix.md`.
-
-### Fixed
-
-- `resizeToWebp` on a filename with no dot returned the whole name as the
-  extension (a file called `photo` gave `ext: "photo"`). Fixed upstream in
-  v0.31.1 and picked up here.
-
-- `/dashboard/plan`, `/dashboard/profile`, and `/dashboard/reports/earnings`
-  no longer 500. All three are Server Components that passed a function prop
-  into a `@merqo/ui` component — `LinkComponent={Link}` on `BackButton` for
-  the first two, `DataTable`'s `columns[].cell`/`getRowKey` on the earnings
-  report. `@merqo/ui` is client-bannered package-wide, so those props
-  crossed the Server → Client boundary, which Next rejects at render.
-  `BackButton`'s `LinkComponent` is optional (plain `<a>` fallback) so it's
-  dropped; the earnings tables moved into a new `earnings-tables.tsx`
-  `"use client"` wrapper taking plain rows and building its own columns,
-  mirroring `admin/vendors/vendors-table.tsx`. Same root cause as qkit's
-  own production outage.
 
 ### Note
 
