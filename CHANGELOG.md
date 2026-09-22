@@ -8,6 +8,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Replacing or removing a profile icon no longer leaves the old image in storage.
+  `ImageUploader` names every upload randomly and nothing ever deleted the object
+  it replaced, so each change orphaned one file. The save handler now deletes the
+  previous avatar after a successful save, and deletes the fresh upload after a
+  failed one, via a new best-effort `removeReplacedAvatar` in
+  `src/lib/image-upload-adapter.ts`. It checks all three public avatar buckets,
+  since all five apps share one signed-in user and one `avatar_url`, and ignores
+  OAuth provider pictures. A failed save also now restores the previous avatar
+  instead of showing one that was never saved.
+- Bumped `@merqo/ui` to `v0.31.4`, which adds `storagePathFromPublicUrl`.
 - Bumped `@merqo/ui` to `v0.31.3`: where a browser cannot encode WebP,
   `canvas.toBlob` silently returns a PNG, which `resizeToWebp` had
   mislabelled `image/webp`. A PNG of a photo is several times larger than a

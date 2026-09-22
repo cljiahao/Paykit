@@ -15,7 +15,10 @@ import {
   TwoColumnSections,
   resizeToWebp,
 } from "@merqo/ui";
-import { uploadPaykitImage } from "@/lib/image-upload-adapter";
+import {
+  uploadPaykitImage,
+  removeReplacedAvatar,
+} from "@/lib/image-upload-adapter";
 import { createClient } from "@/lib/supabase/client";
 import { useAsyncAction } from "@/hooks/use-async-action";
 import {
@@ -95,14 +98,21 @@ export function ProfileForm({
   }
 
   async function saveAvatar(url: string | null) {
+    const previousAvatar = avatar;
     setAvatar(url);
     const { error } = await supabase.auth.updateUser({
       data: { avatar_url: url },
     });
     if (error) {
+      setAvatar(previousAvatar);
+      // The upload landed but the save did not, so the new object is
+      // referenced nowhere.
+      if (url && url !== previousAvatar) void removeReplacedAvatar(url);
       toast.error(error.message);
       return;
     }
+    if (previousAvatar && previousAvatar !== url)
+      void removeReplacedAvatar(previousAvatar);
     toast.success(url ? "Profile icon saved" : "Profile icon removed");
     router.refresh();
   }

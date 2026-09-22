@@ -245,6 +245,12 @@ that route. `react-qr-code` remains a dependency for
 derived live from form state — `qrSvg` is async and server-only, so the
 two are complements rather than replacements.
 
+`@merqo/ui` bumped to v0.31.4 (2026-09-22), for its new
+`storagePathFromPublicUrl`. Replacing or removing a profile icon now deletes the
+old image from storage (`removeReplacedAvatar` in
+`src/lib/image-upload-adapter.ts`); before this, every avatar change orphaned one
+file, because `ImageUploader` names each upload randomly.
+
 `@merqo/ui` bumped to v0.31.3 (2026-09-22), which stops `resizeToWebp`
 mislabelling a PNG as WebP on browsers that cannot encode WebP (it now falls
 back to JPEG, so those uploads are no longer oversized). Before that, v0.31.2
