@@ -8,6 +8,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Picking a QR image in the payment config form and leaving without saving no
+  longer leaves the image in storage. The uploader now uses `@merqo/ui`
+  v0.32.0's `deferUpload`: the image is previewed locally and only uploaded
+  when the vendor clicks Save (`commitPendingImages`). If the upload or the
+  save fails, the image it uploaded is deleted again (`removeUnsavedImages` in
+  `src/lib/image-upload-adapter.ts`); `saveConfigAction` writes nothing when
+  it fails, so the browser can delete it safely.
+- Bumped `@merqo/ui` to `v0.32.0`.
 - Replacing or clearing a pointer config's QR image no longer leaves the old
   image in storage. Both writers of `vendor_payment_config.qr_image_url`, the
   dashboard config form (`saveConfigAction`) and the kit API
