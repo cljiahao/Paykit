@@ -10,11 +10,13 @@ const {
   updateSocialLinksMock,
   updateUserMock,
   refreshMock,
+  removeReplacedAvatarMock,
 } = vi.hoisted(() => ({
   updateStallNameMock: vi.fn(),
   updateSocialLinksMock: vi.fn(),
   updateUserMock: vi.fn(),
   refreshMock: vi.fn(),
+  removeReplacedAvatarMock: vi.fn(),
 }));
 
 vi.mock("./actions", () => ({
@@ -24,6 +26,10 @@ vi.mock("./actions", () => ({
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({ auth: { updateUser: updateUserMock } }),
 }));
+vi.mock("@/lib/image-upload-adapter", () => ({
+  uploadPaykitImage: vi.fn(),
+  removeReplacedAvatar: removeReplacedAvatarMock,
+}));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: refreshMock }),
 }));
@@ -31,9 +37,28 @@ vi.mock("@merqo/ui", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@merqo/ui")>();
   return {
     ...actual,
-    ImageUploader: () => <div data-testid="image-uploader" />,
+    // Stands in for a finished upload (or a Remove click) by calling
+    // onChange directly, which is all the avatar save handler sees.
+    ImageUploader: ({
+      onChange,
+    }: {
+      onChange: (url: string | null) => void;
+    }) => (
+      <div data-testid="image-uploader">
+        <button type="button" onClick={() => onChange(NEW_AVATAR)}>
+          finish upload
+        </button>
+        <button type="button" onClick={() => onChange(null)}>
+          remove icon
+        </button>
+      </div>
+    ),
   };
 });
+
+const PUBLIC = "https://abc.supabase.co/storage/v1/object/public";
+const OLD_AVATAR = `${PUBLIC}/vendor-images/v1/old.webp`;
+const NEW_AVATAR = `${PUBLIC}/vendor-images/v1/new.webp`;
 
 const DEFAULT_PROPS = {
   vendorId: "v1",
@@ -57,6 +82,7 @@ beforeEach(() => {
   updateSocialLinksMock.mockReset().mockResolvedValue({ success: true });
   updateUserMock.mockReset().mockResolvedValue({ error: null });
   refreshMock.mockReset();
+  removeReplacedAvatarMock.mockReset().mockResolvedValue(undefined);
 });
 
 describe("ProfileForm", () => {
@@ -145,5 +171,47 @@ describe("ProfileForm", () => {
         expect.objectContaining({ website: "https://kopitiam.example" }),
       );
     });
+  });
+});
+
+// Every upload gets a fresh random object name, so without these deletes each
+// avatar change left the previous image behind in storage forever.
+describe("ProfileForm avatar storage cleanup", () => {
+  it("deletes the previous avatar once the new one is saved", async () => {
+    const user = userEvent.setup();
+    renderForm({ avatarUrl: OLD_AVATAR });
+    await user.click(screen.getByRole("button", { name: "finish upload" }));
+    await waitFor(() =>
+      expect(removeReplacedAvatarMock).toHaveBeenCalledWith(OLD_AVATAR),
+    );
+    expect(removeReplacedAvatarMock).not.toHaveBeenCalledWith(NEW_AVATAR);
+  });
+
+  it("deletes the avatar when the vendor removes it", async () => {
+    const user = userEvent.setup();
+    renderForm({ avatarUrl: OLD_AVATAR });
+    await user.click(screen.getByRole("button", { name: "remove icon" }));
+    await waitFor(() =>
+      expect(removeReplacedAvatarMock).toHaveBeenCalledWith(OLD_AVATAR),
+    );
+  });
+
+  it("keeps the previous avatar and deletes the orphaned upload when the save fails", async () => {
+    updateUserMock.mockResolvedValueOnce({ error: { message: "nope" } });
+    const user = userEvent.setup();
+    renderForm({ avatarUrl: OLD_AVATAR });
+    await user.click(screen.getByRole("button", { name: "finish upload" }));
+    await waitFor(() =>
+      expect(removeReplacedAvatarMock).toHaveBeenCalledWith(NEW_AVATAR),
+    );
+    expect(removeReplacedAvatarMock).not.toHaveBeenCalledWith(OLD_AVATAR);
+  });
+
+  it("deletes nothing on a first upload, when there was no previous avatar", async () => {
+    const user = userEvent.setup();
+    renderForm({ avatarUrl: null });
+    await user.click(screen.getByRole("button", { name: "finish upload" }));
+    await waitFor(() => expect(updateUserMock).toHaveBeenCalled());
+    expect(removeReplacedAvatarMock).not.toHaveBeenCalled();
   });
 });

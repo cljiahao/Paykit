@@ -82,3 +82,7 @@ shared `vendor-images` Storage bucket (project-wide, not paykit-local — see
 ## Shared package note
 
 The avatar upload's resize step now calls `@merqo/ui`'s `resizeToWebp` (v0.31.0), and the social-link inputs use its shared `SocialLinksFields` (brand-mark icons, replacing paykit's local lucide-glyph copy). v0.31.1 also fixes a latent `resizeToWebp` bug: a filename with no dot used to yield the whole name as its extension.
+
+## Replaced-avatar cleanup
+
+The avatar save handler deletes the image it orphans: after a successful save, the previous avatar (including on Remove); after a failed save, the fresh upload, which is then referenced nowhere. On a failed save it also restores the previous avatar in state rather than keep showing an image that was never saved.
