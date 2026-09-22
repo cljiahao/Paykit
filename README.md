@@ -245,6 +245,12 @@ that route. `react-qr-code` remains a dependency for
 derived live from form state — `qrSvg` is async and server-only, so the
 two are complements rather than replacements.
 
+`@merqo/ui` bumped to v0.32.0 (2026-09-22). The payment config form's QR
+image now uploads only when the vendor clicks Save (`deferUpload` +
+`commitPendingImages`), so abandoning the form leaves nothing in storage; a
+failed save deletes what it uploaded. Profile icons still upload on pick,
+because picking one is the save.
+
 Replacing or clearing a pointer config's QR image now deletes the old image
 from storage (`removeReplacedQrImage` in `src/lib/qr-image-cleanup.ts`), from
 both the dashboard config form and the kit config API. The image may have been

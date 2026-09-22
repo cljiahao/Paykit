@@ -58,3 +58,24 @@ export async function removeReplacedAvatar(
     return;
   }
 }
+
+/**
+ * Best-effort delete of vendor-images uploads that no save ended up using:
+ * the payment config form committed its pending QR on submit, then the upload
+ * or the save failed. `saveConfigAction` writes nothing when it fails, so the
+ * fresh upload is referenced nowhere. Never throws, and the bucket's
+ * owner-folder DELETE policy bounds what it can remove.
+ */
+export async function removeUnsavedImages(
+  urls: readonly string[],
+): Promise<void> {
+  const paths = urls.flatMap((url) => {
+    const path = storagePathFromPublicUrl(url, "vendor-images");
+    return path ? [path] : [];
+  });
+  if (paths.length === 0) return;
+  await createClient()
+    .storage.from("vendor-images")
+    .remove(paths)
+    .catch(() => undefined);
+}

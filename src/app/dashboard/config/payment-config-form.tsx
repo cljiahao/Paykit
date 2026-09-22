@@ -8,8 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ImageUploader } from "@merqo/ui";
-import { uploadPaykitImage } from "@/lib/image-upload-adapter";
+import {
+  commitPendingImages,
+  ImageUploader,
+  isPendingImage,
+  PendingImageUploadError,
+} from "@merqo/ui";
+import {
+  removeUnsavedImages,
+  uploadPaykitImage,
+} from "@/lib/image-upload-adapter";
 import { resizeToWebp } from "@merqo/ui";
 import { buildPayNowPayload } from "@/lib/payments/paynow";
 import { isHttpUrl } from "@/lib/schemas";
@@ -45,10 +53,42 @@ export function PaymentConfigForm({
   initial: VendorPaymentConfig | null;
   vendorId: string;
 }) {
+  const [qrImageUrl, setQrImageUrl] = useState<string | null>(
+    initial?.qr_image_url ?? null,
+  );
+
+  // The QR uploader defers its upload, so a vendor who picks an image and
+  // leaves without saving leaves nothing in storage. The pending QR uploads
+  // here, on Save, and is deleted again if the save fails.
   const [state, formAction, pending] = useActionState<
     SaveConfigState,
     FormData
-  >(saveConfigAction, { status: "idle" });
+  >(
+    async (previous, formData) => {
+      const qr = formData.get("qr_image_url");
+      if (typeof qr !== "string" || !isPendingImage(qr))
+        return saveConfigAction(previous, formData);
+
+      let committed;
+      try {
+        committed = await commitPendingImages([qr]);
+      } catch (error) {
+        if (error instanceof PendingImageUploadError)
+          void removeUnsavedImages(error.uploaded);
+        return {
+          status: "error",
+          message: "Could not upload the QR image. Try again.",
+        };
+      }
+      const uploadedQr = committed.urls[0] ?? "";
+      formData.set("qr_image_url", uploadedQr);
+      const result = await saveConfigAction(previous, formData);
+      if (result.status === "ok") setQrImageUrl(uploadedQr);
+      else void removeUnsavedImages(committed.uploaded);
+      return result;
+    },
+    { status: "idle" },
+  );
 
   const [kind, setKind] = useState<PaymentConfigKind>(
     initial?.kind ?? "paynow",
@@ -81,9 +121,6 @@ export function PaymentConfigForm({
   // Tracks a vendor-typed label so a preset switch never clobbers it.
   const [labelTouched, setLabelTouched] = useState(Boolean(initial?.label));
   const [url, setUrl] = useState(initial?.url ?? "");
-  const [qrImageUrl, setQrImageUrl] = useState<string | null>(
-    initial?.qr_image_url ?? null,
-  );
 
   function handlePresetChange(id: PointerPresetId) {
     setPreset(id);
@@ -320,6 +357,7 @@ export function PaymentConfigForm({
                 resizeImage={resizeToWebp}
                 imageComponent={Image}
                 variant="thumb"
+                deferUpload
               />
               <input
                 type="hidden"

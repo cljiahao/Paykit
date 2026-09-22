@@ -46,6 +46,16 @@ own BYO payment link/QR image, and saves it as their `vendor_payment_config`.
 - `actions.test.ts` — unit coverage for both config kinds, validation
   failures, and the insert-vs-update branch.
 
+## Deferred QR upload
+
+`payment-config-form.tsx` passes `deferUpload` to its QR `ImageUploader`, so
+a picked image is previewed from a local `blob:` URL and nothing is uploaded.
+Its `useActionState` action commits a pending QR with `commitPendingImages`
+before calling `saveConfigAction`, swapping the preview URL in the form data
+for the public URL. An upload failure stops the save; an upload or save
+failure deletes what uploaded (`removeUnsavedImages`). Covered by
+`payment-config-form.qr.dom.test.tsx`.
+
 ## Replaced QR-image cleanup
 
 `saveConfigAction` reads the previous `qr_image_url` alongside its existence

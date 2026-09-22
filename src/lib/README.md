@@ -273,6 +273,14 @@ subfolders with their own concerns — see their READMEs.
 
 `image-upload-adapter.ts` also exports `removeReplacedAvatar(url)`, a best-effort delete of an avatar image that is no longer referenced. `ImageUploader` writes every upload under a fresh random name, so without it each avatar change left the previous image in storage forever. It checks every public avatar bucket (`booth-images`, `vendor-images`, `vendor-avatars`), because all five Merqo apps share one signed-in user and so one `avatar_url`, which may have been set from any of them. It uses `@merqo/ui`'s `storagePathFromPublicUrl`, so an OAuth provider picture (a Google profile photo) is never treated as ours to delete, and it never throws. Each bucket's owner-folder DELETE policy still bounds what a vendor can remove.
 
+## Deferred-upload cleanup
+
+`image-upload-adapter.ts` exports `removeUnsavedImages(urls)`, a best-effort
+delete of vendor-images uploads that no save used. The payment config form's
+QR uploader runs in `@merqo/ui`'s `deferUpload` mode and uploads on Save; if
+that upload or the save fails, the form calls this to delete what it
+uploaded. Covered by `image-upload-adapter.remove.test.ts`.
+
 ## Replaced QR-image cleanup
 
 `qr-image-cleanup.ts` exports `replacedQrImage(vendorId, before, after)`, the
