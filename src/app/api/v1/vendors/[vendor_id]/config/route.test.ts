@@ -6,11 +6,13 @@ const {
   maybeSingleMock,
   upsertMock,
   createServiceClientMock,
+  removeMock,
 } = vi.hoisted(() => ({
   verifyKitAuthMock: vi.fn(),
   maybeSingleMock: vi.fn(),
   upsertMock: vi.fn(),
   createServiceClientMock: vi.fn(),
+  removeMock: vi.fn(),
 }));
 
 vi.mock("@/lib/kit-auth", () => ({ verifyKitAuth: verifyKitAuthMock }));
@@ -25,8 +27,10 @@ beforeEach(() => {
       select: () => ({ eq: () => ({ maybeSingle: maybeSingleMock }) }),
       upsert: upsertMock,
     }),
+    storage: { from: () => ({ remove: removeMock }) },
   });
-  maybeSingleMock.mockReset();
+  maybeSingleMock.mockReset().mockResolvedValue({ data: null, error: null });
+  removeMock.mockReset().mockResolvedValue({ error: null });
   upsertMock.mockReset().mockResolvedValue({ error: null });
 });
 
@@ -248,4 +252,56 @@ describe("POST /api/v1/vendors/[vendor_id]/config", () => {
     const json = await res.json();
     expect(json.error).not.toMatch(/connection reset/);
   });
+
+  it("deletes the QR image a save replaced, once the upsert succeeds", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { qr_image_url: `${PUBLIC}/booth-images/${VENDOR_ID}/old.webp` },
+      error: null,
+    });
+    const res = await POST(
+      postReq({
+        kind: "pointer",
+        label: "Pay with PayLah",
+        qr_image_url: `${PUBLIC}/booth-images/${VENDOR_ID}/new.webp`,
+      }),
+      ctx(),
+    );
+    expect(res.status).toBe(200);
+    expect(removeMock).toHaveBeenCalledWith([`${VENDOR_ID}/old.webp`]);
+  });
+
+  it("never deletes an object outside the vendor folder", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { qr_image_url: `${PUBLIC}/booth-images/someone-else/old.webp` },
+      error: null,
+    });
+    await POST(
+      postReq({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "53312345A",
+      }),
+      ctx(),
+    );
+    expect(removeMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps the old QR image when the upsert fails", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { qr_image_url: `${PUBLIC}/booth-images/${VENDOR_ID}/old.webp` },
+      error: null,
+    });
+    upsertMock.mockResolvedValue({ error: { message: "connection reset" } });
+    await POST(
+      postReq({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "53312345A",
+      }),
+      ctx(),
+    );
+    expect(removeMock).not.toHaveBeenCalled();
+  });
 });
+
+const PUBLIC = "https://abc.supabase.co/storage/v1/object/public";

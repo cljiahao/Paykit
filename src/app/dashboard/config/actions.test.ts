@@ -6,12 +6,14 @@ const {
   insertMock,
   updateMock,
   createServerClientMock,
+  removeMock,
 } = vi.hoisted(() => ({
   getUserMock: vi.fn(),
   maybeSingleMock: vi.fn(),
   insertMock: vi.fn(),
   updateMock: vi.fn(),
   createServerClientMock: vi.fn(),
+  removeMock: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -30,8 +32,10 @@ beforeEach(() => {
   updateMock.mockReset().mockReturnValue({
     eq: vi.fn().mockResolvedValue({ error: null }),
   });
+  removeMock.mockReset().mockResolvedValue({ error: null });
   createServerClientMock.mockReset().mockResolvedValue({
     auth: { getUser: getUserMock },
+    storage: { from: () => ({ remove: removeMock }) },
     from: () => ({
       select: () => ({ eq: () => ({ maybeSingle: maybeSingleMock }) }),
       insert: insertMock,
@@ -156,4 +160,65 @@ describe("saveConfigAction", () => {
     expect(insertMock).not.toHaveBeenCalled();
     expect(updateMock).not.toHaveBeenCalled();
   });
+
+  it("deletes the QR image a save replaced, once the save succeeds", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { vendor_id: "v1", qr_image_url: OLD_QR },
+    });
+    const { saveConfigAction } = await import("./actions");
+    const result = await saveConfigAction(
+      { status: "idle" },
+      formData({
+        kind: "pointer",
+        label: "Pay",
+        url: "",
+        qr_image_url: NEW_QR,
+      }),
+    );
+    expect(result.status).toBe("ok");
+    expect(removeMock).toHaveBeenCalledWith(["v1/old.webp"]);
+  });
+
+  it("deletes the QR image when a switch to PayNow clears it", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { vendor_id: "v1", qr_image_url: OLD_QR },
+    });
+    const { saveConfigAction } = await import("./actions");
+    await saveConfigAction(
+      { status: "idle" },
+      formData({
+        kind: "paynow",
+        payee_name: "Kopitiam Cart",
+        uen: "53312345A",
+      }),
+    );
+    expect(removeMock).toHaveBeenCalledWith(["v1/old.webp"]);
+  });
+
+  it("keeps the old QR image when the save fails", async () => {
+    maybeSingleMock.mockResolvedValue({
+      data: { vendor_id: "v1", qr_image_url: OLD_QR },
+    });
+    updateMock.mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: { message: "nope" } }),
+    });
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { saveConfigAction } = await import("./actions");
+    const result = await saveConfigAction(
+      { status: "idle" },
+      formData({
+        kind: "pointer",
+        label: "Pay",
+        url: "",
+        qr_image_url: NEW_QR,
+      }),
+    );
+    expect(result.status).toBe("error");
+    expect(removeMock).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
 });
+
+const PUBLIC = "https://abc.supabase.co/storage/v1/object/public";
+const OLD_QR = `${PUBLIC}/vendor-images/v1/old.webp`;
+const NEW_QR = `${PUBLIC}/vendor-images/v1/new.webp`;
