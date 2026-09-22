@@ -8,6 +8,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Replacing or clearing a pointer config's QR image no longer leaves the old
+  image in storage. Both writers of `vendor_payment_config.qr_image_url`, the
+  dashboard config form (`saveConfigAction`) and the kit API
+  (`POST /api/v1/vendors/{id}/config`, which qkit's booth Payment section
+  calls), now read the previous URL and, once the write succeeds, delete the
+  image it stopped referencing via the new best-effort
+  `removeReplacedQrImage` in `src/lib/qr-image-cleanup.ts`. It checks both
+  `vendor-images` (paykit uploads) and `booth-images` (qkit uploads), ignores
+  pasted external URLs, and only ever deletes inside the vendor's own folder,
+  since the kit route deletes with the service-role client.
 - Replacing or removing a profile icon no longer leaves the old image in storage.
   `ImageUploader` names every upload randomly and nothing ever deleted the object
   it replaced, so each change orphaned one file. The save handler now deletes the

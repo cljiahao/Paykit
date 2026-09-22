@@ -273,6 +273,19 @@ subfolders with their own concerns — see their READMEs.
 
 `image-upload-adapter.ts` also exports `removeReplacedAvatar(url)`, a best-effort delete of an avatar image that is no longer referenced. `ImageUploader` writes every upload under a fresh random name, so without it each avatar change left the previous image in storage forever. It checks every public avatar bucket (`booth-images`, `vendor-images`, `vendor-avatars`), because all five Merqo apps share one signed-in user and so one `avatar_url`, which may have been set from any of them. It uses `@merqo/ui`'s `storagePathFromPublicUrl`, so an OAuth provider picture (a Google profile photo) is never treated as ours to delete, and it never throws. Each bucket's owner-folder DELETE policy still bounds what a vendor can remove.
 
+## Replaced QR-image cleanup
+
+`qr-image-cleanup.ts` exports `replacedQrImage(vendorId, before, after)`, the
+pure decision of which storage object a config save stopped referencing, and
+`removeReplacedQrImage(supabase, vendorId, before, after)`, a best-effort
+delete that never throws. A pointer config's QR image lives in `vendor-images`
+when uploaded from paykit and in `booth-images` when uploaded from qkit, and
+both write through paykit, so both buckets are checked here. A pasted external
+URL, another bucket, or an object outside the vendor's own folder is never
+deleted. The folder check matters because the kit API route deletes with the
+service-role client, which no storage policy constrains. Covered by
+`qr-image-cleanup.test.ts`.
+
 ## Parent
 
 [paykit](../../README.md)

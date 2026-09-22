@@ -245,6 +245,13 @@ that route. `react-qr-code` remains a dependency for
 derived live from form state — `qrSvg` is async and server-only, so the
 two are complements rather than replacements.
 
+Replacing or clearing a pointer config's QR image now deletes the old image
+from storage (`removeReplacedQrImage` in `src/lib/qr-image-cleanup.ts`), from
+both the dashboard config form and the kit config API. The image may have been
+uploaded from paykit (`vendor-images`) or from qkit's booth form
+(`booth-images`); both are checked, and only objects in the vendor's own
+folder are ever deleted.
+
 `@merqo/ui` bumped to v0.31.4 (2026-09-22), for its new
 `storagePathFromPublicUrl`. Replacing or removing a profile icon now deletes the
 old image from storage (`removeReplacedAvatar` in

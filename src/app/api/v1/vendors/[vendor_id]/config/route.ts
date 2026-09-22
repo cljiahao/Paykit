@@ -4,6 +4,7 @@ import { verifyKitAuth } from "@/lib/kit-auth";
 import { uuidSchema } from "@/lib/api-schemas";
 import { vendorPaymentConfigInputSchema } from "@/lib/schemas";
 import type { Database } from "@/lib/types";
+import { removeReplacedQrImage } from "@/lib/qr-image-cleanup";
 
 export async function GET(
   request: Request,
@@ -94,6 +95,11 @@ export async function POST(
         };
 
   const supabase = await createServiceClient();
+  const { data: previous } = await supabase
+    .from("vendor_payment_config")
+    .select("qr_image_url")
+    .eq("vendor_id", vendor_id)
+    .maybeSingle();
   const { error } = await supabase
     .from("vendor_payment_config")
     .upsert(row, { onConflict: "vendor_id" });
@@ -104,6 +110,13 @@ export async function POST(
       { status: 503 },
     );
   }
+
+  await removeReplacedQrImage(
+    supabase,
+    vendor_id,
+    previous?.qr_image_url,
+    row.qr_image_url,
+  );
 
   const display_name =
     parsed.data.kind === "paynow" ? parsed.data.payee_name : parsed.data.label;

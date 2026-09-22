@@ -23,6 +23,15 @@ qr_image_url }` — so a calling kit can pre-fill its own edit form; every
   paths and the full GET response shape for paynow, pointer, and
   unconfigured vendors.
 
+## Replaced QR-image cleanup
+
+`POST` reads the previous `qr_image_url` before its upsert and, only after the
+upsert succeeds, deletes the image the write replaced or cleared with
+`removeReplacedQrImage` from `src/lib/qr-image-cleanup.ts`. This is the path
+qkit's booth Payment section saves through, so its `booth-images` uploads are
+covered too. The route deletes with the service-role client, so the helper
+refuses any object outside `{vendor_id}/`. A failed upsert deletes nothing.
+
 ## Parent
 
 [vendors](../../README.md)

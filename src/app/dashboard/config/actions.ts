@@ -3,6 +3,7 @@
 import { getVendorSession } from "@/lib/vendor-session";
 import { vendorPaymentConfigInputSchema } from "@/lib/schemas";
 import type { VendorPaymentConfig } from "@/lib/types";
+import { removeReplacedQrImage } from "@/lib/qr-image-cleanup";
 
 export async function getConfig(): Promise<VendorPaymentConfig | null> {
   const { supabase, user } = await getVendorSession();
@@ -88,7 +89,7 @@ export async function saveConfigAction(
   const { vendor_id, ...writableFields } = row;
   const { data: existing } = await supabase
     .from("vendor_payment_config")
-    .select("vendor_id")
+    .select("vendor_id, qr_image_url")
     .eq("vendor_id", vendor_id)
     .maybeSingle();
 
@@ -102,5 +103,11 @@ export async function saveConfigAction(
     console.error("saveConfigAction failed", error.message);
     return { status: "error", message: "Could not save. Try again." };
   }
+  await removeReplacedQrImage(
+    supabase,
+    vendor_id,
+    existing?.qr_image_url,
+    row.qr_image_url,
+  );
   return { status: "ok" };
 }
