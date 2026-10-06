@@ -5,6 +5,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
 
+  // sharp is only next's optional peer; Vercel optimizes images itself, so keep its binary out of every function.
+  outputFileTracingExcludes: {
+    "*": ["node_modules/@img/**", "node_modules/sharp/**"],
+  },
+
   images: {
     remotePatterns: [
       { protocol: "http", hostname: "127.0.0.1", port: "54321" },
