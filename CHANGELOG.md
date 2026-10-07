@@ -133,6 +133,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   plain lucide glyphs instead of `@merqo/ui`'s brand-mark icons (a real,
   documented design choice, not drift), so it wasn't migrated.
 
+### Fixed
+
+- Bumped `@merqo/ui` to `v0.26.0` and switched `legal-gate.ts`/`legal/accept/
+actions.ts` to import `LEGAL_VERSIONS`/`getLegalDocSource`/`isLegalCurrent`
+  from its new `@merqo/ui/legal` subpath instead of the package root. Those
+  are plain non-React functions, but the root export is bundled under a
+  package-wide `"use client"` banner — calling them from server code (a
+  Server Action, the server-only legal gate) threw "Attempted to call X()
+  from the server but X is on the client". The gate's own fail-closed
+  try/catch silently swallowed this, redirecting every vendor to
+  `/legal/accept` instead of surfacing the real error.
+- `merqoBaseUrl()`'s hardcoded fallback (`legal-gate.ts`, `legal/accept/
+actions.ts`) pointed at `https://merqo-sg.vercel.app`, a stale host that
+  404s on every route including `/`. Confirmed by direct curl that merqo's
+  real production host is `https://www.merqo.io` (serves
+  `/api/merqo/legal-accept`, `/api/merqo/legal-status`, and
+  `/api/merqo/customer-connect-token` as expected). `MERQO_BASE_URL` was
+  never set as an explicit Vercel env override on any kit, so this fallback
+  has been hitting a dead host in production the whole time, not just for
+  legal-accept but for any other kit-to-merqo call sharing the same
+  fallback pattern. Fixed the literal here; the primary fix is still
+  setting `MERQO_BASE_URL` explicitly in Vercel, this is defense-in-depth.
+
 ## [0.1.8] - 2026-09-09
 
 ### Security
@@ -212,31 +235,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (`TermsAcceptanceCheckbox` no longer takes `legalName`/
   `onLegalNameChange`).
 
-## [Unreleased]
-
-### Fixed
-
-- Bumped `@merqo/ui` to `v0.26.0` and switched `legal-gate.ts`/`legal/accept/
-actions.ts` to import `LEGAL_VERSIONS`/`getLegalDocSource`/`isLegalCurrent`
-  from its new `@merqo/ui/legal` subpath instead of the package root. Those
-  are plain non-React functions, but the root export is bundled under a
-  package-wide `"use client"` banner — calling them from server code (a
-  Server Action, the server-only legal gate) threw "Attempted to call X()
-  from the server but X is on the client". The gate's own fail-closed
-  try/catch silently swallowed this, redirecting every vendor to
-  `/legal/accept` instead of surfacing the real error.
-- `merqoBaseUrl()`'s hardcoded fallback (`legal-gate.ts`, `legal/accept/
-actions.ts`) pointed at `https://merqo-sg.vercel.app`, a stale host that
-  404s on every route including `/`. Confirmed by direct curl that merqo's
-  real production host is `https://www.merqo.io` (serves
-  `/api/merqo/legal-accept`, `/api/merqo/legal-status`, and
-  `/api/merqo/customer-connect-token` as expected). `MERQO_BASE_URL` was
-  never set as an explicit Vercel env override on any kit, so this fallback
-  has been hitting a dead host in production the whole time, not just for
-  legal-accept but for any other kit-to-merqo call sharing the same
-  fallback pattern. Fixed the literal here; the primary fix is still
-  setting `MERQO_BASE_URL` explicitly in Vercel, this is defense-in-depth.
-
 ### Added
 
 - Legal-document gate. `/legal/terms` and `/legal/privacy` render the shared
@@ -256,8 +254,8 @@ actions.ts`) pointed at `https://merqo-sg.vercel.app`, a stale host that
   `@merqo/ui` bumped to `v0.23.2` — `acceptLegalTerms` now forwards the
   vendor's submitted `legal_name` and their real `ip`/`user_agent` (read via
   `headers()`) in both `legal-accept` POST bodies, matching merqo's
-  now-required `legal_name` field. (`legal_name` was dropped again in
-  `0.1.2` above.)
+  now-required `legal_name` field. (`legal_name` was dropped again later in this
+  release, see Changed above.)
 
 ### Fixed
 
