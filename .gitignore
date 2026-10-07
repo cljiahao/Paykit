@@ -24,3 +24,8 @@ PRODUCT.md
 supabase/.branches
 supabase/.temp
 .vercel
+
+# playwright (e2e)
+/test-results
+/playwright-report
+/playwright/.cache

@@ -294,3 +294,5 @@ its implementation plan — later work has its own dated specs/plans under
 the same `docs/superpowers/` folders.
 
 Source lives in the `merqo-io` GitHub organization (`github.com/merqo-io/paykit`); `@merqo/ui` installs from `github:merqo-io/merqo-ui`.
+
+`e2e/` holds the Playwright public smoke and auth-guard specs, run with `pnpm test:e2e` (see its own README).

@@ -44,13 +44,15 @@ pnpm dev          # dev server — http://localhost:3000
 pnpm build        # production build
 pnpm test         # run test suite (vitest)
 pnpm test:mutation # stryker mutation testing (scoped to src/lib; advisory)
+pnpm test:e2e     # playwright public smoke + auth guard (no live database)
 pnpm check        # prettier --check + eslint + tsc --noEmit
 pnpm format       # prettier --write
 ```
 
-No `test:e2e` — this kit's testing surface (per its design spec) is Unit
-(mutation-tested `src/lib`), a Contract test on the HTTP API surface, RLS
-(pgTAP), and DOM. No Playwright suite exists.
+This kit's testing surface is Unit (mutation-tested `src/lib`), a Contract
+test on the HTTP API surface, RLS (pgTAP), DOM, and a Playwright public smoke
+(`e2e/`: landing, login and the signed-out auth guard). There is no e2e
+coverage of signed-in flows.
 
 ## File Layout
 
@@ -240,7 +242,8 @@ Control blocks unconditionally — see
 CI (GitHub Actions): `test` (check + unit + coverage) with a hard gate on
 changed-line coverage (`diff-cover` ≥80%), `build` (`next build` — the one
 job that catches Next.js client/server bundle-boundary errors `pnpm
-check`/`pnpm test` miss), existing `db` (pgTAP RLS) and `mutation`
+check`/`pnpm test` miss), `e2e` ("e2e (public smoke)", the Playwright specs
+in `e2e/`), existing `db` (pgTAP RLS) and `mutation`
 (Stryker, advisory) jobs, a lockfile-in-sync re-check, a changelog-touched
 check, a readme-freshness check, a comment-hygiene check (hard gate, scoped
 to added lines only, against the first 10 lines of
