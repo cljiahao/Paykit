@@ -6,6 +6,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The repository moved from the `cljiahao` GitHub account to the `merqo-io` organization. `@merqo/ui` now installs from `github:merqo-io/merqo-ui` at the same tag, with the lockfile and tarball URLs updated to match.
+
 ### Fixed
 
 - Picking a QR image in the payment config form and leaving without saving no
@@ -204,6 +208,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `onLegalNameChange`).
 
 ## [Unreleased]
+
+### Changed
+
+- The repository moved from the `cljiahao` GitHub account to the `merqo-io` organization. `@merqo/ui` now installs from `github:merqo-io/merqo-ui` at the same tag, with the lockfile and tarball URLs updated to match.
 
 ### Fixed
 
