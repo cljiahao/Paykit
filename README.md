@@ -292,3 +292,5 @@ how it's wired together. See
 approved design and `docs/superpowers/plans/2026-07-15-paykit-mvp.md` for
 its implementation plan — later work has its own dated specs/plans under
 the same `docs/superpowers/` folders.
+
+Source lives in the `merqo-io` GitHub organization (`github.com/merqo-io/paykit`); `@merqo/ui` installs from `github:merqo-io/merqo-ui`.

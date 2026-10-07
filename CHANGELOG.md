@@ -6,6 +6,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- The repository moved from the `cljiahao` GitHub account to the `merqo-io` organization. `@merqo/ui` now installs from `github:merqo-io/merqo-ui` at the same tag, with the lockfile and tarball URLs updated to match.
+- The `secret scan (gitleaks)` CI job runs the pinned gitleaks release binary, verified against the release checksum, instead of `gitleaks-action`. The action is free only for personal-account repos and needs a paid license on organization-owned ones, so every run failed after the move to `merqo-io`. It scans the PR commits, or the pushed range on `main`.
+
 ### Fixed
 
 - Picking a QR image in the payment config form and leaving without saving no
@@ -204,6 +209,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `onLegalNameChange`).
 
 ## [Unreleased]
+
+### Changed
+
+- The repository moved from the `cljiahao` GitHub account to the `merqo-io` organization. `@merqo/ui` now installs from `github:merqo-io/merqo-ui` at the same tag, with the lockfile and tarball URLs updated to match.
 
 ### Fixed
 
