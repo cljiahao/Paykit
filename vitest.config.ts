@@ -13,6 +13,7 @@ export default defineConfig({
     },
   },
   test: {
+    maxWorkers: 2,
     globals: true,
     environment: "node",
     // Bumped from 10s: under heavy concurrent load a real test occasionally
