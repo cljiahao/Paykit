@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { StatTile as SharedStatTile } from "@merqo/ui";
 import type { DailyRevenue } from "@/lib/revenue-report";
 import { formatCents } from "@/lib/utils";
 
@@ -50,12 +51,13 @@ export function ChartTooltip({
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border p-4">
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-      <p className="mt-1 font-display text-xl font-semibold tracking-tight">
-        {value}
-      </p>
+      <SharedStatTile
+        label={label}
+        value={value}
+        className="gap-0"
+        labelClassName="text-xs"
+        valueClassName="mt-1 font-display text-xl font-semibold tracking-tight leading-normal"
+      />
     </div>
   );
 }

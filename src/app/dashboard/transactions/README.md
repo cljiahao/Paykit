@@ -14,8 +14,7 @@ across every kit — plus, for Pro vendors, a per-transaction refund action.
   canonical `max-w-7xl` outer width); a 5-6 column table reads better
   narrower than the full dashboard width.
 - `transaction-table.tsx` — `TransactionTable({ transactions, isPro })`:
-  renders `Kit`/`Order ref`/`Amount`/`Status`/`Created` columns (`@/components/
-ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
+  renders `Kit`/`Order ref`/`Amount`/`Status`/`Created` columns through `@merqo/ui` DataTable, plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
   are formatted via `Intl.NumberFormat` (SGD). Empty state is a plain "No
   transactions yet." message.
 - `transaction-status-badge.tsx` — `TransactionStatusBadge({ status })`: a

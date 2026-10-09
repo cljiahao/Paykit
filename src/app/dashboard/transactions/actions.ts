@@ -1,22 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dollarsToCents } from "@/lib/money";
 import { getVendorSession } from "@/lib/vendor-session";
 import { issueRefundInputSchema } from "@/lib/schemas";
 import { recordAudit } from "@/lib/admin-audit";
 
 export type RefundState = { status: "idle" | "ok" | "error"; message?: string };
-
-// The form collects a dollar amount (matching how every other money value in
-// the dashboard displays, see `transaction-table.tsx`'s `formatCents`), but
-// `refunded_amount_cents` — and `issueRefundInputSchema` below — stay
-// cents-denominated: that's the DB column's unit. `Number()` on an empty/
-// non-numeric input yields `NaN`, which `Math.round` propagates; the schema's
-// `z.coerce.number` then rejects `NaN` with its own "Enter a valid refund
-// amount." message, so no separate guard is needed here.
-function dollarsToCents(raw: FormDataEntryValue | null): number {
-  return Math.round(Number(raw) * 100);
-}
 
 // Relies on the `refunds_insert_own` RLS policy (Task 4) to be the real
 // enforcement: it checks ownership, `transactions.status = 'confirmed'`, and

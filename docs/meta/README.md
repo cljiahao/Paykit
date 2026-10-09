@@ -19,3 +19,5 @@ for the one MVP build; this is the standing backlog going forward).
 ## Parent
 
 [docs](../README.md)
+
+- `2026-10-10-component-reuse-spec.md`: local/shared component consolidation and verification boundaries.

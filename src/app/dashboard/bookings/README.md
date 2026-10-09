@@ -42,3 +42,5 @@ Mocked action tests do not establish database RLS, locking or trigger behavior.
 ## Parent
 
 [dashboard](../README.md)
+
+Booking amount conversion uses `dollarsToCents` from `@/lib/money`; the action keeps its existing schema validation and rounding behavior.

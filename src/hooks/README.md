@@ -11,8 +11,7 @@ pending/error-state logic lives in the shared package.
 - `use-async-action.ts` — `useAsyncAction()`: thin wrapper over `@merqo/ui`'s
   `useAsyncAction`, reproducing this hook's original per-call-dynamic-closure
   shape (`@merqo/ui`'s version binds one action at hook-creation time; this
-  adapter binds it to "call whatever closure you're given" instead). Also
-  re-exports `navigatingAway`.
+  adapter binds it to "call whatever closure you're given" instead).
 - `use-async-action.test.tsx` — covers the adapter's pending/error/reset
   behavior and that a thrown error still resets `pending`.
 

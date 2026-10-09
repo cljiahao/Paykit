@@ -1,4 +1,5 @@
 "use client";
+import { Wordmark } from "@/components/landing/wordmark";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -111,7 +112,7 @@ export function DashboardNav({
           aria-label="paykit dashboard home"
           className="font-display shrink-0 text-3xl font-semibold tracking-tight outline-none transition-opacity hover:opacity-80 focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
-          <span className="text-mint">Pay</span>Kit
+          <Wordmark className="text-3xl" />
         </Link>
       }
       navLinks={LINKS}
