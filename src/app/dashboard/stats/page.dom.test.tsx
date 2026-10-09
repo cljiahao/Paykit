@@ -5,7 +5,7 @@
 // tree with RTL. `RevenueChart` wraps recharts' `ResponsiveContainer`,
 // which needs real layout to size itself — not something jsdom provides
 // meaningfully — so it's stubbed here to keep this test focused on
-// StatsPage's own job: wiring `listTransactions` + `aggregateRevenueByDay`
+// StatsPage's own job: wiring `listAllTransactions` + `aggregateRevenueByDay`
 // into the chart's data prop. Revenue stats are free for every vendor —
 // no plan gate left to test here.
 import { describe, expect, it, vi, beforeEach } from "vitest";
@@ -13,10 +13,10 @@ import { render, screen } from "@testing-library/react";
 import StatsPage from "./page";
 import type { Transaction } from "@/lib/types";
 
-const { getVendorSessionMock, listTransactionsMock, RevenueChartMock } =
+const { getVendorSessionMock, listAllTransactionsMock, RevenueChartMock } =
   vi.hoisted(() => ({
     getVendorSessionMock: vi.fn(),
-    listTransactionsMock: vi.fn(),
+    listAllTransactionsMock: vi.fn(),
     RevenueChartMock: vi.fn(() => <div data-testid="revenue-chart" />),
   }));
 
@@ -24,7 +24,7 @@ vi.mock("@/lib/vendor-session", () => ({
   getVendorSession: getVendorSessionMock,
 }));
 vi.mock("@/lib/transactions", () => ({
-  listTransactions: listTransactionsMock,
+  listAllTransactions: listAllTransactionsMock,
 }));
 vi.mock("./revenue-chart", () => ({ RevenueChart: RevenueChartMock }));
 
@@ -33,13 +33,13 @@ beforeEach(() => {
     supabase: {},
     user: { id: "v1" },
   });
-  listTransactionsMock.mockReset();
+  listAllTransactionsMock.mockReset();
   RevenueChartMock.mockClear();
 });
 
 describe("StatsPage", () => {
   it("renders the revenue chart for every vendor regardless of plan", async () => {
-    listTransactionsMock.mockResolvedValue([]);
+    listAllTransactionsMock.mockResolvedValue([]);
 
     const jsx = await StatsPage();
     render(jsx);
@@ -76,13 +76,13 @@ describe("StatsPage", () => {
         created_at: "2026-07-15T00:05:00Z",
       },
     ];
-    listTransactionsMock.mockResolvedValue(transactions);
+    listAllTransactionsMock.mockResolvedValue(transactions);
 
     const jsx = await StatsPage();
     render(jsx);
 
     expect(screen.getByTestId("revenue-chart")).toBeInTheDocument();
-    expect(listTransactionsMock).toHaveBeenCalledWith("v1");
+    expect(listAllTransactionsMock).toHaveBeenCalledWith("v1");
     expect(RevenueChartMock).toHaveBeenCalledWith(
       expect.objectContaining({
         data: [{ date: "2026-07-15", cents: 500, count: 1 }],

@@ -29,6 +29,11 @@ function builder(data: unknown, error: unknown = null) {
     eq: vi.fn(() => b),
     gte: vi.fn(() => b),
     order: vi.fn(() => b),
+    range: (from: number, to: number) =>
+      Promise.resolve({
+        data: Array.isArray(data) ? data.slice(from, to + 1) : data,
+        error,
+      }),
     limit: vi.fn(() => b),
     in: vi.fn(() => b),
     maybeSingle: () => Promise.resolve({ data, error }),
@@ -115,7 +120,9 @@ describe("admin-data", () => {
 
     it("throws when a read errors", async () => {
       fromMock.mockReturnValueOnce(builder(null, { message: "boom" }));
-      await expect(platformTotals()).rejects.toThrow("platformTotals");
+      await expect(platformTotals()).rejects.toThrow(
+        "Could not load complete query results",
+      );
     });
   });
 
@@ -363,7 +370,9 @@ describe("admin-data", () => {
 
     it("throws when a read errors", async () => {
       fromMock.mockReturnValueOnce(builder(null, { message: "boom" }));
-      await expect(listVendors()).rejects.toThrow("listVendors");
+      await expect(listVendors()).rejects.toThrow(
+        "Could not load complete query results",
+      );
     });
   });
 
@@ -443,4 +452,32 @@ describe("admin-data", () => {
       await expect(getAdminPricing()).resolves.toEqual(DEFAULT_PRICING);
     });
   });
+});
+
+it("includes transactions beyond the first API page in totals", async () => {
+  listUsersMock.mockResolvedValue({ data: { users: [] }, error: null });
+  mockTables({
+    vendor_payment_config: [],
+    refunds: [],
+    transactions: Array.from({ length: 1001 }, (_, i) => ({
+      id: String(i),
+      status: "confirmed",
+      amount_cents: 100,
+      created_at: new Date().toISOString(),
+      confirmed_at: new Date().toISOString(),
+    })),
+  });
+  const totals = await platformTotals();
+  expect(totals.transactions).toBe(1001);
+  expect(totals.confirmed_volume_cents).toBe(100100);
+});
+
+it("includes rate-limited kits beyond a thousand windows", async () => {
+  mockTables({
+    rate_limits: [
+      ...Array.from({ length: 1000 }, () => ({ key: "checkout:qkit:ip" })),
+      { key: "checkout:loopkit:ip" },
+    ],
+  });
+  expect((await securityStats()).rate_limited_kits_24h).toBe(2);
 });

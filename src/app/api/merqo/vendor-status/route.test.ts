@@ -1,99 +1,73 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
-const { fromMock, listUsersMock } = vi.hoisted(() => ({
-  fromMock: vi.fn(),
-  listUsersMock: vi.fn(),
+import { beforeEach, describe, expect, it, vi } from "vitest";
+const { users, config, eq, from } = vi.hoisted(() => ({
+  users: vi.fn(),
+  config: vi.fn(),
+  eq: vi.fn(),
+  from: vi.fn(),
 }));
 vi.mock("@/lib/supabase/server", () => ({
-  createServiceClient: vi.fn(async () => ({
-    from: fromMock,
-    auth: { admin: { listUsers: listUsersMock } },
-  })),
+  createServiceClient: async () => ({
+    from,
+    auth: { admin: { listUsers: users } },
+  }),
 }));
-
-import { GET } from "@/app/api/merqo/vendor-status/route";
-
-function req(url: string, auth?: string) {
-  return new Request(url, {
-    headers: auth ? { Authorization: auth } : {},
+import { GET } from "./route";
+const request = (email = "vendor@example.com", auth = "Bearer secret") =>
+  new Request(
+    "http://localhost/api/merqo/vendor-status?email=" +
+      encodeURIComponent(email),
+    { headers: { Authorization: auth } },
+  );
+beforeEach(() => {
+  process.env.MERQO_METRICS_SECRET = "secret";
+  users.mockReset().mockResolvedValue({
+    data: { users: [{ id: "late-vendor", email: "Vendor@example.com" }] },
+    error: null,
   });
-}
-
-describe("GET /api/merqo/vendor-status (paykit)", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    process.env.MERQO_METRICS_SECRET = "test-secret";
-    listUsersMock.mockResolvedValue({
-      data: { users: [{ id: "u1", email: "vendor@business.sg" }] },
-      error: null,
+  config.mockReset().mockResolvedValue({
+    data: { vendor_id: "late-vendor", plan: "pro" },
+    error: null,
+  });
+  eq.mockReset().mockReturnValue({ maybeSingle: config });
+  from.mockReset().mockReturnValue({ select: () => ({ eq }) });
+});
+describe("vendor status direct lookup", () => {
+  it("requires bearer authorization", async () => {
+    expect((await GET(request("vendor@example.com", ""))).status).toBe(401);
+    expect(users).not.toHaveBeenCalled();
+  });
+  it("validates the email", async () => {
+    expect((await GET(request("invalid"))).status).toBe(400);
+    expect(users).not.toHaveBeenCalled();
+  });
+  it("looks up the resolved vendor instead of scanning capped config rows", async () => {
+    const response = await GET(request());
+    expect(await response.json()).toEqual({ active: true, plan: "pro" });
+    expect(eq).toHaveBeenCalledWith("vendor_id", "late-vendor");
+  });
+  it("does not query configs for an unknown user", async () => {
+    users.mockResolvedValue({ data: { users: [] }, error: null });
+    expect(await (await GET(request())).json()).toEqual({
+      active: false,
+      plan: null,
     });
-    fromMock.mockImplementation(() => ({
-      select: () => Promise.resolve({ data: [], error: null }),
-    }));
+    expect(from).not.toHaveBeenCalled();
   });
-
-  it("401 when the bearer is missing", async () => {
-    const res = await GET(
-      req("http://localhost/api/merqo/vendor-status?email=v@business.sg"),
-    );
-    expect(res.status).toBe(401);
+  it("reports inactive for a known user with no config", async () => {
+    config.mockResolvedValue({ data: null, error: null });
+    expect(await (await GET(request())).json()).toEqual({
+      active: false,
+      plan: null,
+    });
   });
-
-  it("400 when email is missing", async () => {
-    const res = await GET(
-      req("http://localhost/api/merqo/vendor-status", "Bearer test-secret"),
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("reports inactive for a vendor with no config row", async () => {
-    const res = await GET(
-      req(
-        "http://localhost/api/merqo/vendor-status?email=vendor@business.sg",
-        "Bearer test-secret",
-      ),
-    );
-    expect(await res.json()).toEqual({ active: false, plan: null });
-  });
-
-  it("reports active with plan for a vendor with a config row", async () => {
-    fromMock.mockImplementation(() => ({
-      select: () =>
-        Promise.resolve({
-          data: [{ vendor_id: "u1", plan: "pro" }],
-          error: null,
-        }),
-    }));
-    const res = await GET(
-      req(
-        "http://localhost/api/merqo/vendor-status?email=vendor@business.sg",
-        "Bearer test-secret",
-      ),
-    );
-    expect(await res.json()).toEqual({ active: true, plan: "pro" });
-  });
-
-  it("503 when the auth-users read fails", async () => {
-    listUsersMock.mockResolvedValue({ data: null, error: { message: "boom" } });
-    const res = await GET(
-      req(
-        "http://localhost/api/merqo/vendor-status?email=vendor@business.sg",
-        "Bearer test-secret",
-      ),
-    );
-    expect(res.status).toBe(503);
-  });
-
-  it("503 when the config read fails", async () => {
-    fromMock.mockImplementation(() => ({
-      select: () => Promise.resolve({ data: null, error: { message: "boom" } }),
-    }));
-    const res = await GET(
-      req(
-        "http://localhost/api/merqo/vendor-status?email=vendor@business.sg",
-        "Bearer test-secret",
-      ),
-    );
-    expect(res.status).toBe(503);
-  });
+  it.each(["users", "config"])(
+    "fails closed when %s lookup errors",
+    async (stage) => {
+      (stage === "users" ? users : config).mockResolvedValue({
+        data: null,
+        error: { message: "offline" },
+      });
+      expect((await GET(request())).status).toBe(503);
+    },
+  );
 });

@@ -64,11 +64,17 @@ export async function POST(
     .select("*")
     .single();
   if (updateError || !updated) {
-    const { data: recheck } = await supabase
+    const { data: recheck, error: recheckError } = await supabase
       .from("transactions")
       .select("*")
       .eq("id", id)
       .maybeSingle();
+    if (recheckError || (recheck && recheck.status === current.status)) {
+      return NextResponse.json(
+        { error: "Upstream unavailable" },
+        { status: 503 },
+      );
+    }
     if (!recheck)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(toStatusResponse(recheck));

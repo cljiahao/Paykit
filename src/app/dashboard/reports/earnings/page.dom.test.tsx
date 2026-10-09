@@ -3,18 +3,20 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { Booking, Transaction } from "@/lib/types";
 
-const { getVendorSessionMock, listTransactionsMock, listBookingsMock } =
+const { getVendorSessionMock, listAllTransactionsMock, listAllBookingsMock } =
   vi.hoisted(() => ({
     getVendorSessionMock: vi.fn(),
-    listTransactionsMock: vi.fn(),
-    listBookingsMock: vi.fn(),
+    listAllTransactionsMock: vi.fn(),
+    listAllBookingsMock: vi.fn(),
   }));
 
 vi.mock("@/lib/vendor-session", () => ({
   getVendorSession: getVendorSessionMock,
 }));
-vi.mock("@/lib/transactions", () => ({ listTransactions: listTransactionsMock }));
-vi.mock("@/lib/bookings", () => ({ listBookings: listBookingsMock }));
+vi.mock("@/lib/transactions", () => ({
+  listAllTransactions: listAllTransactionsMock,
+}));
+vi.mock("@/lib/bookings", () => ({ listAllBookings: listAllBookingsMock }));
 
 const TX: Transaction = {
   id: "tx1",
@@ -50,8 +52,8 @@ beforeEach(() => {
   getVendorSessionMock
     .mockReset()
     .mockResolvedValue({ supabase: {}, user: { id: "v1" } });
-  listTransactionsMock.mockReset().mockResolvedValue([TX]);
-  listBookingsMock.mockReset().mockResolvedValue([BOOKING]);
+  listAllTransactionsMock.mockReset().mockResolvedValue([TX]);
+  listAllBookingsMock.mockReset().mockResolvedValue([BOOKING]);
 });
 
 describe("EarningsReportPage", () => {
@@ -78,8 +80,8 @@ describe("EarningsReportPage", () => {
   });
 
   it("hides the per-booking table when there are no lines for the year", async () => {
-    listBookingsMock.mockResolvedValue([]);
-    listTransactionsMock.mockResolvedValue([
+    listAllBookingsMock.mockResolvedValue([]);
+    listAllTransactionsMock.mockResolvedValue([
       { ...TX, order_ref: "qkit-order:x", created_at: "2025-01-01T00:00:00Z" },
     ]);
     const { default: EarningsReportPage } = await import("./page");

@@ -45,6 +45,8 @@ export type Transaction = {
   amount_cents: number;
   status: TxStatus;
   qr_payload: string;
+  checkout_kind?: "qr" | "link" | "image" | null;
+  checkout_label?: string | null;
   claimed_at: string | null;
   confirmed_at: string | null;
   created_at: string;
@@ -179,6 +181,8 @@ export interface Database {
           amount_cents: number;
           status?: TxStatus;
           qr_payload: string;
+          checkout_kind?: "qr" | "link" | "image" | null;
+          checkout_label?: string | null;
           claimed_at?: string | null;
           confirmed_at?: string | null;
           created_at?: string;
@@ -378,6 +382,22 @@ export interface Database {
       [_ in never]: never;
     };
     Functions: {
+      link_booking_balance: {
+        Args: {
+          p_booking_id: string;
+          p_vendor_id: string;
+          p_transaction_id: string;
+        };
+        Returns: string;
+      };
+      link_booking_deposit: {
+        Args: {
+          p_booking_id: string;
+          p_vendor_id: string;
+          p_transaction_id: string;
+        };
+        Returns: string;
+      };
       tx_count_this_month: {
         Args: { p_vendor: string };
         Returns: number;

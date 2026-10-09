@@ -27,11 +27,8 @@ route; mode is a client-side toggle on this one page.
     already lets a signed-in (recovery counts) user set a new one — no
     separate reset-password page needed.
   - `Wordmark` (`@/components/landing/wordmark`) and `GoogleMark`
-    (`./google-mark`) brand the card; the card container is `ElevatedCard`
+    (`@merqo/ui`) brand the card; the card container is `ElevatedCard`
     (`@merqo/ui`), matching every other kit's login page.
-- `google-mark.tsx` — `GoogleMark`: the Google "G" icon SVG, extracted out
-  of `page.tsx` so it matches the shared component used across every kit's
-  login page.
 - `page.test.tsx` — RTL/jsdom tests: the `?error=oauth` banner, the
   check-your-email state on a sessionless sign-up (and returning from it via
   "Back to sign in"), the redirect-on-session-present path, and the Forgot
@@ -47,9 +44,7 @@ started" links. On success it calls `router.push("/dashboard")` +
 `router.refresh()`; `/dashboard`'s `layout.tsx` (`getVendorSession()`) is
 the actual auth gate this page's happy path leads into.
 
-## Shared package note
-
-`google-mark.tsx` moved to `@merqo/ui` (v0.31.0) as `GoogleMark` — it was byte-identical in all five repos.
+Google branding uses `GoogleMark` from `@merqo/ui`; no local copy remains.
 
 ## Parent
 

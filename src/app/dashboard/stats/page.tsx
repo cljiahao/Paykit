@@ -1,12 +1,12 @@
 import { getVendorSession } from "@/lib/vendor-session";
-import { listTransactions } from "@/lib/transactions";
+import { listAllTransactions } from "@/lib/transactions";
 import { aggregateRevenueByDay } from "@/lib/revenue-report";
 import { RevenueChart } from "./revenue-chart";
 
 export default async function StatsPage() {
   const { user } = await getVendorSession();
 
-  const transactions = await listTransactions(user.id);
+  const transactions = await listAllTransactions(user.id);
   const data = aggregateRevenueByDay(transactions);
 
   return (

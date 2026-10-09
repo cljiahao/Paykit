@@ -1,3 +1,4 @@
+import { buildPayNowPayload } from "./payments/paynow";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const {
@@ -18,6 +19,10 @@ vi.mock("@/lib/supabase/server", () => ({
   createServiceClient: createServiceClientMock,
 }));
 
+const transactionInsert = vi.fn(() => ({
+  select: () => ({ single: insertSingle }),
+}));
+
 function fakeSupabase() {
   return {
     from: (table: string) => {
@@ -28,7 +33,7 @@ function fakeSupabase() {
       }
       if (table === "transactions") {
         return {
-          insert: () => ({ select: () => ({ single: insertSingle }) }),
+          insert: transactionInsert,
           select: () => ({
             eq: () => ({ eq: () => ({ single: existingSingle }) }),
           }),
@@ -43,6 +48,7 @@ function fakeSupabase() {
 }
 
 beforeEach(() => {
+  transactionInsert.mockClear();
   createServiceClientMock.mockReset().mockResolvedValue(fakeSupabase());
   configMaybeSingle.mockReset().mockResolvedValue({
     data: {
@@ -60,7 +66,17 @@ beforeEach(() => {
     error: null,
   });
   insertSingle.mockReset().mockResolvedValue({
-    data: { id: "tx1", qr_payload: "0002...6304ABCD" },
+    data: {
+      id: "tx1",
+      qr_payload: buildPayNowPayload({
+        uen: "53312345A",
+        payeeName: "Kopitiam Cart",
+        amountCents: 450,
+        reference: "booking:b1:deposit",
+      }),
+      vendor_id: "11111111-1111-1111-1111-111111111111",
+      amount_cents: 450,
+    },
     error: null,
   });
   existingSingle.mockReset().mockResolvedValue({ data: null, error: null });
@@ -80,7 +96,12 @@ describe("createCheckout", () => {
       ok: true,
       type: "qr",
       transaction_id: "tx1",
-      payload: "0002...6304ABCD",
+      payload: buildPayNowPayload({
+        uen: "53312345A",
+        payeeName: "Kopitiam Cart",
+        amountCents: 450,
+        reference: "booking:b1:deposit",
+      }),
     });
     expect(auditInsert).toHaveBeenCalledWith({
       transaction_id: "tx1",
@@ -131,7 +152,19 @@ describe("createCheckout", () => {
       error: { code: "23505", message: "duplicate key value" },
     });
     existingSingle.mockResolvedValue({
-      data: { id: "tx1", qr_payload: "0002...6304ABCD" },
+      data: {
+        checkout_kind: "qr",
+        checkout_label: null,
+        id: "tx1",
+        qr_payload: buildPayNowPayload({
+          uen: "53312345A",
+          payeeName: "Kopitiam Cart",
+          amountCents: 450,
+          reference: "booking:b1:deposit",
+        }),
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+      },
       error: null,
     });
     const { createCheckout } = await import("./checkout");
@@ -145,7 +178,12 @@ describe("createCheckout", () => {
       ok: true,
       type: "qr",
       transaction_id: "tx1",
-      payload: "0002...6304ABCD",
+      payload: buildPayNowPayload({
+        uen: "53312345A",
+        payeeName: "Kopitiam Cart",
+        amountCents: 450,
+        reference: "booking:b1:deposit",
+      }),
     });
     expect(auditInsert).not.toHaveBeenCalled();
   });
@@ -168,4 +206,49 @@ describe("createCheckout", () => {
       error: "Could not create checkout",
     });
   });
+});
+
+it("persists checkout representation with the original payload", async () => {
+  const { createCheckout } = await import("./checkout");
+  await createCheckout({
+    vendorId: "11111111-1111-1111-1111-111111111111",
+    kitSlug: "paykit",
+    orderRef: "booking:b1:deposit",
+    amountCents: 450,
+  });
+  expect(transactionInsert).toHaveBeenCalledWith(
+    expect.objectContaining({
+      checkout_kind: "qr",
+      checkout_label: null,
+      qr_payload: expect.stringContaining("SG.PAYNOW"),
+    }),
+  );
+});
+it("keeps canonical historical PayNow retries usable without a kind backfill", async () => {
+  insertSingle.mockResolvedValue({ data: null, error: { code: "23505" } });
+  existingSingle.mockResolvedValue({
+    data: {
+      id: "legacy",
+      vendor_id: "11111111-1111-1111-1111-111111111111",
+      amount_cents: 450,
+      checkout_kind: null,
+      checkout_label: null,
+      qr_payload: buildPayNowPayload({
+        uen: "53312345A",
+        payeeName: "Kopitiam Cart",
+        amountCents: 450,
+        reference: "booking:b1:deposit",
+      }),
+    },
+    error: null,
+  });
+  const { createCheckout } = await import("./checkout");
+  expect(
+    await createCheckout({
+      vendorId: "11111111-1111-1111-1111-111111111111",
+      kitSlug: "paykit",
+      orderRef: "booking:b1:deposit",
+      amountCents: 450,
+    }),
+  ).toMatchObject({ ok: true, type: "qr", transaction_id: "legacy" });
 });

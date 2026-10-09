@@ -5,7 +5,7 @@ coverage
 test-results
 playwright-report
 .stryker-tmp
-reports
+/reports/
 .superpowers
 supabase/.temp
 supabase/.branches

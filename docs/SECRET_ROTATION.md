@@ -8,8 +8,8 @@ operational process for rotating one — read it before running
 
 ## The real constraint: today's rotation is a hard cutover, not zero-downtime
 
-`create-kit-key.mjs` **upserts** on `kit_slug` — running it for a kit that
-already has a row overwrites `secret_hash` immediately. There is no
+`create-kit-key.mjs` creates a new key by default and refuses an existing
+`kit_slug`. Explicit `--rotate` updates an existing key immediately. There is no
 grace window and no way for the old and new secret to both be valid at
 once. The instant you run the script, the calling kit's _currently
 deployed_ secret starts failing every request with a 401, until that
@@ -53,7 +53,7 @@ select kit_slug, last_used_at from paykit.kit_api_keys order by kit_slug;
    the gap between the two is real downtime for that kit's checkout flow.
 3. **Run the script**:
    ```bash
-   node scripts/create-kit-key.mjs <kit_slug>
+   node scripts/create-kit-key.mjs <kit_slug> --rotate
    ```
    It prints the new plaintext secret once. Save it immediately — paykit
    never stores or displays it again.

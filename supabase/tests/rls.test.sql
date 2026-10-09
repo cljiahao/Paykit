@@ -131,12 +131,12 @@ select is_empty(
 select throws_ok(
   $$ insert into paykit.transactions (vendor_id, kit_slug, order_ref, amount_cents, qr_payload)
      values ('00000000-0000-0000-0000-00000000000a', 'qkit', 'FORGED', 100, 'x') $$,
-  null,
+  '42501', null,
   'A cannot INSERT into transactions directly (checkout API is service-role only)');
 select throws_ok(
   $$ update paykit.transactions set status = 'confirmed'
      where id = '00000000-0000-0000-0000-0000000d0a01' $$,
-  null,
+  '42501', null,
   'A cannot UPDATE transactions directly (claim/confirm API is service-role only)');
 
 select lives_ok(
@@ -167,20 +167,20 @@ select throws_like(
 select throws_ok(
   $$ insert into paykit.refunds (transaction_id, refunded_amount_cents, created_by)
      values ('00000000-0000-0000-0000-0000000d0a02', 100, '00000000-0000-0000-0000-00000000000a') $$,
-  null,
+  '42501', null,
   'A cannot refund its own confirmed transaction while on the free plan');
 select throws_ok(
   $$ insert into paykit.refunds (transaction_id, refunded_amount_cents, created_by)
      values ('00000000-0000-0000-0000-0000000d0b02', 100, '00000000-0000-0000-0000-00000000000a') $$,
-  null,
+  '42501', null,
   'A cannot refund B''s transaction');
 select throws_ok(
   $$ select 1 from paykit.kit_api_keys $$,
-  null,
+  '42501', null,
   'A (authenticated) cannot SELECT kit_api_keys at all — service-role only');
 select throws_ok(
   $$ select 1 from paykit.legal_check_state $$,
-  null,
+  '42501', null,
   'A (authenticated) cannot SELECT legal_check_state at all — service-role only');
 
 select lives_ok(
@@ -190,7 +190,7 @@ select lives_ok(
 select throws_ok(
   $$ insert into paykit.feedback (vendor_id, nps, message)
      values ('00000000-0000-0000-0000-00000000000b', 9, 'Forged') $$,
-  null,
+  '42501', null,
   'A cannot insert a feedback row for B (vendor_id must equal auth.uid())');
 
 select lives_ok(
@@ -227,7 +227,7 @@ select throws_ok(
        '00000000-0000-0000-0000-00000000000b', 'Forged', '2027-01-10',
        50000, 20000, 30000, '2027-01-03'
      ) $$,
-  null,
+  '42501', null,
   'A cannot insert a booking for B (vendor_id must equal auth.uid())');
 
 select lives_ok(
@@ -279,7 +279,7 @@ select lives_ok(
 select throws_ok(
   $$ insert into paykit.refunds (transaction_id, refunded_amount_cents, created_by)
      values ('00000000-0000-0000-0000-0000000d0b01', 100, '00000000-0000-0000-0000-00000000000b') $$,
-  null,
+  '42501', null,
   'B cannot refund its own transaction while it is only claimed, not confirmed');
 select isnt_empty(
   $$ select 1 from paykit.refunds where transaction_id = '00000000-0000-0000-0000-0000000d0b02' $$,
@@ -326,40 +326,40 @@ select set_config('request.jwt.claims', json_build_object('role', 'anon')::text,
 
 select throws_ok(
   $$ select 1 from paykit.vendor_payment_config limit 1 $$,
-  null,
+  '42501', null,
   'anon cannot SELECT vendor_payment_config');
 select throws_ok(
   $$ select 1 from paykit.transactions limit 1 $$,
-  null,
+  '42501', null,
   'anon cannot SELECT transactions');
 select throws_ok(
   $$ select 1 from paykit.refunds limit 1 $$,
-  null,
+  '42501', null,
   'anon cannot SELECT refunds');
 select throws_ok(
   $$ select 1 from paykit.kit_api_keys limit 1 $$,
-  null,
+  '42501', null,
   'anon cannot SELECT kit_api_keys');
 select throws_ok(
   $$ select 1 from paykit.legal_check_state limit 1 $$,
-  null,
+  '42501', null,
   'anon cannot SELECT legal_check_state');
 select throws_ok(
   $$ select 1 from paykit.vendor_prefs limit 1 $$,
-  null,
+  '42501', null,
   'anon cannot SELECT vendor_prefs');
 select throws_ok(
   $$ select 1 from paykit.bookings limit 1 $$,
-  null,
+  '42501', null,
   'anon cannot SELECT bookings');
 select throws_ok(
   $$ select 1 from paykit.payment_audit limit 1 $$,
-  null,
+  '42501', null,
   'anon cannot SELECT payment_audit');
 select throws_ok(
   $$ insert into paykit.feedback (vendor_id, nps)
      values ('00000000-0000-0000-0000-00000000000a', 9) $$,
-  null,
+  '42501', null,
   'anon cannot INSERT feedback at all');
 
 -- The existing B-cannot-query-A's-tx_count_this_month test above only

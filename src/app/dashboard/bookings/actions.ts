@@ -10,7 +10,7 @@ import {
   createBalanceCheckoutInputSchema,
   rescheduleBookingInputSchema,
 } from "@/lib/schemas";
-import { recordAudit } from "@/app/admin/actions";
+import { recordAudit } from "@/lib/admin-audit";
 
 export type BookingActionState = {
   status: "idle" | "ok" | "error";
@@ -68,49 +68,50 @@ export async function createBookingAction(
     return { status: "error", message: "Could not create booking. Try again." };
   }
 
-  const checkout = await createCheckout({
-    vendorId: user.id,
-    kitSlug: KIT_SLUG,
-    orderRef: `booking:${booking.id}:deposit`,
-    amountCents: parsed.data.deposit_amount_cents,
-  });
-  const service = await createServiceClient();
-  if (!checkout.ok) {
-    // The booking row can't do anything useful without a deposit checkout
-    // (there's no separate "retry deposit checkout" action), so clean it up
-    // rather than leaving an unusable half-created booking behind.
-    await service.from("bookings").delete().eq("id", booking.id);
-    console.error(
-      "createBookingAction: deposit checkout failed",
-      checkout.error,
+  const recovery: BookingActionState = {
+    status: "ok",
+    message: "Booking saved. Open it and retry the deposit checkout.",
+  };
+  try {
+    const checkout = await createCheckout({
+      vendorId: user.id,
+      kitSlug: KIT_SLUG,
+      orderRef: `booking:${booking.id}:deposit`,
+      amountCents: parsed.data.deposit_amount_cents,
+    });
+    if (!checkout.ok) {
+      revalidatePath("/dashboard/bookings");
+      return recovery;
+    }
+    const service = await createServiceClient();
+    const { data: linked, error: linkError } = await service.rpc(
+      "link_booking_deposit",
+      {
+        p_booking_id: booking.id,
+        p_vendor_id: user.id,
+        p_transaction_id: checkout.transaction_id,
+      },
     );
-    return {
-      status: "error",
-      message: "Booking created, but the deposit checkout failed. Try again.",
-    };
+    if (linkError || !linked) {
+      revalidatePath("/dashboard/bookings");
+      return recovery;
+    }
+  } catch {
+    console.error("createBookingAction: deposit checkout unavailable");
+    revalidatePath("/dashboard/bookings");
+    return recovery;
   }
 
-  const { error: linkError } = await service
-    .from("bookings")
-    .update({ deposit_transaction_id: checkout.transaction_id })
-    .eq("id", booking.id);
-  if (linkError) {
-    console.error(
-      "createBookingAction: link deposit tx failed",
-      linkError.message,
-    );
-    return {
-      status: "error",
-      message: "Booking created, but could not link the deposit checkout.",
-    };
+  try {
+    await recordAudit(user.id, "create_booking", booking.id, {
+      event_date: parsed.data.event_date,
+      total_amount_cents: parsed.data.total_amount_cents,
+      deposit_amount_cents: parsed.data.deposit_amount_cents,
+      balance_amount_cents: parsed.data.balance_amount_cents,
+    });
+  } catch {
+    console.error("createBookingAction: audit unavailable");
   }
-
-  await recordAudit(user.id, "create_booking", booking.id, {
-    event_date: parsed.data.event_date,
-    total_amount_cents: parsed.data.total_amount_cents,
-    deposit_amount_cents: parsed.data.deposit_amount_cents,
-    balance_amount_cents: parsed.data.balance_amount_cents,
-  });
 
   revalidatePath("/dashboard/bookings");
   return { status: "ok" };
@@ -131,12 +132,18 @@ export async function createBalanceCheckoutAction(
   const { data: booking, error: readError } = await supabase
     .from("bookings")
     .select(
-      "id, balance_amount_cents, deposit_transaction_id, balance_transaction_id",
+      "id, status, balance_amount_cents, deposit_transaction_id, balance_transaction_id",
     )
     .eq("id", parsed.data.booking_id)
     .maybeSingle();
   if (readError || !booking) {
     return { status: "error", message: "Booking not found" };
+  }
+  if (booking.status === "cancelled") {
+    return {
+      status: "error",
+      message: "Cannot create checkout for a cancelled booking.",
+    };
   }
   if (!booking.deposit_transaction_id) {
     return {
@@ -148,39 +155,45 @@ export async function createBalanceCheckoutAction(
     return { status: "error", message: "Balance checkout already created." };
   }
 
-  const checkout = await createCheckout({
-    vendorId: user.id,
-    kitSlug: KIT_SLUG,
-    orderRef: `booking:${booking.id}:balance`,
-    amountCents: booking.balance_amount_cents,
-  });
-  if (!checkout.ok) {
-    console.error(
-      "createBalanceCheckoutAction: checkout failed",
-      checkout.error,
-    );
+  try {
+    const checkout = await createCheckout({
+      vendorId: user.id,
+      kitSlug: KIT_SLUG,
+      orderRef: `booking:${booking.id}:balance`,
+      amountCents: booking.balance_amount_cents,
+    });
+    if (!checkout.ok) {
+      return {
+        status: "error",
+        message: "Could not create the balance checkout. Try again.",
+      };
+    }
+    const service = await createServiceClient();
+    const { data: linked, error } = await service.rpc("link_booking_balance", {
+      p_booking_id: booking.id,
+      p_vendor_id: user.id,
+      p_transaction_id: checkout.transaction_id,
+    });
+    if (error || !linked) {
+      return {
+        status: "error",
+        message: "Could not link the balance checkout. Try again.",
+      };
+    }
+  } catch {
+    console.error("createBalanceCheckoutAction: checkout unavailable");
     return {
       status: "error",
-      message: "Could not create the balance checkout.",
+      message: "Could not prepare the balance checkout. Try again.",
     };
   }
-
-  const service = await createServiceClient();
-  const { error: linkError } = await service
-    .from("bookings")
-    .update({ balance_transaction_id: checkout.transaction_id })
-    .eq("id", booking.id);
-  if (linkError) {
-    console.error(
-      "createBalanceCheckoutAction: link failed",
-      linkError.message,
-    );
-    return { status: "error", message: "Could not link the balance checkout." };
+  try {
+    await recordAudit(user.id, "create_balance_checkout", booking.id, {
+      amount_cents: booking.balance_amount_cents,
+    });
+  } catch {
+    console.error("createBalanceCheckoutAction: audit unavailable");
   }
-
-  await recordAudit(user.id, "create_balance_checkout", booking.id, {
-    amount_cents: booking.balance_amount_cents,
-  });
 
   revalidatePath(`/dashboard/bookings/${booking.id}`);
   revalidatePath("/dashboard/bookings");

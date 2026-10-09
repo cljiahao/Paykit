@@ -13,7 +13,7 @@ figure-tile helper used by the overview and vendors screens.
   to service_role only, see `0001_paykit_core.sql`), then appends an
   `admin_audit` row; `setPricing` updates the single `pricing` row
   (`monthly_cents`) the same way, revalidating every route that displays
-  the price. `recordAudit()` is exported from here so other real mutating
+  the price. `recordAudit()` lives in `src/lib/admin-audit.ts` so other real mutating
   actions outside `/admin` (e.g. `issueRefundAction` in
   `dashboard/transactions/actions.ts`) can append an `admin_audit` row too
   — see `admin_audit`'s own retention/immutability notes in the repo-root

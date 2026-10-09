@@ -40,4 +40,25 @@ describe("Nav", () => {
       screen.queryByRole("link", { name: "Get started" }),
     ).not.toBeInTheDocument();
   });
+
+  it("links to the About page", () => {
+    render(<Nav />);
+    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute(
+      "href",
+      "/about",
+    );
+  });
+
+  it("updates account links when the signed-in state changes", () => {
+    const { rerender } = render(<Nav authed={false} />);
+    expect(screen.getByRole("link", { name: "Sign in" })).toBeInTheDocument();
+    rerender(<Nav authed />);
+    expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+      "href",
+      "/dashboard",
+    );
+    expect(
+      screen.queryByRole("link", { name: "Sign in" }),
+    ).not.toBeInTheDocument();
+  });
 });

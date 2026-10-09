@@ -28,7 +28,7 @@ upgrade request comes in.
   narrower than the full dashboard width. The "Dashboard" back-nav button is
   `@merqo/ui`'s `BackButton`, rendered with no `LinkComponent` (defaults to
   a plain `<a>` tag) — `LinkComponent={Link}` was removed 2026-09-19:
-  `@merqo/ui` ships package-wide `"use client"`, so passing a component
+  the shared package at the time used a package-wide client banner, so passing a component
   reference into it as a prop from this Server Component 500'd in
   production (invisible to `next build`/jsdom tests; same bug class
   already fixed in the sibling qkit repo, PRs #159/#160).
@@ -55,3 +55,7 @@ the `requestProUpgradeAction` server action in `src/app/actions/plan.ts`
 ## Parent
 
 [dashboard](../README.md)
+
+The shared package now preserves each module's own client/server directive.
+These wrappers retain local callback ownership and historical fix provenance;
+the package no longer applies a blanket client banner.

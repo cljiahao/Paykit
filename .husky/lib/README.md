@@ -13,11 +13,11 @@ ignores their `#!/usr/bin/env bash` shebang and doesn't support
 
 - `pre-commit.sh` — format/lint (`prettier`+`eslint --fix` on staged
   `.ts/.tsx/.js/.mjs/.cjs`, piped through `tr '\n' '\0' | xargs -0` so
-  filenames with spaces/quotes are handled correctly — portable across GNU
-  and BSD xargs, unlike `xargs -d '\n'`), `tsc --noEmit`, a frozen-lockfile
+  ordinary filenames with spaces use NUL-delimited xargs — portable across GNU
+  and BSD xargs), `tsc --noEmit`, a frozen-lockfile
   install check when `package.json` is staged, a gitleaks secret-scan on
   staged files (if gitleaks is installed), then `readme-coupling.sh` and
-  `comment-hygiene.sh`.
+  `comment-hygiene.sh`. Git-quoted or newline-containing paths need separate handling.
 - `pre-push.sh` — runs `../../.claude/verify-harness.sh` (integrity check)
   plus `pnpm run check && pnpm test`.
 - `readme-coupling.sh` — pre-commit nudge (non-blocking): warns to stderr

@@ -12,7 +12,8 @@ export default async function TransactionsPage() {
     <div className="mx-auto max-w-4xl">
       <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Every checkout paykit has run for you, across every kit.
+        Your 200 most recent checkouts across every kit. Earnings reports
+        include your full history.
       </p>
       <div className="mt-6">
         <TransactionTable

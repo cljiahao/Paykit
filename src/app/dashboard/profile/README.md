@@ -1,88 +1,29 @@
 # profile
 
-## Purpose
+Vendor account settings. `page.tsx` establishes the vendor session, loads the
+shared profile and reads auth metadata defensively before rendering
+`profile-form.tsx`. The shared back button receives plain serializable props;
+client component references cannot cross directly from this server page.
 
-Vendor account profile page — stall/shop name, social links, profile icon,
-display name, and sign-in password, each saved independently through the
-channel that owns that data (shared `merqo.vendor_profile` for stall
-name/social links vs. the Supabase auth user for icon/display
-name/password). Built per the cross-kit
-`Merqo Business/docs/business/2026-07-21-profile-settings-page-standard.md`.
+`actions.ts` validates stall-name and social-link input and calls the
+owner-scoped `patch_vendor_profile` RPC. Each write changes only the submitted
+field, preserving concurrent edits to the other column. Missing rows are
+provisioned atomically; empty social links explicitly clear links.
 
-## Contents
+The client form saves display name, avatar metadata and password through
+`supabase.auth.updateUser`. These belong to the shared Supabase account.
+It composes shared sections, social-link fields and image uploader from
+`@merqo/ui`; `lib/image-upload-adapter.ts` uploads to the supported public
+bucket and contains best-effort cleanup. A successful avatar replacement removes
+the previous object; returned save errors restore the visible previous avatar
+and attempt unused-upload cleanup. Uncertain network outcomes must not be
+interpreted as proof that a metadata write did not commit.
 
-- `actions.ts` — `updateStallName(input)` and `updateSocialLinks(input)`
-  server actions. Both call `getVendorSession()` (`@/lib/vendor-session`,
-  paykit's own auth guard), validate with their Zod schema
-  (`profileNameSchema`, `socialLinksSchema`), read the vendor's current
-  shared profile via `getOrCreateVendorProfile`, then write the one changed
-  field through `upsertVendorProfile` — both from
-  `@/lib/merqo-vendor-profile`, which calls the shared `merqo.vendor_profile`
-  table's RPC functions, never a raw cross-schema query. Both call
-  `revalidatePath("/dashboard/profile")` on success. Display name, avatar,
-  and password are explicitly **not** handled here — they live on the auth
-  user and are set client-side via `supabase.auth.updateUser`.
-- `page.tsx` — `ProfilePage()` (server, `revalidate = 0`): calls
-  `getVendorSession()`, reads `display_name`/`avatar_url` defensively off
-  `user.user_metadata`, renders `BackButton` (`@merqo/ui`, no
-  `LinkComponent` — defaults to a plain `<a>` tag; a `LinkComponent={Link}`
-  prop was removed 2026-09-19, since `@merqo/ui` ships package-wide
-  `"use client"` and passing a component reference into it from this
-  Server Component 500'd in production, same bug class already fixed in
-  the sibling qkit repo) back to `/dashboard`, and
-  renders `ProfileForm` with the vendor's id, stall name, display name,
-  email, avatar URL, and social links. Content sits in a plain
-  `mx-auto max-w-2xl md:max-w-4xl` div (not `<main>` — the parent
-  `dashboard/layout.tsx` owns that landmark and the page-family's canonical
-  `max-w-7xl` outer width); the two-column form reads better narrower than
-  the full dashboard width.
-- `profile-form.tsx` — `ProfileForm({ vendorId, stallName, displayName,
-email, avatarUrl, socialLinks })` client component with four
-  independently-saved sections inside `Section` blocks (`@merqo/ui`), laid
-  out via `@merqo/ui`'s `TwoColumnSections` — two independent `flex
-flex-col gap-5` stacks side by side on `md`+, never a CSS grid, whose row
-  height would track the tallest cell in that row and desync the columns
-  the moment "Social & website" outgrew "Stall/shop name". Column 1:
-  stall/shop name (`profileNameSchema` → `updateStallName` server action),
-  profile icon (`@merqo/ui`'s `ImageUploader`, wired through
-  `@/lib/image-upload-adapter`'s `uploadPaykitImage` →
-  `supabase.auth.updateUser({ data: { avatar_url } })`), change password
-  (`passwordChangeSchema` → `supabase.auth.updateUser({ password })`).
-  Column 2: display name (`displayNameSchema` →
-  `supabase.auth.updateUser({ data: { display_name } })`) above social
-  links (`SocialLinksFields` + `socialLinksSchema` → `updateSocialLinks`
-  server action); email is shown read-only.
-- `actions.test.ts` — unit tests for `updateStallName`/`updateSocialLinks`:
-  upserts with the new value while preserving the other field, rejects an
-  empty stall name and an invalid social URL.
-- `profile-form.dom.test.tsx` — jsdom tests for `ProfileForm`: renders the
-  profile-icon upload widget, saves a changed stall name, blocks saving an
-  emptied stall name, updates the display name via the browser auth client,
-  rejects a mismatched password confirmation, saves social links through
-  the server action.
-- `page.dom.test.tsx` — awaits `ProfilePage()` directly and renders the
-  result (same pattern as `dashboard/layout.dom.test.tsx`), with
-  `ProfileForm` stubbed so the test stays focused on `page.tsx`'s own job:
-  fetching the profile and defensively reading `display_name`/`avatar_url`
-  off `user_metadata`.
+`hooks/use-async-action.ts` supplies the per-call pending/error contract.
+Action and DOM tests cover validation, field patches, account updates and form
+failures; mocked tests do not establish database grants or live shared-session
+behavior.
 
-## Connectivity
+## Parent
 
-Reachable from `dashboard-nav.tsx`'s "Profile" link. `page.tsx` calls
-`getVendorSession()` (`@/lib/vendor-session`) and renders `profile-form.tsx`,
-which calls the server actions `updateStallName`/`updateSocialLinks` in
-`actions.ts` for stall name/social links and the browser Supabase client
-(`@/lib/supabase/client`) directly for avatar/display-name/password, all
-validated against schemas in `@/lib/schemas`. The profile-icon upload goes
-through `@merqo/ui`'s `ImageUploader`, wired via
-`@/lib/image-upload-adapter`'s `uploadPaykitImage`, which writes to the
-shared `vendor-images` Storage bucket (project-wide, not paykit-local — see
-`docs/DEPLOY.md`).
-
-## Shared package note
-
-The avatar upload's resize step now calls `@merqo/ui`'s `resizeToWebp` (v0.31.0), and the social-link inputs use its shared `SocialLinksFields` (brand-mark icons, replacing paykit's local lucide-glyph copy). v0.31.1 also fixes a latent `resizeToWebp` bug: a filename with no dot used to yield the whole name as its extension.
-
-## Replaced-avatar cleanup
-
-The avatar save handler deletes the image it orphans: after a successful save, the previous avatar (including on Remove); after a failed save, the fresh upload, which is then referenced nowhere. On a failed save it also restores the previous avatar in state rather than keep showing an image that was never saved.
+[dashboard](../README.md)

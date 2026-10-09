@@ -16,12 +16,12 @@ paykit uses Supabase (Postgres + RLS), not Drizzle. Migrations live in
   (Or `supabase db reset` to rebuild local from `supabase/migrations/` + re-run
   the seed — destructive to local data only.)
 - After any schema change, regenerate types from the local schema:
-  `supabase gen types typescript --local > src/lib/types.ts`.
+  `supabase gen types typescript --local --schema paykit,merqo > types.generated.ts`.
 
 **Linked (hosted) project — only when intentionally changing the deployed DB:**
 
 - `supabase db push` — applies pending migrations to the linked project.
-- Regenerate types: `supabase gen types typescript --linked > src/lib/types.ts`.
+- Regenerate types: `supabase gen types typescript --linked --schema paykit,merqo > types.generated.ts`.
 
 **Without the CLI:**
 
@@ -29,6 +29,10 @@ paykit uses Supabase (Postgres + RLS), not Drizzle. Migrations live in
 - Manually update `src/lib/types.ts` to match (keep `Relationships` on each table
   and the `Views`/`Functions`/`CompositeTypes` keys, or supabase-js types resolve
   to `never`).
+
+Generate only the owned `paykit` schema and the shared `merqo` profile RPC schema.
+Reconcile the generated definitions into `src/lib/types.ts` while retaining its
+hand-authored domain aliases. Remove the temporary `types.generated.ts` after review.
 
 ## Safety gate (before running against a non-local project)
 

@@ -8,8 +8,8 @@ const FORMULA_PREFIXES = new Set(["=", "+", "-", "@"]);
 // so it's the one field here that needs this; the standard mitigation is
 // prefixing a leading quote to keep the cell a plain string.
 function csvField(value: string): string {
-  const safe = FORMULA_PREFIXES.has(value[0]) ? `'${value}` : value;
-  return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+  const safe = FORMULA_PREFIXES.has(value.trimStart()[0]) ? `'${value}` : value;
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
 function formatDollars(cents: number): string {

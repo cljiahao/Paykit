@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
 import { provisionBearerOk } from "@/lib/merqo-auth";
-import { recordAudit } from "@/app/admin/actions";
+import { recordAudit } from "@/lib/admin-audit";
 
 export const revalidate = 0;
 

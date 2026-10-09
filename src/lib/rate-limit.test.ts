@@ -67,3 +67,10 @@ describe("rateLimit", () => {
     await expect(rateLimit(supabase, "k", 1, 1)).resolves.toBe(true);
   });
 });
+
+it("preserves fail-open policy when limiter transport rejects", async () => {
+  const client = {
+    rpc: vi.fn().mockRejectedValue(new Error("network")),
+  } as unknown as Parameters<typeof rateLimit>[0];
+  await expect(rateLimit(client, "key", 1, 1)).resolves.toBe(true);
+});

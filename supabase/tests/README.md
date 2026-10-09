@@ -29,10 +29,10 @@ _permits_.
     or write the other's.
   - **`anon` is locked out** of everything except the cross-kit checkout
     API's own service-role path — no direct table access.
-  - **`payment_audit` is append-only** (migration `0011`) from creation,
+  - **`payment_audit` is append-only** (migrations `0011` and `0019`),
     same treatment as `admin_audit`; A/B each read only their own
     transaction's rows.
-  - **`check_rate_limit` is service-role-only** (migration `0012`) —
+  - **`check_rate_limit` is service-role-only** (migration `0019`, correcting the inherited PUBLIC privilege from `0012`) —
     `EXECUTE` is granted to `service_role`, not `authenticated`/`anon`.
   - **Booking ownership** — A reads/inserts/cancels only its own
     `bookings` row (an update targeting B's booking id affects 0 rows);
@@ -60,3 +60,7 @@ running Next.js app needed.
 ## Parent
 
 See the repo root [README.md](../../README.md) for the full layout.
+
+`refund-integrity.test.sql` covers cumulative refund caps, atomic multirow rejection, vendor authorization, integer overflow, and service corrections. `isolation/refund-concurrency.spec` is a PostgreSQL isolationtester specification for concurrent READ COMMITTED and REPEATABLE READ inserts; it is not run by `supabase test db` and has not yet been executed. The parent checkout write deliberately forces a serialization failure for conflicting repeatable-read snapshots. See [PostgreSQL transaction isolation](https://www.postgresql.org/docs/current/transaction-iso.html) and [trigger visibility](https://www.postgresql.org/docs/current/trigger-datachanges.html).
+
+Focused pgTAP suites: `deposit-recovery.test.sql` validates atomic deposit linking, `balance-link.test.sql` validates balance ownership and payment identity, `checkout-snapshot.test.sql` protects stored payment destinations, and `private-rate-limiter.test.sql` checks service-only bounded counters and append-only audit privileges. Prepared security migrations and SQL fixtures require local database execution before claiming runtime validation.

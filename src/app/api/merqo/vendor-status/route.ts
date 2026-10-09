@@ -25,10 +25,7 @@ export async function GET(request: Request) {
 
   const supabase = await createServiceClient();
 
-  const [usersRes, configsRes] = await Promise.all([
-    listAllUsers(supabase),
-    supabase.from("vendor_payment_config").select("vendor_id, plan"),
-  ]);
+  const usersRes = await listAllUsers(supabase);
   if (usersRes.error) {
     console.error("paykit vendor-status: read failed", usersRes.error.message);
     return NextResponse.json(
@@ -36,6 +33,16 @@ export async function GET(request: Request) {
       { status: 503 },
     );
   }
+  const matchedUser = (usersRes.data?.users ?? []).find(
+    (user) => user.email?.toLowerCase() === parsed.data.email.toLowerCase(),
+  );
+  const configsRes = matchedUser
+    ? await supabase
+        .from("vendor_payment_config")
+        .select("vendor_id, plan")
+        .eq("vendor_id", matchedUser.id)
+        .maybeSingle()
+    : { data: null, error: null };
   if (configsRes.error) {
     console.error(
       "paykit vendor-status: read failed",
@@ -53,7 +60,10 @@ export async function GET(request: Request) {
       id: u.id,
       email: u.email ?? null,
     })),
-    (configsRes.data ?? []) as { vendor_id: string; plan: VendorPlan }[],
+    (configsRes.data ? [configsRes.data] : []) as {
+      vendor_id: string;
+      plan: VendorPlan;
+    }[],
   );
 
   return NextResponse.json(status);

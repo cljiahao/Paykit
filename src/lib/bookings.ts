@@ -1,3 +1,4 @@
+import { readAllRows } from "@/lib/read-all-rows";
 import { createServerClient } from "@/lib/supabase/server";
 import type { Booking } from "@/lib/types";
 
@@ -32,4 +33,17 @@ export async function getBooking(
     return null;
   }
   return data;
+}
+
+/** Complete vendor-scoped records for reports, separate from the recent-items UI. */
+export async function listAllBookings(vendorId: string): Promise<Booking[]> {
+  const supabase = await createServerClient();
+  return readAllRows((from, to) =>
+    supabase
+      .from("bookings")
+      .select("*")
+      .eq("vendor_id", vendorId)
+      .order("id")
+      .range(from, to),
+  );
 }

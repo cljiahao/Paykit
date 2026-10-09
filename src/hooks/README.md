@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Zero-call-site adapter over `@merqo/ui`'s shared hooks — keeps every existing
+Client adapter over `@merqo/ui`'s shared hooks — keeps every existing
 `run(async () => { … })` call site working unchanged while the actual
 pending/error-state logic lives in the shared package.
 
@@ -15,6 +15,9 @@ pending/error-state logic lives in the shared package.
   re-exports `navigatingAway`.
 - `use-async-action.test.tsx` — covers the adapter's pending/error/reset
   behavior and that a thrown error still resets `pending`.
+
+Used by the admin vendor-plan toggle and dashboard profile form; keep the
+per-call closure contract unless those callers migrate together.
 
 ## Parent
 

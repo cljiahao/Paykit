@@ -36,7 +36,7 @@ describe("0011_paykit_payment_audit.sql", () => {
     expect(sql).toMatch(/grant all on paykit\.payment_audit to service_role/);
   });
 
-  it("revokes UPDATE/DELETE from service_role, making it immutable from creation", () => {
+  it("revokes UPDATE/DELETE; remaining audit privileges are narrowed by 0019", () => {
     expect(sql).toMatch(
       /revoke update, delete on paykit\.payment_audit from service_role/,
     );

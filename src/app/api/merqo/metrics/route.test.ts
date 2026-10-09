@@ -17,8 +17,19 @@ function mockTables(
   overrides: Record<string, { data: unknown; error: unknown }>,
 ) {
   fromMock.mockImplementation((table: string) => ({
-    select: () =>
-      Promise.resolve(overrides[table] ?? { data: [], error: null }),
+    select: () => ({
+      order: () => ({
+        range: (from: number, to: number) => {
+          const result = overrides[table] ?? { data: [], error: null };
+          return Promise.resolve({
+            ...result,
+            data: Array.isArray(result.data)
+              ? result.data.slice(from, to + 1)
+              : result.data,
+          });
+        },
+      }),
+    }),
   }));
 }
 
@@ -95,4 +106,22 @@ describe("GET /api/merqo/metrics (paykit)", () => {
     const res = await GET(req("Bearer test-secret"));
     expect(res.status).toBe(503);
   });
+});
+
+it("includes metrics beyond the server row cap", async () => {
+  process.env.MERQO_METRICS_SECRET = "test-secret";
+  mockTables({
+    transactions: {
+      data: Array.from({ length: 1001 }, () => ({
+        vendor_id: "v1",
+        amount_cents: 100,
+        status: "confirmed",
+        created_at: new Date().toISOString(),
+      })),
+      error: null,
+    },
+  });
+  const response = await GET(req("Bearer test-secret"));
+  expect(response.status).toBe(200);
+  expect((await response.json()).revenue_cents_all).toBe(100100);
 });

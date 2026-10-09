@@ -207,11 +207,14 @@ better-auth / Drizzle and will break RLS.
 
 ## AI Harness
 
-PreToolUse: blocks secret files (exit 2): `.env*` (except `.env.example`),
-cert files (`.pem`/`.key`/`.p12`/`.pfx`/`.secret`), `credentials.json`/`.netrc`/`.secrets`;
-and blocks `--no-verify`. App code, skills, specs, and `.github/workflows/`
-unrestricted.
-UserPromptSubmit: pattern-checks prompts for injection phrases; exit 2 blocks.
+PreToolUse(Read|Edit|Write): normalize Windows and relative paths; hard-block
+secret-file reads and writes (environment files except the blank templates,
+secret directories and certificate/credential files). Governance and CI/CD
+writes require human approval; their reads are allowed. Ordinary application
+code, skills and specifications remain unrestricted. The Bash guard continues
+to block hook bypasses, protected-branch force pushes and destructive guard edits.
+UserPromptSubmit: credential-shaped input is blocked; injection-phrase matches
+produce advisory context so quoted security research can proceed.
 PostToolUse: `tsc --noEmit --incremental` after every Edit/Write, plus a
 comment-hygiene scan (`post-edit-comment-check.sh`) flagging change-narration
 comments (`was`/`added`/dated/ticket-ref-shaped openers, per

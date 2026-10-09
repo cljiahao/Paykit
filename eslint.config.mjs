@@ -4,6 +4,20 @@ import sonarjs from "eslint-plugin-sonarjs";
 const eslintConfig = [
   ...next,
   {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+      "sonarjs/no-unused-vars": "off",
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
@@ -27,6 +41,10 @@ const eslintConfig = [
   },
   sonarjs.configs.recommended,
   {
+    files: ["scripts/**"],
+    rules: { "no-inline-comments": "off" },
+  },
+  {
     rules: {
       "no-inline-comments": [
         "error",
@@ -46,7 +64,7 @@ const eslintConfig = [
     rules: { "sonarjs/prefer-read-only-props": "off" },
   },
   {
-    files: ["**/*.test.{ts,tsx}", "**/test/**", "scripts/**", "e2e/**"],
+    files: ["**/*.test.{ts,tsx}", "**/test/**", "e2e/**"],
     rules: {
       "no-inline-comments": "off",
       // Test fixtures use fake secrets/plain-http URLs on purpose.

@@ -24,6 +24,8 @@ vi.mock("@/lib/bookings", () => ({ getBooking: getBookingMock }));
 vi.mock("@/lib/transactions", () => ({ getTransaction: getTransactionMock }));
 vi.mock("next/navigation", () => ({ notFound: notFoundMock }));
 
+import BookingDetailPage from "./page";
+
 const BOOKING: Booking = {
   id: "b1",
   vendor_id: "v1",
@@ -49,6 +51,8 @@ const DEPOSIT_TX: Transaction = {
   amount_cents: 30000,
   status: "confirmed",
   qr_payload: "0002...",
+  checkout_kind: "qr",
+  checkout_label: null,
   claimed_at: "2026-08-20T00:01:00Z",
   confirmed_at: "2026-08-20T00:02:00Z",
   created_at: "2026-08-20T00:00:00Z",
@@ -66,7 +70,6 @@ beforeEach(() => {
 describe("BookingDetailPage", () => {
   it("404s when the booking doesn't exist (or isn't this vendor's)", async () => {
     getBookingMock.mockResolvedValue(null);
-    const { default: BookingDetailPage } = await import("./page");
     await expect(
       BookingDetailPage({ params: Promise.resolve({ id: "missing" }) }),
     ).rejects.toThrow("NEXT_NOT_FOUND");
@@ -79,7 +82,6 @@ describe("BookingDetailPage", () => {
       async (_vendorId: string, id: string) =>
         id === "tx-deposit" ? DEPOSIT_TX : null,
     );
-    const { default: BookingDetailPage } = await import("./page");
     const jsx = await BookingDetailPage({
       params: Promise.resolve({ id: "b1" }),
     });
@@ -104,7 +106,6 @@ describe("BookingDetailPage", () => {
 
   it("offers Create balance checkout once the deposit exists and balance doesn't yet", async () => {
     getBookingMock.mockResolvedValue(BOOKING);
-    const { default: BookingDetailPage } = await import("./page");
     const jsx = await BookingDetailPage({
       params: Promise.resolve({ id: "b1" }),
     });
@@ -119,7 +120,6 @@ describe("BookingDetailPage", () => {
       ...BOOKING,
       balance_transaction_id: "tx-balance",
     });
-    const { default: BookingDetailPage } = await import("./page");
     const jsx = await BookingDetailPage({
       params: Promise.resolve({ id: "b1" }),
     });
@@ -131,7 +131,6 @@ describe("BookingDetailPage", () => {
 
   it("hides both actions once the booking is cancelled", async () => {
     getBookingMock.mockResolvedValue({ ...BOOKING, status: "cancelled" });
-    const { default: BookingDetailPage } = await import("./page");
     const jsx = await BookingDetailPage({
       params: Promise.resolve({ id: "b1" }),
     });
@@ -146,11 +145,44 @@ describe("BookingDetailPage", () => {
 
   it("keeps Print available even on a cancelled booking", async () => {
     getBookingMock.mockResolvedValue({ ...BOOKING, status: "cancelled" });
-    const { default: BookingDetailPage } = await import("./page");
     const jsx = await BookingDetailPage({
       params: Promise.resolve({ id: "b1" }),
     });
     render(jsx);
     expect(screen.getByRole("button", { name: /print/i })).toBeInTheDocument();
   });
+});
+
+describe("immutable payment display", () => {
+  it.each(["image", "link", null] as const)(
+    "renders stored %s without encoding its URL as a QR",
+    async (checkout_kind) => {
+      getBookingMock.mockResolvedValue(BOOKING);
+      getTransactionMock.mockResolvedValue({
+        ...DEPOSIT_TX,
+        checkout_kind,
+        checkout_label: checkout_kind === "link" ? "Original provider" : null,
+        qr_payload: "https://pay.example/original.png",
+      });
+      const { container } = render(
+        await BookingDetailPage({ params: Promise.resolve({ id: "b1" }) }),
+      );
+      expect(container.querySelectorAll("svg[shape-rendering]")).toHaveLength(
+        0,
+      );
+      if (checkout_kind === "image")
+        expect(screen.getByAltText("Deposit payment QR code")).toHaveAttribute(
+          "src",
+          "https://pay.example/original.png",
+        );
+      else if (checkout_kind === "link")
+        expect(
+          screen.getByRole("link", { name: "Original provider" }),
+        ).toHaveAttribute("href", "https://pay.example/original.png");
+      else
+        expect(
+          screen.getByText(/Original payment display unavailable/),
+        ).toBeInTheDocument();
+    },
+  );
 });

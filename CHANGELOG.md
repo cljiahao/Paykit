@@ -6,6 +6,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- Cap cumulative refunds at the confirmed payment amount in Postgres, serialize concurrent writes, and preserve refund identity and attribution.
+
+- Restrict the rate limiter to trusted service callers, validate bounded parameters, and remove remaining destructive and schema privileges from audit writers.
+
 ### Added
 
 - Playwright end-to-end smoke tests (`e2e/`, `pnpm test:e2e`): a public smoke spec and a signed-out auth-guard spec, run in CI as `e2e (public smoke)` against `pnpm dev` with dummy Supabase values. The job name and baseline match qkit, loopkit and merqo, so every kit can require the same check. `@playwright/test` is pinned to `1.61.1`.
@@ -17,6 +23,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Improve small brand-text and input-boundary contrast in both themes while preserving primary button fills and decorative separators.
+
+- Kit-key provisioning refuses duplicate slugs; replacing a live key now requires an explicit --rotate command.
+- Preserve saved bookings after deposit checkout failures and provide a scoped recovery action; prepared migration0016 validates atomic linking and reconciles confirmed payments. Checkout retries reject conflicting identities or changed payment destinations, and best-effort authentication telemetry tolerates network rejection.
 - Picking a QR image in the payment config form and leaving without saving no
   longer leaves the image in storage. The uploader now uses `@merqo/ui`
   v0.32.0's `deferUpload`: the image is previewed locally and only uploaded

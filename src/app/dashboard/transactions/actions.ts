@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getVendorSession } from "@/lib/vendor-session";
 import { issueRefundInputSchema } from "@/lib/schemas";
-import { recordAudit } from "@/app/admin/actions";
+import { recordAudit } from "@/lib/admin-audit";
 
 export type RefundState = { status: "idle" | "ok" | "error"; message?: string };
 

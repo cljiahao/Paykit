@@ -1,3 +1,4 @@
+import { readAllRowsResult } from "@/lib/read-all-rows";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -51,10 +52,14 @@ export async function GET(request: Request) {
       .select("plan, created_at")
       .eq("vendor_id", user.id)
       .maybeSingle(),
-    supabase
-      .from("transactions")
-      .select("id, status, amount_cents, created_at, confirmed_at")
-      .eq("vendor_id", user.id),
+    readAllRowsResult((from, to) =>
+      supabase
+        .from("transactions")
+        .select("id, status, amount_cents, created_at, confirmed_at")
+        .eq("vendor_id", user.id)
+        .order("id")
+        .range(from, to),
+    ),
   ]);
   if (configRes.error || transactionsRes.error) {
     console.error(
@@ -80,11 +85,15 @@ export async function GET(request: Request) {
   // buildVendorHealth uses across all vendors at once.
   const txIds = transactions.map((t) => t.id);
   let refunds: { created_at: string }[] = [];
-  if (txIds.length > 0) {
-    const refundsRes = await supabase
-      .from("refunds")
-      .select("created_at")
-      .in("transaction_id", txIds);
+  for (let offset = 0; offset < txIds.length; offset += 100) {
+    const refundsRes = await readAllRowsResult((from, to) =>
+      supabase
+        .from("refunds")
+        .select("created_at")
+        .in("transaction_id", txIds.slice(offset, offset + 100))
+        .order("id")
+        .range(from, to),
+    );
     if (refundsRes.error) {
       console.error(
         "paykit vendor-activity: read failed",
@@ -95,7 +104,7 @@ export async function GET(request: Request) {
         { status: 503 },
       );
     }
-    refunds = refundsRes.data ?? [];
+    refunds.push(...(refundsRes.data ?? []));
   }
 
   const config = configRes.data as {

@@ -39,7 +39,7 @@ describe("0012_paykit_rate_limit.sql", () => {
     expect(sql).toMatch(/security definer\s+set search_path = paykit/);
   });
 
-  it("grants execute to service_role only (server-to-server surface, not client-callable)", () => {
+  it("explicitly grants execute to service_role; effective ACL is tested against PostgreSQL", () => {
     expect(sql).toMatch(
       /grant execute on function paykit\.check_rate_limit\(text, int, int\) to service_role;/,
     );

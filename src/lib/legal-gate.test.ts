@@ -185,3 +185,25 @@ describe("requireCurrentLegalAcceptance", () => {
     expect(redirect).not.toHaveBeenCalled();
   });
 });
+
+it.each(["client", "read", "write"])(
+  "fails closed on rejected %s persistence",
+  async (stage) => {
+    const { client, maybeSingle, upsert } = clientWith({});
+    vi.mocked(createServiceClient).mockResolvedValue(client as never);
+    if (stage === "client")
+      vi.mocked(createServiceClient).mockRejectedValue(new Error("network"));
+    if (stage === "read") maybeSingle.mockRejectedValue(new Error("network"));
+    if (stage === "write") upsert.mockRejectedValue(new Error("network"));
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        terms: LEGAL_VERSIONS.terms,
+        privacy: LEGAL_VERSIONS.privacy,
+      }),
+    }) as never;
+    await expect(checkLegalAcceptance("vendor@example.com")).resolves.toBe(
+      false,
+    );
+  },
+);
