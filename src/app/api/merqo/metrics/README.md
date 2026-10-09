@@ -14,3 +14,7 @@ cross-kit health/revenue dashboard (`/admin/products`). Bearer-secret gated
 ## Parent
 
 See the repo root [README.md](../../../../../README.md) for the full layout.
+
+## Boundary and coverage
+
+Collection reads page through deterministic IDs rather than silently trusting the first database page. Authenticate before database work; database failures produce an error response instead of a misleading zero-count snapshot. Route tests cover the authorization and complete-read boundaries.

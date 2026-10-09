@@ -49,3 +49,7 @@ Reachable from `dashboard-nav.tsx`'s "Stats" link. `page.tsx` reads via
 ## Parent
 
 [dashboard](../README.md)
+
+## Boundary and coverage
+
+The page uses the complete vendor transaction reader before aggregation. Database failures surface rather than rendering a plausible partial revenue chart. Tests verify complete-read wiring and error propagation separately from the chart presentation.

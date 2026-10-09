@@ -15,3 +15,7 @@ merqo hub is the only caller.
 ## Parent
 
 See the repo root [README.md](../../../../../README.md) for the full layout.
+
+## Boundary and coverage
+
+Validate email before database work and resolve the account through the bounded, paginated administrator listing. Failed or incomplete account lookup must not report an inactive vendor as though the lookup succeeded; route tests cover these failure cases.

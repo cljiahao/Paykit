@@ -22,3 +22,7 @@ guards against migration drift. Most tests live co-located under `src/`
 ## Parent
 
 See the repo root [README.md](../README.md) for the full layout.
+
+## Boundary and coverage
+
+server-only.ts supplies the test alias for server-only imports. The schema-presence checks are structural guards, not evidence that database policies or concurrent refunds behave correctly; use the pgTAP and isolation suites for those boundaries.
