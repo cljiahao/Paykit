@@ -47,3 +47,5 @@ Each feature folder documents its own boundary and behavior coverage.
 ## Parent
 
 [app](../README.md)
+
+The dashboard navigation uses the existing local `Wordmark`, preserving its typography and link destination.

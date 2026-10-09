@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { dollarsToCents } from "@/lib/money";
 import { getVendorSession } from "@/lib/vendor-session";
 import { createServiceClient } from "@/lib/supabase/server";
 import { createCheckout } from "@/lib/checkout";
@@ -16,14 +17,6 @@ export type BookingActionState = {
   status: "idle" | "ok" | "error";
   message?: string;
 };
-
-// Dollar inputs from the form, converted to cents — same pattern as
-// `dashboard/transactions/actions.ts`'s `dollarsToCents`. `Number()` on an
-// empty/non-numeric input yields `NaN`, which the schema's `z.coerce.number`
-// then rejects with its own message, so no separate guard is needed here.
-function dollarsToCents(raw: FormDataEntryValue | null): number {
-  return Math.round(Number(raw) * 100);
-}
 
 const KIT_SLUG = "paykit";
 

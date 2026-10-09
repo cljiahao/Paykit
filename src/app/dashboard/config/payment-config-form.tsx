@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { RadioOptionCard } from "./radio-option-card";
 import Image from "next/image";
 import QRCode from "react-qr-code";
 import { ExternalLink } from "lucide-react";
@@ -157,26 +158,13 @@ export function PaymentConfigForm({
         {KIND_OPTIONS.map(({ k, label: optLabel, hint }) => {
           const selected = kind === k;
           return (
-            <label
+            <RadioOptionCard
               key={k}
-              className={
-                selected
-                  ? "flex cursor-pointer items-start gap-3 rounded-xl border border-primary bg-primary/5 px-4 py-3 ring-1 ring-primary/30"
-                  : "flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card px-4 py-3 hover:bg-secondary/50"
-              }
-            >
-              <RadioGroupItem
-                value={k}
-                aria-label={optLabel}
-                className="mt-0.5"
-              />
-              <span className="min-w-0">
-                <span className="block text-sm font-medium">{optLabel}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {hint}
-                </span>
-              </span>
-            </label>
+              value={k}
+              label={optLabel}
+              hint={hint}
+              selected={selected}
+            />
           );
         })}
       </RadioGroup>
@@ -259,21 +247,13 @@ export function PaymentConfigForm({
                 const p = POINTER_PRESETS[id];
                 const selected = preset === id;
                 return (
-                  <label
+                  <RadioOptionCard
                     key={id}
-                    className={
-                      selected
-                        ? "flex cursor-pointer items-start gap-2 rounded-xl border border-primary bg-primary/5 px-3 py-2.5 ring-1 ring-primary/30"
-                        : "flex cursor-pointer items-start gap-2 rounded-xl border border-border bg-card px-3 py-2.5 hover:bg-secondary/50"
-                    }
-                  >
-                    <RadioGroupItem
-                      value={id}
-                      aria-label={p.cardLabel}
-                      className="mt-0.5"
-                    />
-                    <span className="text-sm font-medium">{p.cardLabel}</span>
-                  </label>
+                    value={id}
+                    label={p.cardLabel}
+                    selected={selected}
+                    compact
+                  />
                 );
               })}
             </RadioGroup>

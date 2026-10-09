@@ -300,3 +300,5 @@ Source lives in the `merqo-io` GitHub organization (`github.com/merqo-io/paykit`
 Booking deposit checkout failures now preserve the booking and expose a vendor-scoped retry action. Migration0016 adds atomic, validated deposit linking and confirmation reconciliation. It is prepared but not applied; see [the audit evidence](docs/paykit-audit-2026-10-08.md) for verification and remaining findings.
 
 The shared UI dependency is pinned to immutable commit 989d934c1cc8d957ff383934debf8ef083b6b6a4, carrying the reviewed upload lifecycle, storage URL validation and safe money parsing fixes. pnpm 11.10 permits preparation only for that exact locked source URL; update the dependency and its build allowlist together.
+
+Component consolidation is documented in [the cleanup spec](docs/meta/2026-10-10-component-reuse-spec.md). Shared presentation components retain payment configuration boundaries and monetary input validation.

@@ -31,7 +31,7 @@ provide authorization.
 ## Reads and reports
 
 `transactions.ts` and `bookings.ts` read vendor-owned records with the session
-client. `read-all-rows.ts` follows stable ID cursors to an empty page and rejects
+client. `read-all-rows.ts` follows ordered numeric ranges to an empty page and rejects
 partial collections on later errors; it does not provide a transaction snapshot.
 `list-all-users.ts` paginates auth users and reports its safety ceiling as failure.
 `admin-data.ts` performs team-console service-role reads; callers must apply the
@@ -82,3 +82,5 @@ session/service client separation; `payments/` explains checkout builders.
 ## Parent
 
 [paykit](../../README.md)
+
+`money.ts` converts form dollars into integer cents for booking/refund actions; their schemas validate range and finite values. Empty/null form values retain the existing Number conversion to zero.
