@@ -100,7 +100,7 @@ bundle; `pnpm audit --prod --audit-level=high` is CI's hard gate — bump
 the relevant floor here when a new advisory lands, and re-check after any
 `next` upgrade in case it's safe to drop one. `next`/`eslint-config-next` versions are pinned in `package.json`; check that manifest for the current security release. Isolated build validation and its limitations are recorded in the audit evidence. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.30.0, `package.json`;
+now delegate to the shared `@merqo/ui` package (pinned in `package.json`;
 kit-family consistency; `BackButton`, `ElevatedCard`, and the landing
 `Footer` joined the shared package 2026-09-16, each confirmed byte-for-byte
 or structurally identical to the other kits' copies before promoting;
@@ -298,3 +298,5 @@ Source lives in the `merqo-io` GitHub organization (`github.com/merqo-io/paykit`
 ## October 2026 audit status
 
 Booking deposit checkout failures now preserve the booking and expose a vendor-scoped retry action. Migration0016 adds atomic, validated deposit linking and confirmation reconciliation. It is prepared but not applied; see [the audit evidence](docs/paykit-audit-2026-10-08.md) for verification and remaining findings.
+
+The shared UI dependency is pinned to immutable commit 989d934c1cc8d957ff383934debf8ef083b6b6a4, carrying the reviewed upload lifecycle, storage URL validation and safe money parsing fixes. pnpm 11.10 permits preparation only for that exact locked source URL; update the dependency and its build allowlist together.
