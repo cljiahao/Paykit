@@ -33,11 +33,17 @@ export async function rateLimit(
   limit: number,
   windowSeconds: number,
 ): Promise<boolean> {
-  const { data: allowed, error } = await supabase.rpc("check_rate_limit", {
-    p_key: key,
-    p_limit: limit,
-    p_window_seconds: windowSeconds,
-  });
-  if (error) console.error("rateLimit degraded (failing open)", error.message);
-  return allowed !== false;
+  try {
+    const { data: allowed, error } = await supabase.rpc("check_rate_limit", {
+      p_key: key,
+      p_limit: limit,
+      p_window_seconds: windowSeconds,
+    });
+    if (error)
+      console.error("rateLimit degraded (failing open)", error.message);
+    return allowed !== false;
+  } catch {
+    console.error("rateLimit unavailable (failing open)");
+    return true;
+  }
 }

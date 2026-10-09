@@ -48,7 +48,7 @@ shared cross-kit contract every kit implements.
 `@/lib/metrics.ts`) shaped to merqo's `metricsPayloadSchema`.
 `vendor-provision/` never writes `vendor_payment_config` (a placeholder
 PayNow proxy could misdirect a real payment) and is the only one of the
-four that calls `recordAudit` (`@/app/admin/actions.ts`) — attributed to
+four that calls `recordAudit` (`@/lib/admin-audit`) — attributed to
 the provisioned vendor's own id with `detail.actor: "merqo_system"`, since
 there's no signed-in admin behind this call.
 

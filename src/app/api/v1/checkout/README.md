@@ -18,7 +18,8 @@ pointer for a vendor's transaction. Bearer-secret authenticated
   don't go through this HTTP route. Idempotent on `(kit_slug, order_ref)` —
   a retried call with the same pair (Postgres unique-constraint violation
   on insert) reads back and returns the existing transaction instead of
-  creating a duplicate or failing.
+  creating a duplicate. The existing vendor, amount, checkout kind and payload
+  must match; a conflicting reuse fails instead of returning another checkout.
 - `route.test.ts` — covers a fresh checkout, the idempotent-retry path
   (same `(kit_slug, order_ref)` returns the same transaction, no duplicate
   row), and the 503 case where the idempotent re-read itself fails.

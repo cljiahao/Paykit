@@ -34,18 +34,14 @@ beforeEach(() => {
 });
 
 describe("updateStallName", () => {
-  it("upserts the shared profile with the new name and the current links", async () => {
+  it("patches the shared profile name without overwriting its links", async () => {
     const { updateStallName } = await import("./actions");
     const result = await updateStallName({ name: "New Cart Name" });
     expect(result).toEqual({ success: true });
-    expect(rpcMock).toHaveBeenNthCalledWith(1, "get_or_create_vendor_profile", {
-      p_vendor_id: "v1",
-      p_default_stall_name: null,
-    });
-    expect(rpcMock).toHaveBeenNthCalledWith(2, "upsert_vendor_profile", {
+    expect(rpcMock).toHaveBeenCalledExactlyOnceWith("patch_vendor_profile", {
       p_vendor_id: "v1",
       p_stall_name: "New Cart Name",
-      p_social_links: PROFILE.social_links,
+      p_social_links: null,
     });
   });
 
@@ -58,15 +54,15 @@ describe("updateStallName", () => {
 });
 
 describe("updateSocialLinks", () => {
-  it("upserts the shared profile with the current name and new links", async () => {
+  it("patches the shared profile links without overwriting its name", async () => {
     const { updateSocialLinks } = await import("./actions");
     const result = await updateSocialLinks({
       website: "https://new.example",
     });
     expect(result).toEqual({ success: true });
-    expect(rpcMock).toHaveBeenNthCalledWith(2, "upsert_vendor_profile", {
+    expect(rpcMock).toHaveBeenCalledExactlyOnceWith("patch_vendor_profile", {
       p_vendor_id: "v1",
-      p_stall_name: PROFILE.stall_name,
+      p_stall_name: null,
       p_social_links: { website: "https://new.example" },
     });
   });

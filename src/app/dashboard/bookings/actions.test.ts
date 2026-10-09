@@ -9,6 +9,7 @@ const {
   insertSingleMock,
   serviceDeleteMock,
   serviceUpdateEqMock,
+  serviceLinkMock,
   vendorBookingMaybeSingleMock,
   vendorUpdateEqMock,
   refundsInsertMock,
@@ -20,6 +21,7 @@ const {
   insertSingleMock: vi.fn(),
   serviceDeleteMock: vi.fn(),
   serviceUpdateEqMock: vi.fn(),
+  serviceLinkMock: vi.fn(),
   vendorBookingMaybeSingleMock: vi.fn(),
   vendorUpdateEqMock: vi.fn(),
   refundsInsertMock: vi.fn(),
@@ -32,7 +34,7 @@ vi.mock("@/lib/supabase/server", () => ({
   createServiceClient: createServiceClientMock,
 }));
 vi.mock("@/lib/checkout", () => ({ createCheckout: createCheckoutMock }));
-vi.mock("@/app/admin/actions", () => ({ recordAudit: recordAuditMock }));
+vi.mock("@/lib/admin-audit", () => ({ recordAudit: recordAuditMock }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const VENDOR_SUPABASE = {
@@ -50,6 +52,7 @@ const VENDOR_SUPABASE = {
 };
 
 const SERVICE_SUPABASE = {
+  rpc: serviceLinkMock,
   from: (table: string) => {
     if (table !== "bookings") throw new Error(`unexpected table ${table}`);
     return {
@@ -75,6 +78,7 @@ beforeEach(() => {
     data: { id: "b1" },
     error: null,
   });
+  serviceLinkMock.mockReset().mockResolvedValue({ data: "b1", error: null });
   serviceDeleteMock.mockReset().mockResolvedValue({ error: null });
   serviceUpdateEqMock.mockReset().mockResolvedValue({ error: null });
   vendorBookingMaybeSingleMock.mockReset().mockResolvedValue({
@@ -173,7 +177,7 @@ describe("createBookingAction", () => {
     expect(recordAuditMock).not.toHaveBeenCalled();
   });
 
-  it("deletes the booking and surfaces an error when the deposit checkout fails, without logging", async () => {
+  it("retains a saved booking and explains deposit recovery when checkout fails", async () => {
     createCheckoutMock.mockResolvedValue({
       ok: false,
       status: 422,
@@ -184,10 +188,10 @@ describe("createBookingAction", () => {
       { status: "idle" },
       formData(VALID_BOOKING_FIELDS),
     );
-    expect(result.status).toBe("error");
-    expect(serviceDeleteMock).toHaveBeenCalled();
+    expect(result.status).toBe("ok");
+    expect(serviceDeleteMock).not.toHaveBeenCalled();
     expect(recordAuditMock).not.toHaveBeenCalled();
-    expect(revalidatePath).not.toHaveBeenCalled();
+    expect(revalidatePath).toHaveBeenCalledWith("/dashboard/bookings");
   });
 });
 
@@ -208,7 +212,11 @@ describe("createBalanceCheckoutAction", () => {
       orderRef: "booking:b1:balance",
       amountCents: 70000,
     });
-    expect(serviceUpdateEqMock).toHaveBeenCalled();
+    expect(serviceLinkMock).toHaveBeenCalledWith("link_booking_balance", {
+      p_booking_id: "b1",
+      p_vendor_id: "v1",
+      p_transaction_id: "tx-balance",
+    });
     expect(recordAuditMock).toHaveBeenCalledWith(
       "v1",
       "create_balance_checkout",
@@ -489,5 +497,142 @@ describe("rescheduleBookingAction", () => {
     );
     expect(result.status).toBe("error");
     expect(recordAuditMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("saved booking recovery outcomes", () => {
+  it("uses the atomic linking RPC for a normal deposit", async () => {
+    const { createBookingAction } = await import("./actions");
+    await createBookingAction(
+      { status: "idle" },
+      formData(VALID_BOOKING_FIELDS),
+    );
+    expect(serviceLinkMock).toHaveBeenCalledWith("link_booking_deposit", {
+      p_booking_id: "b1",
+      p_vendor_id: "v1",
+      p_transaction_id: "tx-deposit",
+    });
+    expect(serviceUpdateEqMock).not.toHaveBeenCalled();
+  });
+  it("preserves a saved booking when checkout rejects", async () => {
+    createCheckoutMock.mockRejectedValue(new Error("network failure"));
+    const { createBookingAction } = await import("./actions");
+    const result = await createBookingAction(
+      { status: "idle" },
+      formData(VALID_BOOKING_FIELDS),
+    );
+    expect(result).toEqual({
+      status: "ok",
+      message: "Booking saved. Open it and retry the deposit checkout.",
+    });
+    expect(serviceDeleteMock).not.toHaveBeenCalled();
+    expect(serviceLinkMock).not.toHaveBeenCalled();
+  });
+  it.each([
+    { data: null, error: { message: "link failed" } },
+    { data: null, error: null },
+  ])(
+    "preserves the saved booking when the atomic link does not complete",
+    async (result) => {
+      serviceLinkMock.mockResolvedValue(result);
+      const { createBookingAction } = await import("./actions");
+      expect(
+        await createBookingAction(
+          { status: "idle" },
+          formData(VALID_BOOKING_FIELDS),
+        ),
+      ).toMatchObject({
+        status: "ok",
+        message: expect.stringContaining("retry the deposit checkout"),
+      });
+      expect(serviceDeleteMock).not.toHaveBeenCalled();
+    },
+  );
+  it("handles a rejected atomic link without inviting duplicate bookings", async () => {
+    serviceLinkMock.mockRejectedValue(new Error("offline"));
+    const { createBookingAction } = await import("./actions");
+    expect(
+      (
+        await createBookingAction(
+          { status: "idle" },
+          formData(VALID_BOOKING_FIELDS),
+        )
+      ).status,
+    ).toBe("ok");
+    expect(serviceDeleteMock).not.toHaveBeenCalled();
+  });
+  it("does not report a saved booking as failed when audit delivery rejects", async () => {
+    recordAuditMock.mockRejectedValue(new Error("audit offline"));
+    const { createBookingAction } = await import("./actions");
+    expect(
+      (
+        await createBookingAction(
+          { status: "idle" },
+          formData(VALID_BOOKING_FIELDS),
+        )
+      ).status,
+    ).toBe("ok");
+    expect(revalidatePath).toHaveBeenCalledWith("/dashboard/bookings");
+  });
+});
+
+describe("balance checkout failure boundaries", () => {
+  it("rejects cancelled bookings before creating a checkout", async () => {
+    vendorBookingMaybeSingleMock.mockResolvedValue({
+      data: { id: "b1", status: "cancelled" },
+      error: null,
+    });
+    const { createBalanceCheckoutAction } = await import("./actions");
+    expect((await createBalanceCheckoutAction(VALID_BOOKING_ID)).status).toBe(
+      "error",
+    );
+    expect(createCheckoutMock).not.toHaveBeenCalled();
+  });
+  it.each([
+    { data: null, error: null },
+    { data: null, error: { message: "invalid booking" } },
+  ])("does not report success for an unlinked balance %j", async (result) => {
+    serviceLinkMock.mockResolvedValue(result);
+    const { createBalanceCheckoutAction } = await import("./actions");
+    expect((await createBalanceCheckoutAction(VALID_BOOKING_ID)).status).toBe(
+      "error",
+    );
+    expect(recordAuditMock).not.toHaveBeenCalled();
+  });
+  it.each(["checkout", "service", "link"])(
+    "returns a retryable error on %s rejection",
+    async (stage) => {
+      if (stage === "checkout")
+        createCheckoutMock.mockRejectedValue(new Error("offline"));
+      if (stage === "service")
+        createServiceClientMock.mockRejectedValue(new Error("offline"));
+      if (stage === "link")
+        serviceLinkMock.mockRejectedValue(new Error("offline"));
+      const { createBalanceCheckoutAction } = await import("./actions");
+      expect((await createBalanceCheckoutAction(VALID_BOOKING_ID)).status).toBe(
+        "error",
+      );
+      expect(recordAuditMock).not.toHaveBeenCalled();
+    },
+  );
+  it("does not link a returned checkout failure", async () => {
+    createCheckoutMock.mockResolvedValue({
+      ok: false,
+      status: 422,
+      error: "no config",
+    });
+    const { createBalanceCheckoutAction } = await import("./actions");
+    expect((await createBalanceCheckoutAction(VALID_BOOKING_ID)).status).toBe(
+      "error",
+    );
+    expect(serviceLinkMock).not.toHaveBeenCalled();
+  });
+  it("keeps a linked checkout successful when audit logging rejects", async () => {
+    recordAuditMock.mockRejectedValue(new Error("offline"));
+    const { createBalanceCheckoutAction } = await import("./actions");
+    expect((await createBalanceCheckoutAction(VALID_BOOKING_ID)).status).toBe(
+      "ok",
+    );
+    expect(revalidatePath).toHaveBeenCalledWith("/dashboard/bookings/b1");
   });
 });

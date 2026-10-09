@@ -27,7 +27,9 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<Mode>(() =>
+    searchParams.get("mode") === "signup" ? "signup" : "signin",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(
@@ -43,16 +45,21 @@ function LoginForm() {
   async function signInWithGoogle() {
     setBusy(true);
     setError(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: { hl: "en" },
-      },
-    });
-    if (error) {
-      setError(error.message);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { hl: "en" },
+        },
+      });
+      if (error) {
+        setError(error.message);
+        setBusy(false);
+      }
+    } catch {
+      setError("Could not connect. Please try again.");
       setBusy(false);
     }
   }
@@ -69,58 +76,69 @@ function LoginForm() {
     }
     setBusy(true);
     setError(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/profile`,
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard/profile`,
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success(`Password reset link sent to ${email}.`);
+    } catch {
+      setError("Could not connect. Please try again.");
+    } finally {
+      setBusy(false);
     }
-    toast.success(`Password reset link sent to ${email}.`);
   }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    if (mode === "signup") {
-      const { data: result, error } = await supabase.auth.signUp({
+      if (mode === "signup") {
+        const { data: result, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
+        if (error) {
+          setError(error.message);
+          return;
+        }
+        // Email confirmation on -> no session yet. Show a "check your email"
+        // state rather than redirecting to a dashboard the unconfirmed user
+        // can't reach.
+        if (!result.session) {
+          setCheckEmail(email);
+          return;
+        }
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
       });
-      setBusy(false);
       if (error) {
         setError(error.message);
         return;
       }
-      // Email confirmation on -> no session yet. Show a "check your email"
-      // state rather than redirecting to a dashboard the unconfirmed user
-      // can't reach.
-      if (!result.session) {
-        setCheckEmail(email);
-        return;
-      }
       router.push("/dashboard");
       router.refresh();
-      return;
+    } catch {
+      setError("Could not connect. Please try again.");
+    } finally {
+      setBusy(false);
     }
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setBusy(false);
-    if (error) {
-      setError(error.message);
-      return;
-    }
-    router.push("/dashboard");
-    router.refresh();
   }
 
   if (checkEmail) {

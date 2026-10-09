@@ -233,3 +233,19 @@ describe("verifyKitAuth", () => {
     });
   });
 });
+it("keeps failed authentication denied when audit transport rejects", async () => {
+  insertMock.mockRejectedValueOnce(new Error("transport failure"));
+  const { verifyKitAuth } = await import("./kit-auth");
+  await expect(verifyKitAuth(req())).resolves.toBeNull();
+});
+it("preserves valid authentication when usage telemetry rejects", async () => {
+  maybeSingleMock.mockResolvedValue({
+    data: { secret_hash: hashApiKey("s3cret") },
+    error: null,
+  });
+  updateEqMock.mockRejectedValueOnce(new Error("transport failure"));
+  const { verifyKitAuth } = await import("./kit-auth");
+  await expect(verifyKitAuth(req("Bearer qkit:s3cret"))).resolves.toEqual({
+    kitSlug: "qkit",
+  });
+});

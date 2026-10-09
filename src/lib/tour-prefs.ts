@@ -24,9 +24,13 @@ export async function stampTourSeen(
   supabase: VendorSupabaseClient,
   vendorId: string,
 ): Promise<void> {
-  const { error } = await supabase
-    .from("vendor_prefs")
-    .upsert({ vendor_id: vendorId, tour_seen_at: new Date().toISOString() });
+  try {
+    const { error } = await supabase
+      .from("vendor_prefs")
+      .upsert({ vendor_id: vendorId, tour_seen_at: new Date().toISOString() });
 
-  if (error) console.error("markTourSeen failed", error.message);
+    if (error) console.error("markTourSeen failed", error.message);
+  } catch {
+    console.error("markTourSeen unavailable");
+  }
 }

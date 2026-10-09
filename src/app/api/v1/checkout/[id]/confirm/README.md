@@ -16,3 +16,7 @@ A real (non-idempotent) confirm writes a `confirmed` `payment_audit` row
 
 Response shape is the shared `TransactionStatusResponse`
 (`src/lib/api-schemas.ts`'s `toStatusResponse`).
+
+## Boundary and coverage
+
+The transaction lookup and guarded write both include the authenticated kit slug as well as the transaction ID. Rate-limit failures prevent mutation. Tests cover kit ownership, allowed source states and failed writes; confirmation remains a human bookkeeping assertion rather than automated bank verification.

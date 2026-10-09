@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getVendorSession } from "@/lib/vendor-session";
-import { listTransactions } from "@/lib/transactions";
-import { listBookings } from "@/lib/bookings";
+import { listAllTransactions } from "@/lib/transactions";
+import { listAllBookings } from "@/lib/bookings";
 import { buildEarningsReport } from "@/lib/earnings-report";
 import { formatCents } from "@/lib/utils";
 import { DownloadCsvButton } from "./download-csv-button";
@@ -25,8 +25,8 @@ export default async function EarningsReportPage({
   const year = parseYear(rawYear);
 
   const [transactions, bookings] = await Promise.all([
-    listTransactions(user.id),
-    listBookings(user.id),
+    listAllTransactions(user.id),
+    listAllBookings(user.id),
   ]);
   const report = buildEarningsReport(transactions, bookings, year);
 
@@ -38,9 +38,9 @@ export default async function EarningsReportPage({
             Earnings report
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Revenue from confirmed payments, tagged by event date — a record
-            for your own bookkeeping, not a computed profit figure or a
-            Form-B-ready submission.
+            Revenue from confirmed payments, tagged by event date — a record for
+            your own bookkeeping, not a computed profit figure or a Form-B-ready
+            submission.
           </p>
         </div>
         <DownloadCsvButton report={report} />

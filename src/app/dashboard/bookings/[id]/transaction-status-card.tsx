@@ -1,3 +1,5 @@
+import { checkoutKind } from "@/lib/checkout-kind";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatCents } from "@/lib/utils";
 import type { Transaction, TxStatus } from "@/lib/types";
@@ -42,12 +44,59 @@ export function TransactionStatusCard({
               {formatCents(transaction.amount_cents)}
             </span>
           </div>
-          <div
-            className="mt-3 w-40 [&_svg]:h-auto [&_svg]:w-full"
-            dangerouslySetInnerHTML={{ __html: qrMarkup ?? "" }}
+          <PaymentDisplay
+            transaction={transaction}
+            label={label}
+            qrMarkup={qrMarkup}
           />
         </>
       )}
     </div>
+  );
+}
+
+function PaymentDisplay({
+  transaction,
+  label,
+  qrMarkup,
+}: {
+  transaction: Transaction;
+  label: string;
+  qrMarkup: string | null;
+}) {
+  if (checkoutKind(transaction) === "qr")
+    return (
+      <div
+        className="mt-3 w-40 [&_svg]:h-auto [&_svg]:w-full"
+        dangerouslySetInnerHTML={{ __html: qrMarkup ?? "" }}
+      />
+    );
+  if (transaction.checkout_kind === "image")
+    return (
+      <Image
+        src={transaction.qr_payload}
+        alt={label + " payment QR code"}
+        width={160}
+        height={160}
+        unoptimized
+        className="mt-3"
+      />
+    );
+  if (transaction.checkout_kind === "link")
+    return (
+      <a
+        href={transaction.qr_payload}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 inline-block underline"
+      >
+        {transaction.checkout_label ?? "Open payment link"}
+      </a>
+    );
+  return (
+    <p className="mt-3 text-sm text-muted-foreground">
+      Original payment display unavailable for this older checkout. Check the
+      original payment instructions.
+    </p>
   );
 }

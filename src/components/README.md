@@ -1,76 +1,25 @@
 # components
 
-## Purpose
+Paykit-specific client adapters and presentation. Shared controls live in
+`@merqo/ui`; raw CLI-managed primitives live under `ui/`.
 
-Shared React components — not scoped to one dashboard sub-route (those live
-under `src/app/dashboard/<route>/`). Two subfolders group larger clusters
-(`landing/` marketing sections, `ui/` shadcn primitives); everything else
-sits flat here.
+- `dashboard-tour.tsx` adapts routing, mark-seen action and `tour-steps.ts` to
+  the shared tour. Step descriptions render the real transaction-status badge
+  into static markup; their HTML is authored configuration, not customer input.
+- `landing/` contains the marketing sections, brand and shared-shell adapters.
+  `BackToTop` is imported from the shared package; no local copy remains.
+- `ui/` contains shadcn primitives. Regenerate them through the CLI rather than
+  hand-editing their structure.
 
-## Contents
+The dashboard navigation composes the shared account menu, which owns feedback
+and support drawers. Profile forms import shared social-link fields, image
+uploader and section layout directly. Former local social-icons, social-fields,
+feedback, support, tooltip and section copies have been removed.
 
-- `dashboard-tour.tsx` — `DashboardTour({ seen })`: paykit's thin wiring
-  around `@merqo/ui`'s `DashboardTour` — supplies this kit's own step
-  content (`tourSteps`), mark-seen server action (`markTourSeen`), and
-  `/dashboard` routing; the tour mechanism itself (`driver.js` lifecycle,
-  floating replay button, popover styling) is fully owned by the shared
-  component. Auto-runs once for a vendor who hasn't seen it (server-tracked,
-  stamped via `markTourSeen` as soon as the tour starts rather than when it
-  finishes, so a mid-tour refresh can't re-trigger it), and can be replayed
-  from any page (navigates back to `/dashboard` first if needed).
-- `dashboard-tour.dom.test.tsx` — RTL tests for the tour's auto-run,
-  mark-seen, and cross-page replay behavior. Its `@merqo/ui` mock only
-  stubs `DashboardTour` (via `importOriginal`) — it must keep the real
-  `StatusBadge` export, since `tour-steps.ts`'s example badge renders
-  through it at module load time.
-- `tour-steps.ts` — `tourSteps(isMobile)`: pure step config (element
-  selector + title + description) for the dashboard tour, kept free of any
-  `driver.js` import so it's unit-testable. The first step's description
-  embeds a `.tour-example` HTML snippet (styled in `src/app/globals.css`,
-  rendered via driver.js's own `innerHTML` popover) showing an example
-  transaction — its status pill renders the real `TransactionStatusBadge`
-  via `react-dom/server`'s `renderToStaticMarkup` instead of a hand-copied
-  color, so it can't drift from what the real badge looks like; see
-  `../../../docs/superpowers/specs/2026-08-25-tour-example-badge-drift-fix-design.md`
-  (workspace root, cross-kit). Also covers Bookings and Earnings, both
-  live nav items that had no tour step until 2026-08-25.
-- `tour-steps.test.ts` — unit tests asserting the mobile/desktop step lists.
-- `social-icons.tsx` — `SOCIAL_LINK_FIELDS`: the website/Instagram/
-  Facebook/TikTok field list (plain lucide glyphs, not brand-mark icons —
-  deliberately not `@merqo/ui`'s own version of this, which uses
-  `@icons-pack/react-simple-icons` brand marks; paykit doesn't carry that
-  dependency and these are a secondary, low-emphasis field here, not worth
-  adding one for. `BackButton` and `ElevatedCard` were promoted to
-  `@merqo/ui` 2026-09-16 since those two had no such divergence).
-- `social-links-fields.tsx` — the input-field group rendering
-  `SOCIAL_LINK_FIELDS` for the profile settings page.
-
-`FeedbackForm`/`SupportForm`/`ImageUploader`/`InfoTooltip`/`Section` were
-migrated onto `@merqo/ui`'s shared versions (2026-08-05 `@merqo/ui`
-migration) and deleted from here — `FeedbackForm`/`SupportForm` had zero
-call sites outside `dashboard-nav.tsx` and fully absorbed into `@merqo/ui`'s
-`AccountMenu`; `ImageUploader`/`InfoTooltip`/`Section` are now imported
-directly from `@merqo/ui` at their call sites (`src/app/dashboard/
-profile/profile-form.tsx`, `src/app/dashboard/config/payment-config-form.tsx`).
-paykit's own upload glue (resize + Supabase Storage write) lives in
-`@/lib/image-upload-adapter.ts` now, wired through `@merqo/ui`'s
-`ImageUploader`'s `onUpload`/`resizeImage` props.
-
-## Connectivity
-
-`dashboard-tour.tsx` is rendered from `src/app/dashboard/layout.tsx` and
-delegates to `@merqo/ui`'s `DashboardTour`. `social-links-fields.tsx` is
-used by the dashboard profile settings page. `BackButton` is used by the
-dashboard `profile/` and `plan/` pages. `landing/` is only used by
-`src/app/page.tsx`. `ui/` is used everywhere. `@merqo/ui`'s `AccountMenu`
-(rendered from `dashboard-nav.tsx`) owns the Feedback/Get-help `Sheet`
-drawers, wired to `submitFeedbackAction`/`submitSupportMessageAction` in
-`src/app/actions/`.
-
-## Shared package note
-
-`social-icons.tsx` and `social-links-fields.tsx` are gone; both now come from `@merqo/ui`. paykit had kept plain lucide glyphs rather than brand marks because it did not want the `@icons-pack/react-simple-icons` dependency. The shared package carries that dependency itself, so the reason no longer holds and paykit now matches the other four repos' brand-mark icons. Props are identical, so `profile-form.tsx` only changed its import.
+The avatar/QR upload backend remains in `lib/image-upload-adapter.ts` because
+Storage buckets and object paths are application-specific. Shared UI tests cover
+mechanisms; adapter tests cover Paykit's props, routes and action behavior.
 
 ## Parent
 
-[paykit](../../README.md)
+[src](../README.md)

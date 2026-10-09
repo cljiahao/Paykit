@@ -66,7 +66,7 @@ ui/table`), plus a `Refund` column with `RefundDialog` when `isPro`. Amounts
   reflects the refund without a manual reload. Ownership, `confirmed`-only,
   and Pro-only enforcement is the `refunds_insert_own` RLS policy, not this
   action — it only validates shape/UX. Also appends an `admin_audit` row
-  (`recordAudit()`, imported from `app/admin/actions.ts`) so a vendor's own
+  (`recordAudit()`, imported from `lib/admin-audit.ts`) so a vendor's own
   refund is reconstructable later, not just admin-console actions.
 - `actions.test.ts` — unit coverage for `issueRefundAction`.
 - `page.dom.test.tsx` — awaits `TransactionsPage()` directly and renders

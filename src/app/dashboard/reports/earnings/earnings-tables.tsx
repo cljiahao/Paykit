@@ -20,7 +20,11 @@ const monthColumns: DataTableColumn<EarningsMonth>[] = [
 
 export function EarningsMonthsTable({ months }: { months: EarningsMonth[] }) {
   return (
-    <DataTable rows={months} columns={monthColumns} getRowKey={(m) => m.month} />
+    <DataTable
+      rows={months}
+      columns={monthColumns}
+      getRowKey={(m) => m.month}
+    />
   );
 }
 
@@ -36,6 +40,10 @@ const lineColumns: DataTableColumn<EarningsLine>[] = [
 
 export function EarningsLinesTable({ lines }: { lines: EarningsLine[] }) {
   return (
-    <DataTable rows={lines} columns={lineColumns} getRowKey={(line) => line.key} />
+    <DataTable
+      rows={lines}
+      columns={lineColumns}
+      getRowKey={(line) => line.key}
+    />
   );
 }

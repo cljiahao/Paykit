@@ -17,7 +17,7 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 // recordAudit is exercised directly in `src/app/admin/actions.test.ts`
 // (including its own service-client insert + best-effort-failure paths);
 // here we only assert this action calls it with the right arguments.
-vi.mock("@/app/admin/actions", () => ({ recordAudit: recordAuditMock }));
+vi.mock("@/lib/admin-audit", () => ({ recordAudit: recordAuditMock }));
 
 beforeEach(() => {
   getUserMock.mockReset().mockResolvedValue({ data: { user: { id: "v1" } } });

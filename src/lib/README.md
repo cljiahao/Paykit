@@ -1,298 +1,83 @@
 # lib
 
-## Purpose
+Shared payment logic, database access and boundary validation. Route handlers and
+server actions provide caller identity; database grants, RLS and constrained RPCs
+provide authorization.
 
-Framework-agnostic logic: Zod schemas, DB/RPC access, pure transition
-functions, and shared types. Two subfolders (`payments/`, `supabase/`) group
-larger clusters; everything else sits flat here.
+## Contracts
 
-## Contents
+- `schemas.ts` validates dashboard forms and actions; `api-schemas.ts` validates
+  the peer-kit API. Monetary values are integer cents. `types.ts` mirrors the
+  migration schema and RPC signatures.
+- `checkout.ts` creates and renders a transaction through `payments/provider.ts`.
+  A replay of the same kit and order reference must match the vendor, amount,
+  checkout kind and payload; a conflicting replay fails. `checkout-kind.ts`
+  reads persisted display identity without guessing an unknown legacy pointer.
+- `tx-state.ts` defines claim, unclaim and confirm transitions. Confirmation
+  cannot be undone by unclaim. Routes use conditional writes and re-read a
+  concurrent winner; returned or rejected write failures are not success.
+- `kit-auth.ts` verifies peer-kit bearer secrets, records failures without logging
+  credentials and touches last-use metadata best-effort. Ambiguous duplicate
+  active keys fail closed. `merqo-auth.ts` separately authenticates hub metrics
+  and provisioning routes.
+- `rate-limit.ts` calls the database fixed-window limiter after authentication.
+  Limiter failure permits the request and logs degradation; the forwarded IP is
+  a fairness key, never authorization. Migration 0019 prepares the bounded atomic
+  implementation. Pending migrations require real database validation.
+- `payment-audit.ts` appends real checkout transitions; idempotent no-ops add no
+  transition row. `admin-audit.ts` records administrative and vendor operations
+  without exposing its helper as a remotely callable Server Action.
 
-- `types.ts` — hand-maintained DB types (`Transaction`, `VendorPaymentConfig`,
-  `TxStatus`, `VendorPlan`, `PaymentConfigKind`, `Booking`, `BookingStatus`,
-  `SocialLinks`, `AuthFailure`, `LegalCheckState`, …), kept in sync with
-  `supabase/migrations/` by hand. Also carries a hand-written `rate_limits`
-  table type (the table existed since `0012` but had no generated-type entry
-  until now, needed to query it from `admin-data.ts`'s `securityStats()`).
-- `safe-redirect.ts` — `safeRedirectPath(next, fallback)`: rejects an absolute
-  URL, a protocol-relative `//`/`/\` path, or one carrying an embedded control
-  character, falling back otherwise. The open-redirect guard for the
-  `/legal/accept` flow's `next` search param.
-- `legal-gate.ts` — `checkLegalAcceptance(email)`/
-  `requireCurrentLegalAcceptance(email)`. paykit owns no acceptance
-  record — merqo does — so currency is a bearer-authed (`MERQO_CUSTOMER_SECRET`)
-  `GET /api/merqo/legal-status` call, cached in the new `legal_check_state`
-  table (migration `0015`) for 5 minutes to keep the call off every gated
-  render. Fails closed (returns `false`/redirects to `/legal/accept`) on a
-  missing secret, an unreachable merqo, a non-2xx response, or a malformed
-  body. `requireCurrentLegalAcceptance` is a no-op when `email` is falsy (the
-  caller already handled the no-session case) and redirects a stale vendor to
-  `/legal/accept` otherwise.
-- `schemas.ts` — Zod input schemas for every form/action boundary:
-  `vendorPaymentConfigInputSchema` (discriminated union over `kind`,
-  paynow/pointer), `issueRefundInputSchema`, `createBookingInputSchema`
-  (deposit + balance must add up to the total; balance due date must be on
-  or before the event date), `cancelBookingInputSchema` (optional refund
-  transaction id + amount, both-or-neither), `createBalanceCheckoutInputSchema`,
-  `rescheduleBookingInputSchema` (same balance-due-before-event-date rule as
-  `createBookingInputSchema`), profile/password/social-links
-  schemas, `feedbackSchema`, `supportMessageSchema` +
-  `SUPPORT_CATEGORY_LABELS`.
-- `api-schemas.ts` — Zod contracts for the `/api/v1/*` HTTP surface
-  (request bodies, discriminated response shapes) plus the shared
-  `uuidSchema` path-param validator, including
-  `bookingStatusResponseSchema` for `GET /api/v1/bookings/{id}`.
-- `tx-state.ts` — pure `claimTransition`/`unclaimTransition`/
-  `confirmTransition`: the pending→claimed→confirmed state machine, plus
-  the claimed→pending undo. All three are idempotent by design (a no-op
-  success on states they don't apply to); `unclaimTransition` only ever
-  reverts `claimed`, so a `confirmed` payment can never be un-confirmed.
-- `transactions.ts` — `listTransactions(vendorId)`/`getTransaction(vendorId,
-id)`: read a vendor's transactions (or one, by id) via the session-scoped
-  Supabase client (RLS-filtered).
-- `checkout.ts` — `createCheckout({vendorId, kitSlug, orderRef,
-amountCents})`: the one `transactions`-insert-plus-render-the-checkout-view
-  path, extracted out of `POST /api/v1/checkout`'s route handler so the
-  dashboard's own booking deposit/balance actions
-  (`dashboard/bookings/actions.ts`, `kitSlug: "paykit"`) can call it directly
-  instead of going back through HTTP. Same idempotency (unique-constraint
-  retry re-read) and error handling either caller gets.
-- `payment-audit.ts` — `recordPaymentAudit(supabase, transactionId, kitSlug,
-action, detail?)`: appends one immutable `payment_audit` row
-  (`checkout_created`/`claimed`/`confirmed`/`unclaimed`) — called from
-  `checkout.ts` and the claim/confirm/unclaim route handlers only on a real
-  state transition, never on a no-op/idempotent request. Takes the caller's
-  own already-created service-role client rather than creating its own
-  (unlike `admin/actions.ts`'s `recordAudit`), since every call site here
-  already has one in scope.
-- `bookings.ts` — `listBookings(vendorId)`/`getBooking(vendorId, id)`: read
-  a vendor's bookings via the session-scoped Supabase client, same shape as
-  `transactions.ts`.
-- `booking-status.ts` — `balanceDueBadge(status, balanceDueDate, now?)`:
-  pure — only ever non-null once a booking is `deposit_paid`, returning a
-  `{label, urgency: "due-soon"|"overdue"}` once the balance is within 14
-  days of due or already past it. This is the whole V1 "reminder" — no
-  cron/notification infra exists in this repo (see `AGENTS.md`), so it's a
-  dashboard badge computed at render time, not a push.
-- `revenue-report.ts` — `aggregateRevenueByDay`: pure aggregation of
-  confirmed transactions into per-day totals + counts (`DailyRevenue`:
-  `{date, cents, count}`) for the Stats page's chart and its stat-tile row.
-- `earnings-report.ts` — `buildEarningsReport(transactions, bookings,
-year)`: pure, accrual-aware yearly revenue for the Earnings report page —
-  tags each confirmed transaction by its linked booking's `event_date` (not
-  its own `created_at`), falls back to `created_at` for a transaction with
-  no linked booking rather than dropping it, and collapses a booking's
-  deposit + balance transactions into one line.
-- `earnings-csv.ts` — `earningsReportToCsv`: CSV serialization for the
-  above, escaping a leading `=`/`+`/`-`/`@` (CSV formula injection) on
-  `customer_name` — real vendor-entered text, not app-generated, the one
-  field in the report that needs it.
-- `usage.ts` — `shouldNudgePro`/`PRO_NUDGE_THRESHOLD`: friction-based
-  Free→Pro nudge (not a hard cap — Free tier has no transaction-volume
-  cap, see root `AGENTS.md`).
-- `plan-view.ts` — `resolvePlanView(plan, countThisMonth, monthlyCents)`:
-  pure view-model for the dashboard Plan page (feature list — revenue
-  stats free for everyone, refund tracking Pro-only — transaction-count
-  copy, `shouldNudgePro`-backed nudge visibility, upgrade-CTA visibility,
-  and `proPriceLabel` formatted from the live `monthlyCents`) — kept out of
-  `plan/page.tsx`'s JSX so the free/pro branching is unit-testable without
-  rendering that async server component.
-- `pricing.ts` — `PricingConfig`, `DEFAULT_PRICING` (zeroed fallback), and
-  `getPricing(supabase)`: the one shared read of the single admin-tunable
-  `pricing` row (`id = 1`), reused by the admin console, both dashboard
-  pages, and the landing page. Accepts either the cookie client (public-read
-  policy) or the service-role client (admin read) — both are structurally
-  the same generated client type.
-- `kit-auth.ts` — `hashApiKey`/`verifyKitAuth`: bearer-secret verification
-  for calling kits, checked on every `/api/v1/*` route before any DB access.
-  Every failure mode (missing/malformed header, unknown `kit_slug`, secret
-  mismatch) logs a warning with the `kit_slug` when resolvable — never the
-  secret itself, real risk was zero visibility into a probing/brute-force
-  pattern — and now also appends a best-effort `auth_failures` row (same
-  reason string, plus the caller's IP via `rate-limit.ts`'s `clientIp`) so
-  that history is durable, not just console output. A successful auth also
-  touches `kit_api_keys.last_used_at` (best-effort, never blocking) — see
-  `docs/SECRET_ROTATION.md` for how that's used.
-- `rate-limit.ts` — `clientIp`/`rateLimit`: DB-backed fixed-window limiter,
-  ported from qkit's own `src/lib/rate-limit.ts`. Every `/api/v1/checkout*`
-  route calls it right after auth, keyed by `${action}:${kitSlug}:${ip}` —
-  fails open on limiter errors (an infra hiccup never blocks a real calling
-  kit). `PER_ROUTE_LIMIT`/`PER_ROUTE_WINDOW_SECONDS` (60 req/60s) are the
-  one shared constant every route call site passes, and what
-  `admin-data.ts`'s `securityStats()` checks `rate_limits.count` against.
-- `vendor-health.ts` — `vendorStatus`/`buildVendorHealth`/`statusRank`: pure
-  per-vendor triage classification (`attention`/`stuck`/`quiet`/`new`/
-  `healthy`, first-match-wins, most-urgent first), adapted from qkit's own
-  `admin-vendor-health.ts` status vocabulary/rank convention to paykit's own
-  signals — a refund-rate anomaly in the trailing 30 days (≥3 refunds, or a
-  refund/confirmed ratio over 20% once there's a ≥5-transaction sample),
-  whether a payment config has ever produced a confirmed transaction, and
-  confirmed-transaction recency. No DB access, no clock reads — takes
-  rolled-up `VendorLite`/`TransactionLite`/`RefundLite` rows plus `nowMs`.
-  Backs the admin Vendors table's status column and sort order.
-- `tour-prefs.ts` — `stampTourSeen(supabase, vendorId)`: upserts
-  `vendor_prefs.tour_seen_at = now()`. A plain (non-`"use server"`) module
-  so `src/app/dashboard/page.tsx` can call it directly during its own
-  server render — the durable half of the onboarding-tour "stamp on
-  start" fix, since the client-fired path
-  (`src/app/dashboard/tour-actions.ts`'s `markTourSeen`, which also
-  delegates here) is fire-and-forget and can be aborted by a hard
-  navigation before it lands.
-- `vendor-session.ts` — `getVendorSession()` (dashboard auth guard,
-  redirects to `/login` on no session, then bounces to `/legal/accept` via
-  `requireCurrentLegalAcceptance` — see `legal-gate.ts` above — if the
-  vendor's terms/privacy acceptance is stale) and `getVendorPlan()`.
-  `getVendorSession` is paykit's single vendor-gate entry point (every
-  dashboard page/action calls it), so the legal check lives here once
-  rather than duplicated per call site. Deliberately **not** used by
-  Sheet-embedded server actions (`feedback.ts`, `support.ts` in
-  `src/app/actions/`) — see that folder's README for why.
-- `admin.ts` — `isAdmin(userId)` (presence of a row in `admins`, RLS-gated)
-  and `requireAdmin()`: the `/admin` route/Server-Action gate, 404ing signed-
-  out and non-admin callers alike so the route's existence is never revealed.
-- `admin-data.ts` — `platformTotals()`, `recentActivity(limit)`,
-  `listVendors()`, `getAdminPricing()`, `auditLog(limit)`, `securityStats()`:
-  service-role, cross-vendor reads for the admin console (RLS-exempt by
-  design — the console spans every vendor). Vendor/admin identity is
-  resolved to email via `listAllUsers()`, since `payee_name` is null for
-  `kind='pointer'` config rows (and `admin_audit.admin_id` is any
-  `auth.users` id, not necessarily an `admins` member). `getAdminPricing` is
-  a thin `getPricing` (`@/lib/pricing`) call against a fresh service-role
-  client. `platformTotals` now also reads `refunds` for trailing-30-day
-  refund count/volume, and reports windowed confirmed-transaction/-volume
-  figures (7d and 30d, each with its prior-period counterpart for a
-  `pctChange` delta). `listVendors` now rolls `vendor-health.ts`'s
-  `buildVendorHealth` over `vendor_payment_config`/`transactions`/`refunds`
-  to attach each row's triage `status`, sorted most-urgent first
-  (`statusRank`), ties keeping the newest signup on top.
-  `securityStats()` reads `auth_failures` (count in the trailing 24h) and
-  `rate_limits` (distinct `kit_slug`s — parsed from the `key` column's
-  `${route}:${kitSlug}:${ip}` shape — with a window at or above
-  `rate-limit.ts`'s `PER_ROUTE_LIMIT` in the trailing 24h).
-- `list-all-users.ts` — `listAllUsers(supabase)`: paginates
-  `supabase.auth.admin.listUsers()` (1000/page, capped at 50 pages) so a
-  lookup doesn't silently drop vendors past the first 1000 auth users. Ported
-  from loopkit's identically-named helper; also used by
-  `/api/merqo/vendor-status`, replacing that route's old page-1-only
-  `merqo-auth.ts#listAllAuthUsers` (removed).
-- `merqo-rpc.ts` — `callMerqoRpc<FnName, Args, Returns>(supabase, fnName,
-args)`: the shared generic-over-caller's-`Db`/`SchemaName` cast +
-  `.schema("merqo").rpc(fnName, args)` call + thrown-`Error`-on-failure
-  body that `merqo-vendor-profile.ts`, `merqo-support.ts`, and
-  `merqo-vendor-feedback.ts` all delegate to, so that pattern is written
-  once instead of hand-copied per RPC.
-- `merqo-vendor-profile.ts` — `getOrCreateVendorProfile`/
-  `upsertVendorProfile`, each a thin `callMerqoRpc` call with its own Zod-
-  adjacent Args/Returns types, for the shared `merqo.vendor_profile` table
-  (stall name, social links) — get/upsert via `merqo`'s `SECURITY DEFINER`
-  functions, never a direct cross-schema table query.
-- `merqo-auth.ts` — `bearerOk`/`provisionBearerOk` (constant-time bearer-secret
-  checks against `MERQO_METRICS_SECRET`/`MERQO_PROVISION_SECRET` respectively),
-  for the `/api/merqo/*` routes merqo hub calls directly — a separate auth
-  mechanism from `kit-auth.ts`'s `verifyKitAuth` (which is for peer-kit-to-kit
-  calls like checkout verification, keyed by `kit_api_keys`).
-- `merqo-support.ts` — `submitSupportMessage`, a thin `callMerqoRpc` call
-  for `merqo.submit_support_message` (the shared cross-kit Get-help inbox,
-  `kit_slug: "paykit"`).
-- `merqo-vendor-feedback.ts` — `submitVendorFeedback`, a thin `callMerqoRpc`
-  call for `merqo.submit_vendor_feedback` (the shared cross-kit NPS/feedback
-  channel, `p_kit_slug: "paykit"`).
-- `merqo-vendor-status.ts` — `resolveVendorStatus(email, authUsers,
-configs)`: pure two-step lookup (email → auth user → that user's
-  `vendor_payment_config`) since `vendor_payment_config` has no email
-  column. Ported from qkit's identically-named function. Backs
-  `GET /api/merqo/vendor-status`.
-- `merqo-vendor-activity.ts` — `computeVendorActivity(config, transactions,
-refunds, nowMs)`: pure, once the caller has already resolved the vendor's
-  auth-user id. Reuses `vendor-health.ts`'s `vendorStatus` for the
-  `status` field rather than a second classification rule, and computes
-  the trailing-30d `metrics` rows (`Transactions (30d)`, `Volume (30d)`,
-  `Refund rate (30d)`) from the exact same `confirmed_at ?? created_at`
-  windowing that classification already uses, so the two never disagree.
-  `active: false` (no config row) short-circuits to empty metrics/null
-  status/null plan. Backs `GET /api/merqo/vendor-activity`.
-- `brand-icon.tsx` — `brandIcon(size)` + `BRAND_MINT`/`BRAND_INK`: the
-  paykit "P" mark as a `ReactElement` for `ImageResponse`-generated icons
-  (favicon, apple-touch) — hex literals, not theme tokens, since
-  `ImageResponse` needs concrete CSS colors. Tracks the "Banknote
-  Engrave" theme (as of 2026-08-19) via the dark theme's brighter
-  primary, so the dark-ink text on top stays legible.
-- `action-result.ts` — `ActionResult<T>`: the discriminated
-  `{success:true,...T} | {success:false,error}` shape every Server Action
-  returns.
-- `env.ts` — `publicEnv`: required-env-var accessors that throw at import
-  time if unset, instead of silently reading `undefined`.
-- `image-resize.ts` — `resizeToWebp`: client-side (Canvas, browser-only)
-  resize + WebP encode before upload; passed as `@merqo/ui`'s
-  `ImageUploader`'s `resizeImage` prop.
-- `image-upload-adapter.ts` — `uploadPaykitImage`: paykit's `onUpload`
-  adapter for `@merqo/ui`'s `ImageUploader` (2026-08-05 `@merqo/ui`
-  migration) — takes the `{bucket, path, blob, contentType}` payload
-  `ImageUploader` builds internally, writes it via the browser Supabase
-  client's Storage API, and returns the public URL. Used at both call
-  sites: `dashboard/profile/profile-form.tsx` (avatar) and
-  `dashboard/config/payment-config-form.tsx` (BYO QR image).
-- `metrics.ts` — `computePaykitMetrics(input)`: pure, maps
-  `vendor_payment_config`/`transactions` onto merqo hub's qkit-shaped
-  `/api/merqo/metrics` payload. Field mapping: `total`/`pro_vendors` ←
-  `vendor_payment_config` row count / `plan = 'pro'`; `revenue_cents_30d/all`
-  ← confirmed transactions only; `gmv_cents_30d` ← every transaction
-  regardless of status (paykit has no `'cancelled'` status to exclude, unlike
-  qkit's orders); `orders_7d`/`orders_prev_7d` ← raw transaction count per
-  window; `funnel.with_booth` equals `funnel.signed_up` — a
-  `vendor_payment_config` row only ever exists once a vendor has configured
-  a payment method, so paykit has no separate "signed up but not configured"
-  state to track; `pending_upgrade_requests` is always `0` since paykit has
-  no local upgrade-requests table (`src/app/actions/plan.ts` routes an
-  upgrade ask into `merqo.support_messages` instead, a cross-schema table
-  this kit's own service client can't query directly). Locally re-declares
-  merqo's `MetricsPayload` type (verified against the real thing by
-  `test/contract/merqo-metrics.contract.test.ts` — cross-repo runtime
-  imports aren't available).
-- `utils.ts` — `cn()` (clsx + tailwind-merge), shared form label/error
-  Tailwind class constants, `formatCents()` (integer cents -> SGD currency
-  string), `formatDate()` (a `date`-column "YYYY-MM-DD" string -> display
-  date, parsed/formatted with an explicit UTC anchor so it never shifts by
-  a day depending on the server's runtime timezone), `MS_PER_HOUR`/
-  `MS_PER_DAY` (rolling-window stats cutoffs, ported from qkit's own
-  `utils.ts`), and `pctChange(current, prior)` (period-over-period percent
-  change, null when there's no prior period — backs the Overview page's new
-  `StatTile` deltas).
+## Reads and reports
 
-## Connectivity
+`transactions.ts` and `bookings.ts` read vendor-owned records with the session
+client. `read-all-rows.ts` follows stable ID cursors to an empty page and rejects
+partial collections on later errors; it does not provide a transaction snapshot.
+`list-all-users.ts` paginates auth users and reports its safety ceiling as failure.
+`admin-data.ts` performs team-console service-role reads; callers must apply the
+admin gate before invoking it.
 
-Consumed throughout `src/app/` (route handlers, Server Actions, dashboard
-pages) and `src/components/`. `payments/` and `supabase/` are the two
-subfolders with their own concerns — see their READMEs.
+`metrics.ts` and `merqo-vendor-activity.ts` derive hub payloads.
+`merqo-vendor-status.ts` resolves a known auth user to that user's config.
+`vendor-health.ts` owns triage bands. `revenue-report.ts` groups confirmed
+transactions by day; `earnings-report.ts` groups booking revenue by event date,
+falling back to transaction creation for unlinked checkouts. These are revenue
+records, not profit or tax submissions. `earnings-csv.ts` escapes customer text
+that could become a spreadsheet formula.
 
-## Shared package note
+`booking-status.ts` provides dashboard-only due badges. `usage.ts` and
+`plan-view.ts` derive the Free/Pro nudge and view; `pricing.ts` reads the
+admin-configured price. Refund tracking is Pro-gated bookkeeping, not money
+movement. Migration 0020 prepares serialized cumulative-refund enforcement;
+mocked tests do not verify its database locking.
 
-`safe-redirect.ts` and `image-resize.ts` moved to `@merqo/ui` (v0.31.0) — both were duplicated across all five repos. Import `safeRedirectPath` and `resizeToWebp` from `@merqo/ui` instead.
+## Session and shared profile
 
-## Replaced-avatar cleanup
+`vendor-session.ts` establishes the vendor session and current legal acceptance.
+`admin.ts` establishes team authorization. `legal-gate.ts` validates Merqo's
+legal-status response and caches it briefly; lookup failures fail closed.
+Sheet feedback/support actions use an inline session check to return an error
+instead of redirecting an open dialog.
 
-`image-upload-adapter.ts` also exports `removeReplacedAvatar(url)`, a best-effort delete of an avatar image that is no longer referenced. `ImageUploader` writes every upload under a fresh random name, so without it each avatar change left the previous image in storage forever. It checks every public avatar bucket (`booth-images`, `vendor-images`, `vendor-avatars`), because all five Merqo apps share one signed-in user and so one `avatar_url`, which may have been set from any of them. It uses `@merqo/ui`'s `storagePathFromPublicUrl`, so an OAuth provider picture (a Google profile photo) is never treated as ours to delete, and it never throws. Each bucket's owner-folder DELETE policy still bounds what a vendor can remove.
+`merqo-rpc.ts` is the typed cross-schema RPC boundary used by shared profile,
+feedback and support adapters. `merqo-vendor-profile.ts` uses field-specific
+patches: omitted columns stay unchanged and empty social links clear links.
+`tour-prefs.ts` contains best-effort onboarding timestamps.
 
-## Deferred-upload cleanup
+## Storage and shared UI
 
-`image-upload-adapter.ts` exports `removeUnsavedImages(urls)`, a best-effort
-delete of vendor-images uploads that no save used. The payment config form's
-QR uploader runs in `@merqo/ui`'s `deferUpload` mode and uploads on Save; if
-that upload or the save fails, the form calls this to delete what it
-uploaded. Covered by `image-upload-adapter.remove.test.ts`.
+`image-upload-adapter.ts` uploads images and contains best-effort cleanup.
+`qr-image-cleanup.ts` accepts only supported public buckets and the current
+vendor's object folder, including when called with the service-role client.
+External URLs and other vendors' objects are never deletion targets.
+Deferred QR uploads occur on Save; failed saves clean up unused uploads.
+Uncertain network outcomes are not proof that a metadata write did not commit.
 
-## Replaced QR-image cleanup
-
-`qr-image-cleanup.ts` exports `replacedQrImage(vendorId, before, after)`, the
-pure decision of which storage object a config save stopped referencing, and
-`removeReplacedQrImage(supabase, vendorId, before, after)`, a best-effort
-delete that never throws. A pointer config's QR image lives in `vendor-images`
-when uploaded from paykit and in `booth-images` when uploaded from qkit, and
-both write through paykit, so both buckets are checked here. A pasted external
-URL, another bucket, or an object outside the vendor's own folder is never
-deleted. The folder check matters because the kit API route deletes with the
-service-role client, which no storage policy constrains. Covered by
-`qr-image-cleanup.test.ts`.
+Redirect validation and image resizing come from `@merqo/ui`; there are no
+local `safe-redirect.ts` or `image-resize.ts` copies. `utils.ts` holds local
+formatters and class composition; `brand-icon.tsx` supplies icon-route markup.
+`env.ts` exposes required public configuration. The `supabase/` README explains
+session/service client separation; `payments/` explains checkout builders.
 
 ## Parent
 

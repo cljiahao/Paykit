@@ -53,7 +53,8 @@ revenue/volume. Server-side error tracking
 `SENTRY_DSN` is set. `kit_api_keys.last_used_at` now tracks when a
 calling kit's secret was last actually used, and
 `docs/SECRET_ROTATION.md` documents the real (hard-cutover, no grace
-window) rotation process. A booking's own detail page can now be printed
+window) rotation process. Provisioning refuses duplicate kit slugs; an existing
+key changes only with the explicit `--rotate` flag. A booking's own detail page can now be printed
 as a customer-facing summary (`bookings/[id]/print-booking-button.tsx`) —
 a view over existing data, not a new invoice/receipt subsystem.
 
@@ -97,12 +98,9 @@ provider implementation, not a route rewrite. `pnpm-workspace.yaml`'s
 past known-vulnerable versions Next.js itself and dev tooling still
 bundle; `pnpm audit --prod --audit-level=high` is CI's hard gate — bump
 the relevant floor here when a new advisory lands, and re-check after any
-`next` upgrade in case it's safe to drop one. `next`/`eslint-config-next`
-are pinned exact at `16.2.12` (not `^16.2.12`) — `16.3.1`'s Turbopack build
-stops emitting `.next/next-server.js.nft.json`, which breaks every Vercel
-deploy; revisit the pin once that's fixed upstream. The dashboard nav, account
+`next` upgrade in case it's safe to drop one. `next`/`eslint-config-next` versions are pinned in `package.json`; check that manifest for the current security release. Isolated build validation and its limitations are recorded in the audit evidence. The dashboard nav, account
 menu, profile-page layout, image upload, onboarding tour, and landing nav
-now delegate to the shared `@merqo/ui` package (v0.30.0, `package.json`;
+now delegate to the shared `@merqo/ui` package (pinned in `package.json`;
 kit-family consistency; `BackButton`, `ElevatedCard`, and the landing
 `Footer` joined the shared package 2026-09-16, each confirmed byte-for-byte
 or structurally identical to the other kits' copies before promoting;
@@ -222,8 +220,8 @@ usage is unchanged.
 (v0.29.2's caret-range fix alone didn't move a sticky lockfile); no
 consumer-facing change.
 
-Every `@merqo/ui` component ships as a Client Component, so a Server
-Component may pass it only serializable props — never a function, and
+Client components exported by `@merqo/ui` require serializable props from a Server
+Component — never a function, and
 never a component reference such as `LinkComponent={Link}`. Both forms
 crash at render with `Functions cannot be passed directly to Client
 Components`, and because the crash happens at request time on a dynamic
@@ -296,3 +294,9 @@ the same `docs/superpowers/` folders.
 Source lives in the `merqo-io` GitHub organization (`github.com/merqo-io/paykit`); `@merqo/ui` installs from `github:merqo-io/merqo-ui`.
 
 `e2e/` holds the Playwright public smoke and auth-guard specs, run with `pnpm test:e2e` (see its own README).
+
+## October 2026 audit status
+
+Booking deposit checkout failures now preserve the booking and expose a vendor-scoped retry action. Migration0016 adds atomic, validated deposit linking and confirmation reconciliation. It is prepared but not applied; see [the audit evidence](docs/paykit-audit-2026-10-08.md) for verification and remaining findings.
+
+The shared UI dependency is pinned to immutable commit 989d934c1cc8d957ff383934debf8ef083b6b6a4, carrying the reviewed upload lifecycle, storage URL validation and safe money parsing fixes. pnpm 11.10 permits preparation only for that exact locked source URL; update the dependency and its build allowlist together.

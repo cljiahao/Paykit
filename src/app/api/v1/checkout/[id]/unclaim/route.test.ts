@@ -193,3 +193,26 @@ describe("POST /api/v1/checkout/[id]/unclaim", () => {
     expect(res.status).toBe(404);
   });
 });
+
+it("returns 503 when a failed update leaves the transaction unchanged", async () => {
+  updateSingle.mockResolvedValue({
+    data: null,
+    error: { message: "database unavailable" },
+  });
+  const response = await POST(req(), ctx());
+  expect(response.status).toBe(503);
+  expect(auditInsert).not.toHaveBeenCalled();
+});
+it("returns 503 when the race recheck itself fails", async () => {
+  readMaybeSingle
+    .mockResolvedValueOnce({ data: ROW, error: null })
+    .mockResolvedValueOnce({
+      data: null,
+      error: { message: "database unavailable" },
+    });
+  updateSingle.mockResolvedValue({
+    data: null,
+    error: { message: "conditional update returned no row" },
+  });
+  expect((await POST(req(), ctx())).status).toBe(503);
+});

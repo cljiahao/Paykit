@@ -1,3 +1,5 @@
+import { checkoutKind } from "@/lib/checkout-kind";
+import { RecoverDepositButton } from "./recover-deposit-button";
 import { notFound } from "next/navigation";
 import { qrSvg } from "@merqo/ui";
 import { getVendorSession } from "@/lib/vendor-session";
@@ -32,8 +34,12 @@ export default async function BookingDetailPage({
   ]);
 
   const [depositQr, balanceQr] = await Promise.all([
-    depositTx ? qrSvg(depositTx.qr_payload) : Promise.resolve(null),
-    balanceTx ? qrSvg(balanceTx.qr_payload) : Promise.resolve(null),
+    depositTx && checkoutKind(depositTx) === "qr"
+      ? qrSvg(depositTx.qr_payload)
+      : Promise.resolve(null),
+    balanceTx && checkoutKind(balanceTx) === "qr"
+      ? qrSvg(balanceTx.qr_payload)
+      : Promise.resolve(null),
   ]);
 
   const canCreateBalanceCheckout =
@@ -105,6 +111,9 @@ export default async function BookingDetailPage({
 
       {booking.status !== "cancelled" && (
         <div className="flex flex-wrap items-center gap-3 print:hidden">
+          {!booking.deposit_transaction_id && (
+            <RecoverDepositButton bookingId={booking.id} />
+          )}
           {canCreateBalanceCheckout && (
             <CreateBalanceCheckoutButton bookingId={booking.id} />
           )}

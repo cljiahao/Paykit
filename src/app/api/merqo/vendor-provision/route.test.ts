@@ -8,7 +8,7 @@ vi.mock("@/lib/supabase/server", () => ({
 const { recordAuditMock } = vi.hoisted(() => ({
   recordAuditMock: vi.fn(),
 }));
-vi.mock("@/app/admin/actions", () => ({
+vi.mock("@/lib/admin-audit", () => ({
   recordAudit: recordAuditMock,
 }));
 

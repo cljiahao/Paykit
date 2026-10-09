@@ -22,6 +22,15 @@ function merqoBaseUrl(): string {
  * vendor to /legal/accept rather than silently letting them past the gate.
  */
 export async function checkLegalAcceptance(email: string): Promise<boolean> {
+  try {
+    return await readLegalAcceptance(email);
+  } catch {
+    console.error("checkLegalAcceptance unavailable");
+    return false;
+  }
+}
+
+async function readLegalAcceptance(email: string): Promise<boolean> {
   const normalized = email.toLowerCase();
   const supabase = await createServiceClient();
 

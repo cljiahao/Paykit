@@ -59,5 +59,4 @@ drawers. `plan.ts`'s action is called by `UpgradeCta`
 
 ## Parent
 
-[paykit](../../../README.md) — no intermediate `src/`/`src/app/` README
-exists yet in this repo (see `src/app/dashboard/README.md`'s own note).
+[app](../README.md)

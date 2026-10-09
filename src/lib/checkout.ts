@@ -1,3 +1,5 @@
+import type { CheckoutView } from "@/lib/payments/adapter";
+import { checkoutKind } from "@/lib/checkout-kind";
 import { createServiceClient } from "@/lib/supabase/server";
 import { getProvider } from "@/lib/payments/provider";
 import { recordPaymentAudit } from "@/lib/payment-audit";
@@ -22,6 +24,37 @@ export type CheckoutResult =
   | { ok: true; type: "image"; transaction_id: string; url: string }
   | { ok: false; status: number; error: string };
 
+function replayConflict(
+  existing: {
+    vendor_id: string;
+    amount_cents: number;
+    qr_payload: string;
+    checkout_kind?: "qr" | "link" | "image" | null;
+  },
+  vendorId: string,
+  amountCents: number,
+  payload: string,
+  kind: "qr" | "link" | "image",
+): Extract<CheckoutResult, { ok: false }> | null {
+  if (
+    existing.vendor_id !== vendorId ||
+    existing.amount_cents !== amountCents
+  ) {
+    return {
+      ok: false,
+      status: 409,
+      error: "Order reference already belongs to a different checkout",
+    };
+  }
+  if (checkoutKind(existing) !== kind || existing.qr_payload !== payload) {
+    return {
+      ok: false,
+      status: 409,
+      error: "Payment configuration changed since checkout creation",
+    };
+  }
+  return null;
+}
 /**
  * Creates one `transactions` row and renders its checkout view (PayNow QR or
  * BYO pointer). Shared by `POST /api/v1/checkout` (bearer-secret, another
@@ -75,8 +108,12 @@ export async function createCheckout({
       order_ref: orderRef,
       amount_cents: amountCents,
       qr_payload: payloadValue,
+      checkout_kind: view.type,
+      checkout_label: view.type === "link" ? view.label : null,
     })
-    .select("id, qr_payload")
+    .select(
+      "id, qr_payload, vendor_id, amount_cents, checkout_kind, checkout_label",
+    )
     .single();
 
   // A retry of the same (kit_slug, order_ref) — e.g. a caller-side timeout —
@@ -89,7 +126,9 @@ export async function createCheckout({
   if (insertError?.code === "23505") {
     const { data: existing, error: existingError } = await supabase
       .from("transactions")
-      .select("id, qr_payload")
+      .select(
+        "id, qr_payload, vendor_id, amount_cents, checkout_kind, checkout_label",
+      )
       .eq("kit_slug", kitSlug)
       .eq("order_ref", orderRef)
       .single();
@@ -100,6 +139,14 @@ export async function createCheckout({
       );
       return { ok: false, status: 503, error: "Could not create checkout" };
     }
+    const conflict = replayConflict(
+      existing,
+      vendorId,
+      amountCents,
+      payloadValue,
+      view.type,
+    );
+    if (conflict) return conflict;
     tx = existing;
   } else if (insertError || !inserted) {
     console.error("createCheckout: insert failed", insertError?.message);
@@ -113,6 +160,14 @@ export async function createCheckout({
     await recordPaymentAudit(supabase, tx.id, kitSlug, "checkout_created");
   }
 
+  return checkoutResponse(view, tx, isFreshInsert);
+}
+
+function checkoutResponse(
+  view: CheckoutView,
+  tx: { id: string; qr_payload: string; checkout_label?: string | null },
+  isFreshInsert: boolean,
+): CheckoutResult {
   if (view.type === "qr") {
     return {
       ok: true,
@@ -127,7 +182,9 @@ export async function createCheckout({
       type: "link",
       transaction_id: tx.id,
       url: tx.qr_payload,
-      label: view.label,
+      label: isFreshInsert
+        ? view.label
+        : (tx.checkout_label ?? "Open payment link"),
     };
   }
   return { ok: true, type: "image", transaction_id: tx.id, url: tx.qr_payload };

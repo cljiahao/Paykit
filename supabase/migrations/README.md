@@ -15,15 +15,28 @@ tables, RLS policies, RPCs, and grants, applied in order.
 - `0006_paykit_admin.sql` — `admins` (allow-list) + `is_admin(uid)` + `admin_audit`, backing the Merqo-team `/admin` console's gate and audit trail.
 - `0007_paykit_checkout_idempotency.sql` — unique constraint on `transactions (kit_slug, order_ref)`, so a retried `POST /api/v1/checkout` call can't create a duplicate pending transaction.
 - `0008_paykit_pricing.sql` — `pricing`, a single-row (`id` pinned to 1) admin-editable price config (`monthly_cents`, `currency`), seeded at 499 ($4.99). Public-read RLS (the price isn't secret); no write policy — writes go through the service-role `setPricing` admin action only.
-- `0009_paykit_admin_audit_immutable.sql` — revokes `UPDATE`/`DELETE` on `admin_audit` from `service_role` (kept to `SELECT`/`INSERT`) — the app only ever inserts, so this closes off tampering at the grant level, independent of RLS (which never binds `service_role`).
+- `0009_paykit_admin_audit_immutable.sql` — revokes `UPDATE`/`DELETE` on `admin_audit` from `service_role` (remaining schema privileges removed by `0019`) — the app only ever inserts, so this closes off tampering at the grant level, independent of RLS (which never binds `service_role`).
 - `0010_paykit_bookings.sql` — `bookings` (deposit-now/balance-later event-cart bookings), linking up to two `transactions` rows by id (`deposit_transaction_id`/`balance_transaction_id`). `sync_booking_status()` is an `after update of status on transactions` trigger that flips a linked booking to `deposit_paid`/`fully_paid` once its transaction(s) confirm, regardless of which path (dashboard or bearer-secret API) did the confirming. RLS mirrors `vendor_payment_config_own`; the two transaction-id columns are excluded from the vendor's own `INSERT`/`UPDATE` grant (same instinct as `plan` in 0001) since the policy only checks `vendor_id`, not that the linked transaction is actually this vendor's own.
 
 - `0011_paykit_payment_audit.sql` — `payment_audit`, an immutable (grant-level `UPDATE`/`DELETE` revoked from `service_role`, same treatment as `0009`) audit trail for the payment-lifecycle API (`checkout_created`/`claimed`/`confirmed`/`unclaimed`), attributed by `kit_slug` rather than a human `auth.users` actor — kept as its own table rather than widening `admin_audit`'s `admin_id not null` semantics, since the bearer-secret routes have no signed-in session.
-- `0012_paykit_rate_limit.sql` — `rate_limits` + `check_rate_limit()`, a DB-backed fixed-window limiter ported from qkit's own `0017_rate_limit.sql`/`0036_rate_limit_cleanup.sql` (index-backed probabilistic cleanup, not an unindexed `DELETE` on every call). `EXECUTE` granted to `service_role` only — paykit's `/api/v1/*` surface is server-to-server, unlike qkit's client-callable RPC.
+- `0012_paykit_rate_limit.sql` — `rate_limits` + `check_rate_limit()`, a DB-backed fixed-window limiter ported from qkit's own `0017_rate_limit.sql`/`0036_rate_limit_cleanup.sql` (index-backed probabilistic cleanup, not an unindexed `DELETE` on every call). `EXECUTE` was explicitly granted to `service_role`, but inherited PUBLIC execution remained until `0019`; the intended caller is the trusted server-to-server API.
 
 - `0013_paykit_kit_key_last_used.sql` — adds `kit_api_keys.last_used_at` (nullable, touched on every successful `verifyKitAuth` call) — see `docs/SECRET_ROTATION.md` for what it's for.
 - `0014_paykit_auth_failures.sql` — `auth_failures`, logging every failed `verifyKitAuth` call (`kit_slug` nullable — an unknown/malformed attempt has none — `reason`, `ip`, `created_at`). Same immutable-from-creation shape as `payment_audit`/`admin_audit`: no RLS policies (service-role only), and only `select`/`insert` ever granted (no `update`/`delete` to revoke later, unlike `0009`/`0011`'s after-the-fact tightening). Backs the admin Overview's Security stat block (`securityStats()` in `src/lib/admin-data.ts`).
 - `0015_legal_check_state.sql` — `legal_check_state`, a TTL cache (`email` PK, `checked_at`, `is_current`) for "is this vendor's terms/privacy acceptance current with merqo?" — paykit owns no acceptance record itself, so `src/lib/legal-gate.ts` calls merqo's `GET /api/merqo/legal-status` and caches the result here for 5 minutes, mirroring merqo's own `vendor_sync_state` throttle. Service-role only (RLS on, zero policies), same shape as `auth_failures`.
+
+- `0016_recover_booking_deposit.sql` — validates and atomically links deposit
+  checkouts to their matching bookings, preserving recovery after a failed
+  checkout request. The helper is restricted to the service role.
+- `0017_link_booking_balance.sql` — validates and atomically links the balance
+  checkout, with booking/vendor identity checks and service-only execution.
+- `0018_checkout_snapshot.sql` — preserves the payment destination snapshot
+  used by a checkout so later configuration changes cannot silently redirect it.
+- `0019_private_rate_limiter_and_audit_grants.sql` — revokes inherited public
+  execution on the limiter, validates bounded inputs and retains all supported
+  windows during cleanup. Removes audit writer privileges beyond SELECT/INSERT.
+
+- `0020_refund_total_integrity.sql` — serializes refund accounting, caps cumulative refunds at the confirmed checkout amount, and preserves refund identity and attribution.
 
 ## Parent
 

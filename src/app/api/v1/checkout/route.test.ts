@@ -1,3 +1,4 @@
+import { buildPayNowPayload } from "@/lib/payments/paynow";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "./route";
 
@@ -74,7 +75,16 @@ beforeEach(() => {
     error: null,
   });
   insertSingle.mockReset().mockResolvedValue({
-    data: { id: "tx1", qr_payload: "0002...6304ABCD", type: "qr" },
+    data: {
+      id: "tx1",
+      qr_payload: buildPayNowPayload({
+        uen: "53312345A",
+        payeeName: "Kopitiam Cart",
+        amountCents: 450,
+        reference: "A-901",
+      }),
+      type: "qr",
+    },
     error: null,
   });
   existingSingle.mockReset().mockResolvedValue({ data: null, error: null });
@@ -102,11 +112,16 @@ describe("POST /api/v1/checkout", () => {
     expect(await res.json()).toEqual({
       type: "qr",
       transaction_id: "tx1",
-      payload: "0002...6304ABCD",
+      payload: buildPayNowPayload({
+        uen: "53312345A",
+        payeeName: "Kopitiam Cart",
+        amountCents: 450,
+        reference: "A-901",
+      }),
     });
   });
 
-  it("creates a checkout for a free-tier vendor well past the old 100/mo cap", async () => {
+  it("creates a checkout for a free-tier vendor", async () => {
     configMaybeSingle.mockResolvedValue({
       data: {
         vendor_id: "11111111-1111-1111-1111-111111111111",
@@ -259,7 +274,7 @@ describe("POST /api/v1/checkout", () => {
     expect(json.error).not.toMatch(/connection reset/);
   });
 
-  it("returns the same transaction on a retried call with the same (kit_slug, order_ref), without a second insert", async () => {
+  it("replays the original transaction after a retry hits the unique constraint", async () => {
     const first = await POST(
       req({
         vendor_id: "11111111-1111-1111-1111-111111111111",
@@ -278,7 +293,19 @@ describe("POST /api/v1/checkout", () => {
       error: { code: "23505", message: "duplicate key value" },
     });
     existingSingle.mockResolvedValue({
-      data: { id: "tx1", qr_payload: "0002...6304ABCD" },
+      data: {
+        checkout_kind: "qr",
+        checkout_label: null,
+        id: "tx1",
+        qr_payload: buildPayNowPayload({
+          uen: "53312345A",
+          payeeName: "Kopitiam Cart",
+          amountCents: 450,
+          reference: "A-901",
+        }),
+        vendor_id: "11111111-1111-1111-1111-111111111111",
+        amount_cents: 450,
+      },
       error: null,
     });
 

@@ -14,7 +14,9 @@ describe("Footer", () => {
     expect(
       screen.getByText("The Merqo family's shared vendor payment engine."),
     ).toBeInTheDocument();
-    expect(screen.getByText("© 2026 paykit · a Merqo kit")).toBeInTheDocument();
+    expect(
+      screen.getByText(`© ${new Date().getFullYear()} paykit · a Merqo kit`),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Vendor sign in →" }),
     ).toHaveAttribute("href", "/login");

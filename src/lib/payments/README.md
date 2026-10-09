@@ -13,7 +13,7 @@ to await here.
   a QR scanner computes) and `buildPayNowPayload`: the EMVCo Merchant-
   Presented QR payload builder for PayNow. Ported verbatim from qkit's own
   `docs/superpowers/specs/2026-06-28-qkit-payments-seam-design.md` — do not
-  fork the two copies without a reason.
+  reintroduce a qkit-local copy; qkit now calls Paykit for checkout.
 - `adapter.ts` — `renderCheckout(config, ctx)`: given a
   `VendorPaymentConfig`, returns a `CheckoutView` discriminated on how the
   customer should pay — `{type:"qr"}` (built PayNow payload) for `kind:

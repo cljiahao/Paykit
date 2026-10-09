@@ -5,10 +5,15 @@ import { defineConfig } from "vitest/config";
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  envDir: false,
   resolve: {
-    alias: { "@": path.resolve(rootDir, "src") },
+    alias: {
+      "@": path.resolve(rootDir, "src"),
+      "server-only": path.resolve(rootDir, "test/server-only.ts"),
+    },
   },
   test: {
+    maxWorkers: 2,
     globals: true,
     environment: "node",
     // Bumped from 10s: under heavy concurrent load a real test occasionally
@@ -25,9 +30,10 @@ export default defineConfig({
     include: ["test/**/*.{test,spec}.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
     coverage: {
       provider: "v8",
+      thresholds: { statements: 80, branches: 80, functions: 80, lines: 80 },
       reporter: ["text", "lcov", "cobertura"],
       include: ["src/**/*.ts", "src/**/*.tsx"],
-      exclude: ["**/*.test.ts", "**/*.d.ts", "**/index.ts"],
+      exclude: ["**/*.test.ts", "**/*.d.ts"],
     },
   },
 });

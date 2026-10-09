@@ -57,7 +57,7 @@ export function NewBookingDialog() {
     async (prevState, formData) => {
       const result = await createBookingAction(prevState, formData);
       if (result.status === "ok") {
-        toast.success("Booking created.");
+        toast.success(result.message ?? "Booking created.");
         formRef.current?.reset();
         resetAmounts();
         setOpen(false);

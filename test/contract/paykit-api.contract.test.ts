@@ -37,15 +37,13 @@ describe("paykit /api/v1 contract", () => {
   });
 
   it("POST /api/v1/vendors/{vendor_id}/config response satisfies vendorConfigResponseSchema", () => {
-    // POST's actual response only ever carries has_config/display_name, a
-    // narrower shape than GET's — but the same wire contract still covers
-    // it, since the full-config fields are optional in the schema.
-    const parsed = vendorConfigResponseSchema.safeParse(
-      loadSample("vendor-config.sample.json"),
-    );
+    const sample = loadSample("vendor-config.sample.json");
+    const parsed = vendorConfigResponseSchema.safeParse({
+      has_config: sample.has_config,
+      display_name: sample.display_name,
+    });
     expect(parsed.success, JSON.stringify(parsed.error?.format())).toBe(true);
   });
-
   it("GET /api/v1/bookings/{booking_id} response satisfies bookingStatusResponseSchema", () => {
     const parsed = bookingStatusResponseSchema.safeParse(
       loadSample("booking-status.sample.json"),

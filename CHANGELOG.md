@@ -6,6 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- Adopt the immutable audited shared UI commit for upload lifecycle, storage URL validation and safe money parsing fixes; constrain its build permission to the locked source URL.
+
+- Cap cumulative refunds at the confirmed payment amount in Postgres, serialize concurrent writes, and preserve refund identity and attribution.
+
+- Restrict the rate limiter to trusted service callers, validate bounded parameters, and remove remaining destructive and schema privileges from audit writers.
+
 ### Added
 
 - Playwright end-to-end smoke tests (`e2e/`, `pnpm test:e2e`): a public smoke spec and a signed-out auth-guard spec, run in CI as `e2e (public smoke)` against `pnpm dev` with dummy Supabase values. The job name and baseline match qkit, loopkit and merqo, so every kit can require the same check. `@playwright/test` is pinned to `1.61.1`.
@@ -17,6 +25,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Improve small brand-text and input-boundary contrast in both themes while preserving primary button fills and decorative separators.
+
+- Kit-key provisioning refuses duplicate slugs; replacing a live key now requires an explicit --rotate command.
+- Preserve saved bookings after deposit checkout failures and provide a scoped recovery action; prepared migration0016 validates atomic linking and reconciles confirmed payments. Checkout retries reject conflicting identities or changed payment destinations, and best-effort authentication telemetry tolerates network rejection.
 - Picking a QR image in the payment config form and leaving without saving no
   longer leaves the image in storage. The uploader now uses `@merqo/ui`
   v0.32.0's `deferUpload`: the image is previewed locally and only uploaded
@@ -160,6 +172,8 @@ actions.ts`) pointed at `https://merqo-sg.vercel.app`, a stale host that
 
 ### Security
 
+- Adopt the immutable audited shared UI commit for upload lifecycle, storage URL validation and safe money parsing fixes; constrain its build permission to the locked source URL.
+
 - Bumped `vitest` and `@vitest/coverage-v8` to `4.1.11` (from `3.2.6`).
   Clears GHSA-82fw-gwwq-j7x9 (`@vitest/mocker` path traversal / arbitrary
   file read, patched only in `4.1.11`). Also `fast-uri` to `4.1.4`, the `qs`
@@ -171,6 +185,8 @@ actions.ts`) pointed at `https://merqo-sg.vercel.app`, a stale host that
 ## [0.1.7] - 2026-09-09
 
 ### Security
+
+- Adopt the immutable audited shared UI commit for upload lifecycle, storage URL validation and safe money parsing fixes; constrain its build permission to the locked source URL.
 
 - Bumped `next` to `16.3.4` (`eslint-config-next` to match) and refreshed
   `browserslist` to `4.28.9`. Clears two critical Next.js RCE advisories
@@ -822,6 +838,8 @@ variant="ghost" size="sm"` control instead of a hand-rolled `Link`,
 
 ### Security
 
+- Adopt the immutable audited shared UI commit for upload lifecycle, storage URL validation and safe money parsing fixes; constrain its build permission to the locked source URL.
+
 - Bumped `next` 16.2.10 → 16.2.11, clearing 9 known advisories (4 high: App
   Router middleware/proxy bypass, Server Actions DoS, Server Actions SSRF
   on custom servers, rewrites SSRF via attacker-controlled hostname; 5
@@ -876,6 +894,8 @@ variant="ghost" size="sm"` control instead of a hand-rolled `Link`,
   straight from the merqo RPC response, never through this function).
 
 ### Security
+
+- Adopt the immutable audited shared UI commit for upload lifecycle, storage URL validation and safe money parsing fixes; constrain its build permission to the locked source URL.
 
 - `vendorPaymentConfigInputSchema`'s pointer `url`/`qr_image_url` and
   `socialLinksSchema`'s social link fields validated only with

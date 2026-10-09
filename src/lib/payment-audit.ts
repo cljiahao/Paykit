@@ -20,11 +20,15 @@ export async function recordPaymentAudit(
   action: PaymentAuditAction,
   detail: Json = null,
 ): Promise<void> {
-  const { error } = await supabase.from("payment_audit").insert({
-    transaction_id: transactionId,
-    kit_slug: kitSlug,
-    action,
-    detail,
-  });
-  if (error) console.error("payment_audit insert failed", error.message);
+  try {
+    const { error } = await supabase.from("payment_audit").insert({
+      transaction_id: transactionId,
+      kit_slug: kitSlug,
+      action,
+      detail,
+    });
+    if (error) console.error("payment_audit insert failed", error.message);
+  } catch {
+    console.error("payment_audit unavailable");
+  }
 }

@@ -2,11 +2,9 @@
 
 ## Purpose
 
-An HTTP-level contract test asserting the shape of paykit's `/api/v1/*`
-responses stays stable for the kits calling it — mirrors merqo's
-`qkit-metrics` contract-test precedent. Not RLS (see `test/db/`), not a
-mock-only unit test (see `src/app/api/v1/**/route.test.ts`) — this asserts
-the actual JSON wire shape a calling kit depends on.
+Local schema checks for saved examples of paykit's `/api/v1/*` responses.
+These tests do not send HTTP requests or prove that the current handlers emit
+the saved shape. Route tests cover handler output; database tests cover RLS.
 
 ## Contents
 
@@ -22,7 +20,7 @@ the actual JSON wire shape a calling kit depends on.
   `GET /api/v1/bookings/{booking_id}` response.
 - `merqo-metrics.contract.test.ts` — asserts `computePaykitMetrics`'s output
   satisfies merqo hub's own `metricsPayloadSchema` (hand-copied here since
-  cross-repo runtime imports aren't available — this test is what catches a
+  cross-repo runtime imports aren't available — this checks the saved contract, and cannot automatically catch
   drift between the two).
 
 ## Parent

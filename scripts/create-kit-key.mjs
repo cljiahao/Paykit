@@ -1,39 +1,73 @@
 #!/usr/bin/env node
-// Generates a bearer secret for a new calling kit and stores its SHA-256 hash
-// in paykit.kit_api_keys via the service-role client. Run once per kit. Prints
-// the plaintext secret ONCE — save it in the calling kit's own secret store;
-// paykit never stores or displays it again.
 import { randomBytes, createHash } from "node:crypto";
+import { pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 
-const kitSlug = process.argv[2];
-if (!kitSlug) {
-  console.error("Usage: node scripts/create-kit-key.mjs <kit_slug>");
-  process.exit(1);
+export function parseKitKeyArgs(args) {
+  const slugs = args.filter((argument) => !argument.startsWith("--"));
+  if (
+    slugs.length !== 1 ||
+    args.some(
+      (argument) => argument.startsWith("--") && argument !== "--rotate",
+    ) ||
+    args.filter((argument) => argument === "--rotate").length > 1 ||
+    !/^[a-z][a-z0-9-]{0,63}$/.test(slugs[0])
+  ) {
+    throw new Error(
+      "Usage: node scripts/create-kit-key.mjs <kit_slug> [--rotate]",
+    );
+  }
+  return { kitSlug: slugs[0], rotate: args.includes("--rotate") };
 }
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const secretKey = process.env.SUPABASE_SECRET_KEY;
-if (!url || !secretKey) {
-  console.error("Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY first.");
-  process.exit(1);
+export async function provisionKitKey(supabase, { kitSlug, rotate }) {
+  const secret = randomBytes(32).toString("hex");
+  const secretHash = createHash("sha256").update(secret, "utf8").digest("hex");
+  const table = supabase.from("kit_api_keys");
+  const operation = rotate
+    ? table
+        .update({ secret_hash: secretHash })
+        .eq("kit_slug", kitSlug)
+        .select("kit_slug")
+        .single()
+    : table.insert({ kit_slug: kitSlug, secret_hash: secretHash });
+  const { error } = await operation;
+  if (error) {
+    if (!rotate && error.code === "23505")
+      throw new Error(
+        "This kit already has a key. Use --rotate only for a coordinated cutover.",
+      );
+    if (rotate && error.code === "PGRST116")
+      throw new Error(
+        "No existing key found for rotation. Provision the kit without --rotate.",
+      );
+    throw new Error("Failed to store the kit key.");
+  }
+  return secret;
 }
 
-const secret = randomBytes(32).toString("hex");
-const secretHash = createHash("sha256").update(secret, "utf8").digest("hex");
-
-const supabase = createClient(url, secretKey, { db: { schema: "paykit" } });
-const { error } = await supabase
-  .from("kit_api_keys")
-  .upsert(
-    { kit_slug: kitSlug, secret_hash: secretHash },
-    { onConflict: "kit_slug" },
+async function main() {
+  const options = parseKitKeyArgs(process.argv.slice(2));
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  if (!url || !secretKey)
+    throw new Error(
+      "Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY first.",
+    );
+  const supabase = createClient(url, secretKey, { db: { schema: "paykit" } });
+  const secret = await provisionKitKey(supabase, options);
+  console.log(
+    `Bearer token for ${options.kitSlug} (save this now, shown once):`,
   );
-
-if (error) {
-  console.error("Failed to store key:", error.message);
-  process.exit(1);
+  console.log(`${options.kitSlug}:${secret}`);
 }
 
-console.log(`Bearer token for ${kitSlug} (save this now, shown once):`);
-console.log(`${kitSlug}:${secret}`);
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+}

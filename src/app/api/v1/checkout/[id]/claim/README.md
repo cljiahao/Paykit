@@ -15,3 +15,7 @@ A real (non-idempotent) claim writes a `claimed` `payment_audit` row
 
 Response shape is the shared `TransactionStatusResponse`
 (`src/lib/api-schemas.ts`'s `toStatusResponse`).
+
+## Boundary and coverage
+
+The transaction lookup and guarded write both include the authenticated kit slug as well as the transaction ID. The rate limiter runs before mutation and fails closed on an unavailable limiter. Tests assert the predicates and ensure a calling kit cannot claim another kit transaction.

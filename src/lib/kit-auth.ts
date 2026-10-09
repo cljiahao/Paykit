@@ -20,10 +20,14 @@ async function logAuthFailure(
   reason: string,
   ip: string,
 ): Promise<void> {
-  const { error } = await supabase
-    .from("auth_failures")
-    .insert({ kit_slug: kitSlug, reason, ip });
-  if (error) console.error("auth_failures insert failed", error.message);
+  try {
+    const { error } = await supabase
+      .from("auth_failures")
+      .insert({ kit_slug: kitSlug, reason, ip });
+    if (error) console.error("auth_failures insert failed");
+  } catch {
+    console.error("auth_failures insert failed");
+  }
 }
 
 export async function verifyKitAuth(
@@ -83,16 +87,14 @@ export async function verifyKitAuth(
     return null;
   }
 
-  // Best-effort — a failed write here must never fail a real auth success.
-  const { error: touchError } = await supabase
-    .from("kit_api_keys")
-    .update({ last_used_at: new Date().toISOString() })
-    .eq("kit_slug", kitSlug);
-  if (touchError)
-    console.warn(
-      `paykit: verifyKitAuth — last_used_at update failed for kit_slug "${kitSlug}"`,
-      touchError.message,
-    );
-
+  try {
+    const { error: touchError } = await supabase
+      .from("kit_api_keys")
+      .update({ last_used_at: new Date().toISOString() })
+      .eq("kit_slug", kitSlug);
+    if (touchError) console.warn("paykit: last_used_at update failed");
+  } catch {
+    console.warn("paykit: last_used_at update failed");
+  }
   return { kitSlug };
 }

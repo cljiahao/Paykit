@@ -17,3 +17,7 @@ already return (`src/lib/api-schemas.ts`'s `toStatusResponse`).
 A real (non-idempotent) unclaim writes an `unclaimed` `payment_audit` row
 (`@/lib/payment-audit`). Rate-limited (`@/lib/rate-limit`, 60/60s per
 `kit_slug`+IP) right after auth.
+
+## Boundary and coverage
+
+The transaction lookup and guarded write both include the authenticated kit slug as well as the transaction ID. Rate-limit failures prevent mutation, and confirmed state remains unchanged. Tests assert ownership predicates and race fallback behavior.

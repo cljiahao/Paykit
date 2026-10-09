@@ -57,8 +57,7 @@ file. Presentational only — no data fetching, no client state beyond the
   section, not a revival of that removed footer band.
 - `footer.test.tsx` — asserts the wordmark link, tagline, copyright line,
   sign-in link, the About link, and the Terms/Privacy links all render.
-- `back-to-top.tsx` — fixed-position scroll-to-top button (ported from qkit),
-  shown past a scroll threshold.
+- `BackToTop` — shared scroll-to-top control imported from `@merqo/ui`.
 - `wordmark.tsx` — `Wordmark`: the "Pay**kit**" mark, mint accent on "Pay"
   (distinct from qkit's ember / loopkit's gold) — visual mark only, prose
   stays lowercase "paykit" per

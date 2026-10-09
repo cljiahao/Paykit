@@ -1,3 +1,4 @@
+import { readAllRows, readAllRowsResult } from "@/lib/read-all-rows";
 import { createServiceClient } from "@/lib/supabase/server";
 import { listAllUsers } from "@/lib/list-all-users";
 import { getPricing, type PricingConfig } from "@/lib/pricing";
@@ -90,19 +91,29 @@ async function emailByUserId(
 /** Platform-wide totals for the overview stat tiles. */
 export async function platformTotals(): Promise<PlatformTotals> {
   const supabase = await createServiceClient();
-  const [vendorsRes, txRes, refundsRes] = await Promise.all([
-    supabase.from("vendor_payment_config").select("vendor_id, plan"),
-    supabase
-      .from("transactions")
-      .select("id, status, amount_cents, created_at, confirmed_at"),
-    supabase.from("refunds").select("refunded_amount_cents, created_at"),
+  const [vendors, transactions, refunds] = await Promise.all([
+    readAllRows((from, to) =>
+      supabase
+        .from("vendor_payment_config")
+        .select("vendor_id, plan")
+        .order("vendor_id")
+        .range(from, to),
+    ),
+    readAllRows((from, to) =>
+      supabase
+        .from("transactions")
+        .select("id, status, amount_cents, created_at, confirmed_at")
+        .order("id")
+        .range(from, to),
+    ),
+    readAllRows((from, to) =>
+      supabase
+        .from("refunds")
+        .select("refunded_amount_cents, created_at")
+        .order("id")
+        .range(from, to),
+    ),
   ]);
-  for (const r of [vendorsRes, txRes, refundsRes]) {
-    if (r.error) throw new Error(`platformTotals: ${r.error.message}`);
-  }
-  const vendors = vendorsRes.data ?? [];
-  const transactions = txRes.data ?? [];
-  const refunds = refundsRes.data ?? [];
   const confirmed = transactions.filter((t) => t.status === "confirmed");
 
   const now = Date.now();
@@ -157,11 +168,15 @@ export async function securityStats(): Promise<SecurityStats> {
       .from("auth_failures")
       .select("id", { count: "exact", head: true })
       .gte("created_at", cutoff24h),
-    supabase
-      .from("rate_limits")
-      .select("key")
-      .gte("window_start", cutoff24h)
-      .gte("count", PER_ROUTE_LIMIT),
+    readAllRowsResult((from, to) =>
+      supabase
+        .from("rate_limits")
+        .select("key")
+        .gte("window_start", cutoff24h)
+        .gte("count", PER_ROUTE_LIMIT)
+        .order("key")
+        .range(from, to),
+    ),
   ]);
   if (authRes.error) throw new Error(`securityStats: ${authRes.error.message}`);
   if (rlRes.error) throw new Error(`securityStats: ${rlRes.error.message}`);
@@ -209,21 +224,29 @@ export async function recentActivity(limit = 15): Promise<ActivityRow[]> {
  */
 export async function listVendors(): Promise<VendorRow[]> {
   const supabase = await createServiceClient();
-  const [vendorsRes, txRes, refundsRes] = await Promise.all([
-    supabase
-      .from("vendor_payment_config")
-      .select("vendor_id, plan, kind, payee_name, label, created_at"),
-    supabase
-      .from("transactions")
-      .select("id, vendor_id, status, created_at, confirmed_at"),
-    supabase.from("refunds").select("transaction_id, created_at"),
+  const [vendors, transactions, refunds] = await Promise.all([
+    readAllRows((from, to) =>
+      supabase
+        .from("vendor_payment_config")
+        .select("vendor_id, plan, kind, payee_name, label, created_at")
+        .order("vendor_id")
+        .range(from, to),
+    ),
+    readAllRows((from, to) =>
+      supabase
+        .from("transactions")
+        .select("id, vendor_id, status, created_at, confirmed_at")
+        .order("id")
+        .range(from, to),
+    ),
+    readAllRows((from, to) =>
+      supabase
+        .from("refunds")
+        .select("transaction_id, created_at")
+        .order("id")
+        .range(from, to),
+    ),
   ]);
-  for (const r of [vendorsRes, txRes, refundsRes]) {
-    if (r.error) throw new Error(`listVendors: ${r.error.message}`);
-  }
-  const vendors = vendorsRes.data ?? [];
-  const transactions = txRes.data ?? [];
-  const refunds = refundsRes.data ?? [];
   const emails = await emailByUserId(supabase);
 
   const txCounts = new Map<string, number>();

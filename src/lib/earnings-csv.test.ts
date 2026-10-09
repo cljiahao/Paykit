@@ -84,3 +84,32 @@ describe("earningsReportToCsv", () => {
     expect(csv).toContain("Jane Tan");
   });
 });
+
+it("quotes carriage returns so a customer cannot create a new CSV row", () => {
+  const csv = earningsReportToCsv(
+    report({
+      lines: [
+        {
+          key: "b",
+          label: "Name\r=1+1",
+          event_date: "2026-10-08",
+          revenue_cents: 100,
+        },
+      ],
+    }),
+  );
+  expect(csv).toContain('"Name\r=1+1"');
+});
+it.each([" \t=1+1", "\t@SUM(A1)", "\r+1"])(
+  "neutralizes formula prefixes after whitespace: %s",
+  (label) => {
+    const csv = earningsReportToCsv(
+      report({
+        lines: [
+          { key: "b", label, event_date: "2026-10-08", revenue_cents: 100 },
+        ],
+      }),
+    );
+    expect(csv).toContain("'" + label);
+  },
+);

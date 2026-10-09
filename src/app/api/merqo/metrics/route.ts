@@ -1,3 +1,4 @@
+import { readAllRowsResult } from "@/lib/read-all-rows";
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { bearerOk } from "@/lib/merqo-auth";
@@ -16,12 +17,20 @@ export async function GET(request: Request) {
   // Two independent reads — issue them concurrently so endpoint latency is
   // one round-trip, not the sum of two.
   const [vendorsRes, transactionsRes] = await Promise.all([
-    supabase
-      .from("vendor_payment_config")
-      .select("vendor_id, plan, created_at"),
-    supabase
-      .from("transactions")
-      .select("vendor_id, amount_cents, status, created_at"),
+    readAllRowsResult((from, to) =>
+      supabase
+        .from("vendor_payment_config")
+        .select("vendor_id, plan, created_at")
+        .order("vendor_id")
+        .range(from, to),
+    ),
+    readAllRowsResult((from, to) =>
+      supabase
+        .from("transactions")
+        .select("vendor_id, amount_cents, status, created_at")
+        .order("id")
+        .range(from, to),
+    ),
   ]);
 
   for (const r of [vendorsRes, transactionsRes]) {

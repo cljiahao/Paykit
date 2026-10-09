@@ -1,3 +1,4 @@
+import { readAllRows } from "@/lib/read-all-rows";
 import { createServerClient } from "@/lib/supabase/server";
 import type { Transaction } from "@/lib/types";
 
@@ -46,4 +47,19 @@ export async function txCountThisMonth(vendorId: string): Promise<number> {
     return 0;
   }
   return data ?? 0;
+}
+
+/** Complete vendor-scoped records for reports, separate from the recent-items UI. */
+export async function listAllTransactions(
+  vendorId: string,
+): Promise<Transaction[]> {
+  const supabase = await createServerClient();
+  return readAllRows((from, to) =>
+    supabase
+      .from("transactions")
+      .select("*")
+      .eq("vendor_id", vendorId)
+      .order("id")
+      .range(from, to),
+  );
 }

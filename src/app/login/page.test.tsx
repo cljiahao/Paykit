@@ -1,3 +1,4 @@
+import LoginPage from "./page";
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -60,7 +61,7 @@ beforeEach(() => {
 describe("LoginPage", () => {
   it("shows an error message when the URL has ?error=oauth", async () => {
     useSearchParamsMock.mockReturnValue(new URLSearchParams("error=oauth"));
-    const { default: LoginPage } = await import("./page");
+
     render(<LoginPage />);
 
     const alert = screen.getByRole("alert");
@@ -70,7 +71,6 @@ describe("LoginPage", () => {
   });
 
   it("does not show an error message when there is no error param", async () => {
-    const { default: LoginPage } = await import("./page");
     render(<LoginPage />);
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -78,7 +78,7 @@ describe("LoginPage", () => {
 
   it("requests an English consent screen when signing in with Google", async () => {
     const user = userEvent.setup();
-    const { default: LoginPage } = await import("./page");
+
     render(<LoginPage />);
 
     await user.click(
@@ -97,7 +97,7 @@ describe("LoginPage", () => {
     useRouterMock.mockReturnValue({ push, refresh: vi.fn() });
 
     const user = userEvent.setup();
-    const { default: LoginPage } = await import("./page");
+
     render(<LoginPage />);
 
     await user.click(
@@ -120,7 +120,7 @@ describe("LoginPage", () => {
     useRouterMock.mockReturnValue({ push, refresh });
 
     const user = userEvent.setup();
-    const { default: LoginPage } = await import("./page");
+
     render(<LoginPage />);
 
     await user.click(
@@ -136,7 +136,7 @@ describe("LoginPage", () => {
 
   it("shows Forgot password only in signin mode and sends a reset email", async () => {
     const user = userEvent.setup();
-    const { default: LoginPage } = await import("./page");
+
     render(<LoginPage />);
 
     expect(
@@ -165,7 +165,7 @@ describe("LoginPage", () => {
 
   it("toasts an error and does not send a reset email when the email field is empty", async () => {
     const user = userEvent.setup();
-    const { default: LoginPage } = await import("./page");
+
     render(<LoginPage />);
 
     await user.click(screen.getByRole("button", { name: /forgot password/i }));
@@ -179,7 +179,7 @@ describe("LoginPage", () => {
       error: { message: "Too many requests" },
     });
     const user = userEvent.setup();
-    const { default: LoginPage } = await import("./page");
+
     render(<LoginPage />);
 
     await user.type(screen.getByLabelText(/email/i), "vendor@example.com");
@@ -194,7 +194,7 @@ describe("LoginPage", () => {
   it("returns to the sign-in form from the check-your-email state via Back to sign in", async () => {
     signUpMock.mockResolvedValue({ data: { session: null }, error: null });
     const user = userEvent.setup();
-    const { default: LoginPage } = await import("./page");
+
     render(<LoginPage />);
 
     await user.click(
@@ -215,4 +215,57 @@ describe("LoginPage", () => {
       screen.getByRole("heading", { name: /welcome back/i }),
     ).toBeInTheDocument();
   });
+});
+
+describe("auth transport recovery", () => {
+  it.each(["signin", "signup", "reset", "oauth"])(
+    "re-enables controls after %s network rejection",
+    async (mode) => {
+      const failure = new Error("offline");
+      signInWithPasswordMock.mockRejectedValue(failure);
+      signUpMock.mockRejectedValue(failure);
+      resetPasswordForEmailMock.mockRejectedValue(failure);
+      signInWithOAuthMock.mockRejectedValue(failure);
+      const user = userEvent.setup();
+
+      render(<LoginPage />);
+      await user.type(screen.getByLabelText("Email"), "vendor@example.com");
+      if (mode === "signup")
+        await user.click(
+          screen.getByRole("button", { name: "Create an account" }),
+        );
+      if (mode === "signin" || mode === "signup") {
+        await user.type(screen.getByLabelText("Password"), "password123");
+        await user.click(
+          screen.getByRole("button", {
+            name: mode === "signin" ? "Sign in" : "Create account",
+          }),
+        );
+      } else
+        await user.click(
+          screen.getByRole("button", {
+            name:
+              mode === "reset" ? "Forgot password?" : "Continue with Google",
+          }),
+        );
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        "Could not connect",
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: "Continue with Google" }),
+        ).toBeEnabled(),
+      );
+      expect(useRouterMock.mock.results[0].value.push).not.toHaveBeenCalled();
+    },
+  );
+});
+
+it("honors the landing page signup link", async () => {
+  useSearchParamsMock.mockReturnValue(new URLSearchParams("mode=signup"));
+  const { default: LoginPage } = await import("./page");
+  render(<LoginPage />);
+  expect(
+    screen.getByRole("button", { name: /create account/i }),
+  ).toBeInTheDocument();
 });

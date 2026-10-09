@@ -43,3 +43,7 @@ Next.js files.
 ## Parent
 
 [src](../README.md)
+
+## Boundary and coverage
+
+Global Tailwind base rules stay in the base layer so component utility classes control typography and surfaces. API boundaries retain authenticated kit ownership; vendor pages resolve their own session. Component and action tests validate failures as well as the happy path.

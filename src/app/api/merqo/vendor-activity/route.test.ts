@@ -21,6 +21,19 @@ function req(url: string, auth?: string) {
 
 type TableResult = { data: unknown; error: { message: string } | null };
 
+function paged(result: TableResult) {
+  return {
+    order: () => ({
+      range: (from: number, to: number) =>
+        Promise.resolve({
+          ...result,
+          data: Array.isArray(result.data)
+            ? result.data.slice(from, to + 1)
+            : result.data,
+        }),
+    }),
+  };
+}
 function mockTables(overrides: {
   config?: TableResult;
   transactions?: TableResult;
@@ -43,14 +56,14 @@ function mockTables(overrides: {
     if (table === "transactions") {
       return {
         select: () => ({
-          eq: () => Promise.resolve(transactions),
+          eq: () => paged(transactions),
         }),
       };
     }
     if (table === "refunds") {
       return {
         select: () => ({
-          in: () => Promise.resolve(refunds),
+          in: () => paged(refunds),
         }),
       };
     }
@@ -237,4 +250,43 @@ describe("GET /api/merqo/vendor-activity (paykit)", () => {
     );
     expect(res.status).toBe(503);
   });
+});
+
+it("includes all vendor activity and batches refund filters", async () => {
+  process.env.MERQO_METRICS_SECRET = "test-secret";
+  vi.clearAllMocks();
+  listUsersMock.mockResolvedValue({
+    data: { users: [{ id: "u1", email: "vendor@business.sg" }] },
+    error: null,
+  });
+  mockTables({
+    config: {
+      data: { plan: "pro", created_at: new Date().toISOString() },
+      error: null,
+    },
+    transactions: {
+      data: Array.from({ length: 1001 }, (_, i) => ({
+        id: String(i),
+        status: "confirmed",
+        amount_cents: 100,
+        created_at: new Date().toISOString(),
+        confirmed_at: null,
+      })),
+      error: null,
+    },
+  });
+  const response = await GET(
+    req(
+      "http://localhost/api/merqo/vendor-activity?email=vendor@business.sg",
+      "Bearer test-secret",
+    ),
+  );
+  expect(response.status).toBe(200);
+  expect((await response.json()).metrics).toContainEqual({
+    label: "Transactions (30d)",
+    value: "1001",
+  });
+  expect(
+    fromMock.mock.calls.filter((call) => call[0] === "refunds"),
+  ).toHaveLength(11);
 });

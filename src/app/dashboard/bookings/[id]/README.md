@@ -1,88 +1,35 @@
-# [id]
+# booking detail
 
-## Purpose
+`page.tsx` reads the vendor-owned booking and its linked transactions, returns
+404 for missing/inaccessible records, and renders payment and booking controls.
+Next 16 route params are asynchronous.
 
-A single booking's detail view: both its linked transactions'
-status/QR, the action to create the balance checkout once eligible,
-reschedule, cancel (optionally with a refund), and print a summary. Next
-16 dynamic route (`params` is a `Promise`).
+## Payment display
 
-## Contents
+The page renders server-generated QR markup only for QR checkouts and passes
+that string to the synchronous `transaction-status-card.tsx`. Persisted
+`checkout_kind` and `checkout_label` preserve the original link/image identity;
+links remain links and uploaded QR images remain images. Unknown older pointer
+checkouts show an unavailable-instructions message instead of guessing their
+original display type. A displayed instruction is not payment verification.
 
-- `page.tsx` — `BookingDetailPage({params})` (server): `notFound()`s on a
-  missing/not-owned booking (RLS already filters `getBooking` — see
-  `@/lib/bookings` — to this vendor; a wrong id just reads back `null`),
-  then renders the booking's own ID (with `CopyBookingIdButton`) and
-  fields, both linked transactions via `TransactionStatusCard`,
-  `CreateBalanceCheckoutButton` (only once a deposit transaction exists
-  and a balance one doesn't yet), `RescheduleBookingDialog`, and
-  `CancelBookingDialog` (passed both transactions so it can offer a
-  refund field when exactly one is confirmed) — every action hidden once
-  the booking is already `cancelled`.
-- `page.dom.test.tsx` — the 404 path (mocks `next/navigation`'s
-  `notFound` to throw, same pattern as `src/lib/admin.test.ts`), field
-  rendering (including the booking ID and its copy button), and every
-  action-visibility branch (balance-checkout eligibility, cancelled hides
-  every action).
-- `copy-booking-id-button.tsx` — one-click `navigator.clipboard` copy of
-  the raw booking ID, with a toast on success. Added since the ID
-  previously had no UI surface at all (only readable from the URL bar),
-  the one manual value a vendor needs to paste into qkit's booth settings
-  to link a booking to a booth.
-- `copy-booking-id-button.dom.test.tsx` — copies to the clipboard and
-  toasts.
-- `transaction-status-card.tsx` — one linked transaction's status badge
-  (same `claimed` mint treatment as `transactions/transaction-table.tsx`),
-  amount, and its `qr_payload` rendered as a QR — or
-  "Not yet created." before the balance checkout exists. The card is an
-  `async` Server Component: it `await`s `@merqo/ui`'s shared `qrSvg` and
-  embeds the returned markup, rather than shipping `react-qr-code` to the
-  browser through a client wrapper (which is what `qr-code-view.tsx` used
-  to do, deleted 2026-09-19). `qrSvg` is async and server-only, so this
-  only works where the encoded value is known at render time;
-  `config/payment-config-form.tsx` still needs `react-qr-code` because
-  its preview payload is derived live from form state. `qr_payload`
-  isn't tagged with a checkout `type` in the DB, so this always renders it
-  as a QR; for a `pointer`-kind BYO vendor using a payment **link** that
-  still scans fine (opens the link), a BYO **QR image** vendor is the one
-  real degraded case (an image URL re-encoded as a QR instead of shown as
-  the image) — accepted for this round rather than widening
-  `transactions`' schema to persist `type`.
-- `create-balance-checkout-button.tsx` — direct-call client action
-  (`useTransition`, same shape as `plan/upgrade-cta.tsx`) wiring
-  `createBalanceCheckoutAction` to a toast/error.
-- `create-balance-checkout-button.dom.test.tsx` — calls the action with
-  the booking id, and toasts success/error.
-- `cancel-booking-dialog.tsx` — Dialog + `useTransition` (reason is a
-  plain `Textarea`, not a form field — the action takes it as a direct
-  argument, not `FormData`) wiring `cancelBookingAction` to a toast on
-  success or an inline error, same close/keep-open shape as
-  `transactions/refund-dialog.tsx`. Takes both transactions as optional
-  props; `refundableTransaction()` only offers a refund-amount field when
-  exactly one is `confirmed` — with both confirmed (or neither), it stays
-  hidden rather than guessing which one, and the vendor can still file a
-  refund per-transaction from the transactions page's own existing action.
-- `cancel-booking-dialog.dom.test.tsx` — submits a reason, toasts and
-  closes on success, keeps the dialog open with the inline error on
-  failure; the refund field's visibility and pass-through.
-- `reschedule-booking-dialog.tsx` — same Dialog + `useTransition` shape as
-  `cancel-booking-dialog.tsx`, prefilled with the booking's current
-  `event_date`/`balance_due_date`, wiring `rescheduleBookingAction`.
-- `reschedule-booking-dialog.dom.test.tsx` — prefilled values, submits new
-  dates, toasts and closes on success, keeps the dialog open with the
-  inline error on failure.
-- `print-booking-button.tsx` — `window.print()` trigger, `print:hidden`
-  itself so it never appears on the printed page. Every other action
-  button on this page is also `print:hidden`, so a printed copy shows only
-  the customer/booking/transaction summary.
-- `print-booking-button.dom.test.tsx` — renders, calls `window.print`,
-  carries `print:hidden`.
+## Controls
 
-## Connectivity
+- `recover-deposit-button.tsx` retries deposit setup for a saved booking whose
+  initial checkout or guarded link failed.
+- `create-balance-checkout-button.tsx` requests the balance after deposit setup,
+  while no balance is linked.
+- `cancel-booking-dialog.tsx` allows cancellation and optional refund bookkeeping.
+  Its refund field appears when exactly one linked transaction is confirmed;
+  otherwise refunds remain available from the transaction page.
+- `reschedule-booking-dialog.tsx` edits event and balance-due dates.
+- `copy-booking-id-button.tsx` copies the identifier for qkit booth linking.
+- `print-booking-button.tsx` prints the summary; action controls are print-hidden.
 
-Reached by `booking-table.tsx`'s per-row link and `[id]` in the URL.
-Both client components here call into `../actions.ts`, which calls
-`@/lib/checkout`'s `createCheckout`.
+Cancelled bookings hide mutation controls. Every action revalidates its inputs
+and ownership; visibility is not authorization. Dialog tests cover successful
+close/reset and failed-submit retention. Page/display tests cover missing rows,
+control eligibility, checkout kinds and legacy fallback.
 
 ## Parent
 

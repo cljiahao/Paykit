@@ -2,10 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getVendorSession } from "@/lib/vendor-session";
-import {
-  getOrCreateVendorProfile,
-  upsertVendorProfile,
-} from "@/lib/merqo-vendor-profile";
+import { patchVendorProfile } from "@/lib/merqo-vendor-profile";
 import {
   profileNameSchema,
   socialLinksSchema,
@@ -18,7 +15,7 @@ import type { ActionResult } from "@/lib/action-result";
  * Update the vendor's shared stall/shop name. Persisted in
  * merqo.vendor_profile (shared across every kit — see `Merqo Business/docs/
  * business/2026-07-21-profile-settings-page-standard.md`) via the
- * upsert_vendor_profile RPC, not a paykit-local table write (paykit has no
+ * patch_vendor_profile RPC, not a paykit-local table write (paykit has no
  * local vendors table — vendor_id is just the auth user id).
  */
 export async function updateStallName(
@@ -34,13 +31,9 @@ export async function updateStallName(
   const { supabase, user } = await getVendorSession();
 
   try {
-    const current = await getOrCreateVendorProfile(supabase, user.id, null);
-    await upsertVendorProfile(
-      supabase,
-      user.id,
-      parsed.data.name,
-      current.social_links,
-    );
+    await patchVendorProfile(supabase, user.id, {
+      stallName: parsed.data.name,
+    });
   } catch (err) {
     console.error(
       "updateStallName failed",
@@ -70,13 +63,7 @@ export async function updateSocialLinks(
   const { supabase, user } = await getVendorSession();
 
   try {
-    const current = await getOrCreateVendorProfile(supabase, user.id, null);
-    await upsertVendorProfile(
-      supabase,
-      user.id,
-      current.stall_name,
-      parsed.data,
-    );
+    await patchVendorProfile(supabase, user.id, { socialLinks: parsed.data });
   } catch (err) {
     console.error(
       "updateSocialLinks failed",

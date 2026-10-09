@@ -188,10 +188,10 @@ describe("issueRefundInputSchema", () => {
     expect(parsed.success).toBe(false);
   });
 
-  it("rejects a zero or negative amount", () => {
+  it.each(["0", "-1"])("rejects a non-positive amount: %s", (amount) => {
     const parsed = issueRefundInputSchema.safeParse({
       transaction_id: VALID_TX_ID,
-      refunded_amount_cents: "0",
+      refunded_amount_cents: amount,
       reason: "",
     });
     expect(parsed.success).toBe(false);

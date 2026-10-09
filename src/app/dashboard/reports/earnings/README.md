@@ -9,7 +9,7 @@ own costs). Free for every vendor regardless of plan, same as `stats/` —
 a view over data (confirmed transactions, bookings) that's already free to
 see raw.
 
-Accrual-aware: revenue is tagged by the *event* the money is for (a linked
+Accrual-aware: revenue is tagged by the _event_ the money is for (a linked
 booking's `event_date`), not the date the payment was claimed or
 confirmed — a deposit collected in one month for an event delivered in a
 later one counts toward the later month, matching IRAS's own guidance that
@@ -32,7 +32,7 @@ being silently dropped.
   `EarningsLinesTable`, added 2026-09-19: builds the `DataTableColumn`
   `cell`/`getRowKey` callbacks and renders `@merqo/ui`'s `DataTable`
   internally. `page.tsx` can't pass those callbacks to `DataTable` itself —
-  `@merqo/ui` ships package-wide `"use client"`, so a function prop crossing
+  the shared package at the time used a package-wide client banner, so a function prop crossing
   straight from this Server Component 500'd in production (invisible to
   `next build`/jsdom tests). Mirrors `admin/vendors/vendors-table.tsx`'s
   existing wrapper pattern; same bug class already fixed in the sibling
@@ -64,3 +64,7 @@ vendor-entered text, not app-generated — in `@/lib/earnings-csv`.
 ## Parent
 
 [reports](../README.md)
+
+The shared package now preserves each module's own client/server directive.
+These wrappers retain local callback ownership and historical fix provenance;
+the package no longer applies a blanket client banner.
